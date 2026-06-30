@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.9.2",
+    "version": "0.9.3",
     "news": {
+      "0.9.3": {
+        "en": "Fix invalid jsonConfig (missing i18n property)",
+        "de": "Fix für ungültiges jsonConfig (fehlendes i18n-Property)"
+      },
       "0.9.2": {
         "en": "Export/Import now includes power traces, cycle history and current program (full backup/restore)",
         "de": "Export/Import enthält jetzt Leistungskurven, Zyklus-Historie und aktuelles Programm (vollständiges Backup/Restore)"
