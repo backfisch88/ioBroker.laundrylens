@@ -1,0 +1,23 @@
+# npm
+node_modules/
+npm-debug.log*
+
+# build / packaging artifacts
+*.tgz
+*.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+
+# logs
+*.log
+
+# test coverage
+coverage/
+.nyc_output/
+
+# local ioBroker data (if ever run from this folder)
+/iobroker-data/

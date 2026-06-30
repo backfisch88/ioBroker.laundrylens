@@ -1,0 +1,165 @@
+{
+  "type": "panel",
+  "items": {
+    "name": {
+      "type": "text",
+      "label": "Gerätename",
+      "placeholder": "z.B. Waschmaschine",
+      "default": "Waschmaschine",
+      "help": "Anzeigename im Dashboard"
+    },
+    "deviceType": {
+      "type": "select",
+      "label": "Gerätetyp",
+      "default": "washing_machine",
+      "options": [
+        {
+          "value": "washing_machine",
+          "label": "🧺 Waschmaschine"
+        },
+        {
+          "value": "dishwasher",
+          "label": "🍽️ Spülmaschine"
+        },
+        {
+          "value": "dryer",
+          "label": "♨️ Trockner"
+        },
+        {
+          "value": "washer_dryer",
+          "label": "🔄 Waschtrockner"
+        },
+        {
+          "value": "other",
+          "label": "⚙️ Sonstiges"
+        }
+      ]
+    },
+    "powerId": {
+      "type": "objectId",
+      "label": "Leistungs-Sensor (Watt)",
+      "help": "ioBroker-Datenpunkt der aktuellen Leistungsaufnahme in Watt"
+    },
+    "_sep1": {
+      "type": "divider"
+    },
+    "_hdr1": {
+      "type": "staticText",
+      "text": "Erkennungs-Schwellen",
+      "style": {
+        "fontWeight": "bold",
+        "marginTop": "8px"
+      }
+    },
+    "powerThreshold": {
+      "type": "number",
+      "label": "Einschalt-Schwelle (W)",
+      "default": 10,
+      "min": 1,
+      "max": 500,
+      "help": "Ab wann gilt das Gerät als eingeschaltet. Empfehlung: 10W für alle Geräte"
+    },
+    "offDelayMin": {
+      "type": "number",
+      "label": "Ausschaltverzögerung (min)",
+      "default": 5,
+      "min": 1,
+      "max": 60,
+      "help": "Wie lange unter der Schwelle bevor Zyklus endet. Empfehlung: Waschmaschine 5 min · Trockner 8 min · Spülmaschine 8 min · Waschtrockner 10 min"
+    },
+    "startEnergyThreshold": {
+      "type": "number",
+      "label": "Start-Energie-Gate (Wh)",
+      "default": 2,
+      "min": 0,
+      "max": 50,
+      "help": "Mindest-Energie nach Start bevor Zyklus gezählt wird (verhindert Fehlstarts). Empfehlung: Waschmaschine 2 Wh · Trockner 5 Wh · Waschtrockner 5 Wh"
+    },
+    "_sep2": {
+      "type": "divider"
+    },
+    "_hdr2": {
+      "type": "staticText",
+      "text": "Programm-Erkennung",
+      "style": {
+        "fontWeight": "bold",
+        "marginTop": "8px"
+      }
+    },
+    "durationTolerance": {
+      "type": "number",
+      "label": "Dauer-Toleranz (0.05–0.5)",
+      "default": 0.2,
+      "min": 0.05,
+      "max": 0.5,
+      "step": 0.05,
+      "help": "Wie stark die Laufzeit vom Profil abweichen darf. 0.2 = ±20%"
+    },
+    "matchIntervalMin": {
+      "type": "number",
+      "label": "Matching-Intervall (min)",
+      "default": 5,
+      "min": 1,
+      "max": 30,
+      "help": "Wie oft das Programm erkannt wird. Empfehlung: 5 min für alle Geräte"
+    },
+    "matchPersist": {
+      "type": "number",
+      "label": "Match-Bestätigung (Anzahl)",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "help": "Wie oft das gleiche Programm hintereinander erkannt werden muss. 3 = zuverlässig · 2 = schneller"
+    },
+    "autoConfirmThreshold": {
+      "type": "number",
+      "label": "Auto-Bestätigung ab Konfidenz (%)",
+      "default": 85,
+      "min": 0,
+      "max": 100,
+      "help": "Ab dieser Konfidenz wird der Zyklus automatisch bestätigt. 0 = deaktiviert · 85 = empfohlen"
+    },
+    "instantConfirmThreshold": {
+      "type": "number",
+      "label": "Sofortübernahme ab Konfidenz (%)",
+      "default": 92,
+      "min": 50,
+      "max": 100,
+      "help": "Während des laufenden Zyklus: wenn die Live-Vorschau wiederholt (2x) mindestens diese Konfidenz zeigt, wird das Programm sofort übernommen, statt auf die normale, langsamere Erkennung zu warten."
+    },
+    "matchThreshold": {
+      "type": "number",
+      "label": "Programm-Erkennungs-Schwelle (%)",
+      "default": 55,
+      "min": 30,
+      "max": 95,
+      "help": "Ab dieser Konfidenz gilt ein Programm als erkannt (wird angezeigt). Darunter bleibt es 'detecting...'. 55 = empfohlen"
+    },
+    "notifyOnProbable": {
+      "type": "checkbox",
+      "label": "Benachrichtigung auch bei wahrscheinlichem Programm",
+      "default": false,
+      "help": "Telegram-Update senden sobald ein Programm erkannt wird – auch wenn die Konfidenz unter der Auto-Bestätigungs-Schwelle liegt"
+    },
+    "_sep3": {
+      "type": "divider",
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+    },
+    "_hdr3": {
+      "type": "staticText",
+      "text": "Trockner-Einstellungen",
+      "style": {
+        "fontWeight": "bold",
+        "marginTop": "8px"
+      },
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+    },
+    "ignoreAntiKnitter": {
+      "type": "checkbox",
+      "label": "Anti-Knitter ignorieren",
+      "default": true,
+      "help": "Zyklus beim Piepton beenden. Anti-Knitter Phase wird nicht aufgezeichnet. Empfohlen für die meisten Trockner.",
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+    }
+  }
+}

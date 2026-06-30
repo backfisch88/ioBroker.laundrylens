@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaundryLens</title>
+<script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+<style>
+:root {
+  --blue:   #1a73e8;
+  --green:  #34a853;
+  --orange: #ff9800;
+  --red:    #ea4335;
+  --surf:   #f8f9fa;
+  --bord:   #e0e0e0;
+  --text:   #202124;
+  --muted:  #5f6368;
+  --r:      8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Roboto, sans-serif; font-size: 14px; color: var(--text); background: #fff; }
+
+.tabs { display: flex; border-bottom: 2px solid var(--bord); background: #fff; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+.tab  { padding: 12px 16px; cursor: pointer; color: var(--muted); font-weight: 500; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: .2s; font-size: 13px; }
+.tab:hover { color: var(--blue); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.badge-tab { background: var(--red); color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+
+.pane { display: none; padding: 16px; }
+.pane.active { display: block; }
+
+.card { background: #fff; border: 1px solid var(--bord); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.card-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surf); border-bottom: 1px solid var(--bord); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+.card-body { padding: 14px; }
+
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: .15s; }
+.btn:hover { opacity: .85; }
+.btn-primary { background: var(--blue);   color: #fff; }
+.btn-success { background: var(--green);  color: #fff; }
+.btn-danger  { background: var(--red);    color: #fff; }
+.btn-warn    { background: var(--orange); color: #fff; }
+.btn-outline { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 7px; font-size: 11px; }
+
+.form-row   { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 120px; }
+label { font-size: 12px; color: var(--muted); font-weight: 500; }
+input, select, textarea { padding: 7px 9px; border: 1px solid var(--bord); border-radius: 6px; font-size: 13px; color: var(--text); width: 100%; }
+input:focus, select:focus { outline: none; border-color: var(--blue); }
+
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; padding: 7px 10px; background: var(--surf); border-bottom: 1px solid var(--bord); font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.tbl td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: #fafbfc; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.bg-green  { background: #e6f4ea; color: #1e7e34; }
+.bg-blue   { background: #e8f0fe; color: #1967d2; }
+.bg-orange { background: #fef3e2; color: #e37400; }
+.bg-red    { background: #fce8e6; color: #c5221f; }
+.bg-gray   { background: #f1f3f4; color: var(--muted); }
+
+.status-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 20px; border: 1px solid var(--bord); font-size: 13px; background: var(--surf); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bord); flex-shrink: 0; }
+.dot.running  { background: var(--green); animation: pulse 1.5s infinite; }
+.dot.starting, .dot.ending { background: var(--orange); animation: pulse 1s infinite; }
+.dot.off { background: #ccc; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.prog-bg { height: 6px; background: #e8eaed; border-radius: 3px; overflow: hidden; margin: 6px 0; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width .5s; border-radius: 3px; }
+
+.feedback-card { border: 2px solid var(--orange); border-radius: var(--r); padding: 14px; margin-bottom: 14px; background: #fef3e2; }
+.feedback-card h4 { margin-bottom: 8px; color: #e37400; }
+
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 22px; width: 92%; max-width: 460px; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
+.modal h3 { margin-bottom: 14px; font-size: 15px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+.dev-sel { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 9px 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: var(--r); }
+.dev-sel label { white-space: nowrap; font-size: 12px; color: var(--muted); }
+.dev-sel select { flex: 1; }
+
+#toasts { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+.toast { padding: 9px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #fff; animation: slideIn .2s; }
+.toast.ok   { background: var(--green); }
+.toast.err  { background: var(--red); }
+.toast.info { background: var(--blue); }
+@keyframes slideIn { from{transform:translateX(60px);opacity:0} to{transform:none;opacity:1} }
+
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ml-auto { margin-left: auto; }
+.text-muted { color: var(--muted); }
+.text-sm { font-size: 12px; }
+.mt-8 { margin-top: 8px; }
+.empty { text-align: center; padding: 36px 16px; color: var(--muted); }
+.toggle-wrap { display:flex; align-items:center; gap:10px; margin-bottom:6px; cursor:pointer; }
+.toggle { width:44px; height:24px; background:#ccc; border-radius:12px; position:relative; transition:.3s; flex-shrink:0; }
+.toggle.on { background:var(--green,#4caf50); }
+.toggle::after { content:''; position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; top:2px; left:2px; transition:.3s; }
+.toggle.on::after { left:22px; }
+.toggle-label { font-weight:500; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">📊 Übersicht</div>
+  <div class="tab" data-tab="programs">🗂 Programme</div>
+  <div class="tab" data-tab="cycles">🕐 Zyklen</div>
+  <div class="tab" data-tab="feedback">✅ Lernkontrolle <span class="badge-tab" id="feedback-badge" style="display:none">0</span></div>
+  <div class="tab" data-tab="export">💾 Export</div>
+</div>
+
+<!-- ÜBERSICHT -->
+<div class="pane active" id="pane-overview">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-overview" onchange="refreshOverview()"></select>
+    <button class="btn btn-outline btn-sm" onclick="refreshOverview()">↻</button>
+  </div>
+  <div class="feedback-card" id="overview-feedback" style="display:none">
+    <h4>⚠️ Lernkontrolle erforderlich</h4>
+    <p class="text-sm">Letzter Zyklus nicht sicher erkannt. Bitte bestätigen oder korrigieren.</p>
+    <button class="btn btn-warn btn-sm mt-8" onclick="switchTab('feedback')">Zur Lernkontrolle →</button>
+  </div>
+  <div class="card">
+    <div class="card-head"><span>Live-Status</span><span class="text-sm text-muted" id="ov-updated"></span></div>
+    <div class="card-body">
+      <div class="status-row">
+        <div class="chip"><div class="dot off" id="ov-dot"></div><span id="ov-state">–</span></div>
+        <div class="chip" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🏷 <span id="ov-program">–</span></div>
+        <div class="chip">📊 <span id="ov-confidence">–</span></div>
+      </div>
+      <div id="ov-phase-row" style="display:none;margin-top:12px;margin-bottom:4px;text-align:center">
+        <div id="ov-phase-pill" style="display:inline-block;background:#e8f0fe;border:1px solid #c5d8fd;border-radius:12px;padding:3px 14px;font-size:12px;color:#1a73e8;text-align:center"><span id="ov-phase">–</span></div>
+      </div>
+      <div id="ov-progress" style="display:none">
+        <div class="row" style="margin-bottom:4px">
+          <span class="text-sm text-muted">Fortschritt</span>
+          <span class="text-sm ml-auto" id="ov-pct">0%</span>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" id="ov-bar" style="width:0%"></div></div>
+        <div class="row mt-8">
+          <span class="text-sm text-muted">Restzeit</span>
+          <span class="text-sm ml-auto" id="ov-remaining">–</span>
+        </div>
+        <div class="row mt-8" id="ov-elapsed-row" style="display:none">
+          <span class="text-sm text-muted">Verstrichene Zeit</span>
+          <span class="text-sm ml-auto" id="ov-elapsed">–</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live-Steuerung -->
+  <div class="card" id="ctrl-card" style="display:none">
+    <div class="card-head">🎮 Live-Steuerung</div>
+    <div class="card-body">
+      <div class="form-row" style="align-items:flex-end">
+        <div class="form-group">
+          <label>Programm-Override</label>
+          <select id="ctrl-override" onchange="setProgramOverride()">
+            <option value="auto">🤖 Automatik</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-danger btn-sm" onclick="forceFinish()" id="btn-force-finish" style="display:none;height:100%;min-height:36px">
+            ⏹ Zyklus beenden
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">Letzter Zyklus</div>
+    <div class="card-body" id="ov-last"><span class="text-muted text-sm">Noch kein Zyklus aufgezeichnet.</span></div>
+  </div>
+  <div class="card">
+    <div class="card-head">Alle Geräte</div>
+    <div id="ov-devices-wrap"><div class="empty"><span class="text-muted text-sm">Lade…</span></div></div>
+  </div>
+
+  <div class="card" id="suggested-card" style="display:none">
+    <div class="card-head" style="color:#e37400;border-bottom-color:#ff9800">
+      <span>💡 Empfohlene Einstellungen</span>
+      <button class="btn btn-warn btn-sm" onclick="applySuggested()">Anwenden</button>
+    </div>
+    <div class="card-body" id="suggested-body"></div>
+  </div>
+</div>
+
+<!-- PROGRAMME -->
+<div class="pane" id="pane-programs">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-programs" onchange="loadPrograms()"></select>
+  </div>
+  <div class="card">
+    <div class="card-head">Neues Programm anlegen</div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Programmname</label>
+          <input type="text" id="prog-name" placeholder="z.B. Baumwolle 60°">
+        </div>
+        <div class="form-group" style="max-width:130px">
+          <label>Dauer (min)</label>
+          <input type="number" id="prog-duration" value="90" min="1" max="480">
+        </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-success" onclick="createProgram()">+ Anlegen</button>
+        </div>
+      </div>
+      <p class="text-sm text-muted">💡 Der Adapter lernt die echte Dauer nach 2–3 Zyklen automatisch.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span>Gespeicherte Programme</span><span class="badge bg-blue" id="prog-count">0</span></div>
+    <div id="prog-list-wrap"><div class="empty"><p>Noch keine Programme angelegt.</p></div></div>
+  </div>
+  <div class="card" id="antiknitter-card" style="display:none">
+    <div class="card-head">🌀 Anti-Knitter Erkennung</div>
+    <div class="card-body">
+      <p class="text-sm text-muted" style="margin-bottom:10px">Wähle einen aufgezeichneten Zyklus als Anti-Knitter Referenz. Der Adapter ignoriert danach dieses Muster automatisch nach dem Trocknen.</p>
+      <div class="form-row" style="align-items:flex-end">
+        <div class="form-group" style="flex:1">
+          <label>Referenz-Zyklus</label>
+          <select id="antiknitter-select">
+            <option value="">– Kein Zyklus gewählt –</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-warn" onclick="saveAntiKnitterFromDropdown()">🌀 Speichern</button>
+        </div>
+      </div>
+      <div id="antiknitter-status" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ZYKLEN -->
+<div class="pane" id="pane-cycles">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-cycles" onchange="loadCycles()"></select>
+    <button class="btn btn-outline btn-sm" onclick="loadCycles()">↻</button>
+  </div>
+  <div class="card">
+    <div class="card-head"><span>Zyklushistorie</span><span class="badge bg-gray" id="cycle-count">0</span></div>
+    <div id="cycle-list-wrap"><div class="empty"><p>Noch keine Zyklen aufgezeichnet.</p></div></div>
+  </div>
+</div>
+
+<!-- LERNKONTROLLE -->
+<div class="pane" id="pane-feedback">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-feedback" onchange="loadFeedback()"></select>
+    <button class="btn btn-outline btn-sm" onclick="loadFeedback()">↻</button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <p class="text-sm text-muted">Zyklen mit ❓ bestätigen oder korrigieren. Verbessert die Erkennung automatisch.</p>
+    </div>
+  </div>
+  <div id="feedback-list-wrap"><div class="empty"><p>✅ Alle Zyklen bestätigt!</p></div></div>
+</div>
+
+<!-- EXPORT -->
+<div class="pane" id="pane-export">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-export"></select>
+  </div>
+  <div class="card">
+    <div class="card-head">Konfiguration sichern</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button class="btn btn-outline" onclick="doExport()" style="justify-content:center">⬇ Export</button>
+        <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center">⬆ Import<input type="file" accept=".json" style="display:none" onchange="doImport(event)"></label>
+        <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center;border-color:#ff9800;color:#e37400">🏠 HA-Import<input type="file" accept=".json" style="display:none" onchange="doHAImport(event)"></label>
+        <button class="btn btn-outline" onclick="clearAllData()" style="justify-content:center;border-color:#ea4335;color:#c5221f">🗑 Löschen</button>
+      </div>
+      <textarea id="export-preview" rows="8" readonly placeholder="JSON erscheint hier nach Export…"></textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">🔔 Benachrichtigungen</div>
+    <div class="card-body">
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group">
+          <label>Adapter</label>
+          <select id="notif-adapter" onchange="loadNotifTargets()">
+            <option value="">– Kein Adapter –</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Empfänger</label>
+          <select id="notif-target">
+            <option value="">Alle (broadcast)</option>
+          </select>
+        </div>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom:10px">Platzhalter: <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code></p>
+
+      <div class="form-group" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="toggle" id="notif-start-enabled-tog" onclick="toggleNotif('start')"></div>
+          <input type="hidden" id="notif-start-enabled" value="0">
+          <span class="toggle-label">🟢 Start-Meldung</span>
+        </div>
+        <textarea id="notif-start-msg" rows="3" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} läuft&#10;⏳ Zeit wird ermittelt…"></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="toggle" id="notif-update-enabled-tog" onclick="toggleNotif('update')"></div>
+          <input type="hidden" id="notif-update-enabled" value="0">
+          <span class="toggle-label">🔄 Korrektur-Meldung</span>
+        </div>
+        <textarea id="notif-update-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} Update&#10;✅ Fertig um {endTime} Uhr&#10;📊 Programm: {program}"></textarea>
+        <div class="form-row" style="margin-top:8px;gap:8px">
+          <div class="form-group" style="flex:1">
+            <label style="font-size:12px">Min. Abstand (min)</label>
+            <input type="number" id="notif-update-interval" min="5" max="60" value="20" style="width:100%">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:12px">Fast-fertig ab (%)</label>
+            <input type="number" id="notif-update-nearend-pct" min="50" max="99" value="85" style="width:100%">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:12px">Fast-fertig Abw. % </label>
+            <input type="number" id="notif-update-nearend-diff-pct" min="10" max="100" value="50" style="width:100%">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:12px">Fast-fertig Abw. min</label>
+            <input type="number" id="notif-update-nearend-diff-min" min="5" max="30" value="10" style="width:100%">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="toggle" id="notif-done-enabled-tog" onclick="toggleNotif('done')"></div>
+          <input type="hidden" id="notif-done-enabled" value="0">
+          <span class="toggle-label">✅ Fertig-Meldung</span>
+        </div>
+        <textarea id="notif-done-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} fertig!&#10;⏱️ Gesamtlaufzeit: {duration} min&#10;📊 Programm: {program}&#10;⚡ Verbrauch: {energy} kWh"></textarea>
+      </div>
+
+      <div class="row" style="gap:8px">
+        <button class="btn btn-success btn-sm" onclick="saveNotifConfig()">💾 Speichern</button>
+        <button class="btn btn-outline btn-sm" onclick="testNotif()">🔔 Test</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+
+<!-- GRAPH -->
+<!-- MODALS -->
+<div class="overlay" id="modal-rename">
+  <div class="modal">
+    <h3>✏️ Programm umbenennen</h3>
+    <div class="form-group">
+      <label>Neuer Name</label>
+      <input type="text" id="rename-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-rename')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="confirmRename()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-correct">
+  <div class="modal">
+    <h3>🔄 Programm korrigieren</h3>
+    <p class="text-sm text-muted" style="margin-bottom:12px">Welches Programm war das wirklich?</p>
+    <div class="form-group">
+      <label>Programm</label>
+      <select id="correct-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-correct')">Abbrechen</button>
+      <button class="btn btn-warn" onclick="confirmCorrect()">Korrigieren & Lernen</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-assign">
+  <div class="modal">
+    <h3>🏷 Programm zuweisen</h3>
+    <p class="text-sm text-muted" style="margin-bottom:12px">Wähle das Programm für diesen Zyklus:</p>
+    <div class="form-group">
+      <label>Programm</label>
+      <select id="assign-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-assign')">Abbrechen</button>
+      <button class="btn btn-success" onclick="confirmAssign()">✓ Zuweisen & Lernen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+'use strict';
+
+// ── Socket-Verbindung wie iobroker.info ───────────
+var socket = io.connect();
+
+// Globale Phasen-Farben
+// Globale Phasen-Farben
+var PHASE_LINE_COLORS = {
+    '🔥 Aufheizen':   '#ea4335',
+    '🫧 Wäscht':      '#1a73e8',
+    '💧 Spült':       '#34a853',
+    '🌀 Schleudert':  '#fbbc04',
+    '🪣 Einweichen':  '#9a6dff',
+    '♨️ Trocknet':    '#fa7b17',
+    '❄️ Abkühlen':    '#1a73e8',
+    '👕 Anti-Knitter':'#34a853',
+    '🧹 Spült':       '#1a73e8',
+    '💧 Klarspülen':  '#34a853',
+    '💨 Trocknet':    '#fbbc04',
+};
+var PHASE_BG_COLORS = {
+    '🔥 Aufheizen':   'rgba(234,67,53,0.12)',
+    '🫧 Wäscht':      'rgba(26,115,232,0.10)',
+    '💧 Spült':       'rgba(52,168,83,0.10)',
+    '🌀 Schleudert':  'rgba(251,188,4,0.12)',
+    '🪣 Einweichen':  'rgba(154,109,255,0.10)',
+    '♨️ Trocknet':    'rgba(250,123,23,0.10)',
+    '❄️ Abkühlen':    'rgba(26,115,232,0.08)',
+    '👕 Anti-Knitter':'rgba(52,168,83,0.08)',
+    '🧹 Spült':       'rgba(26,115,232,0.10)',
+    '💧 Klarspülen':  'rgba(52,168,83,0.10)',
+    '💨 Trocknet':    'rgba(251,188,4,0.10)',
+};
+var instance = 0;
+
+// Instance aus URL lesen
+var urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('instance') !== null) {
+    instance = parseInt(urlParams.get('instance')) || 0;
+}
+
+// ── State ─────────────────────────────────────────
+var devices  = [];
+var programs = {};
+var cycles   = {};
+var _renameId = null;
+var _correctCycleId = null;
+var _refreshTimer = null;
+
+// ── sendTo ────────────────────────────────────────
+function send(cmd, data) {
+    return new Promise(function(resolve) {
+        var deviceId = data && data.deviceId;
+        var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+        if (dev) {
+            var inst = (dev._instance !== undefined) ? dev._instance : instance;
+            socket.emit('sendTo', 'laundrylens.' + inst, cmd, data || {}, resolve);
+        } else {
+            // deviceId nicht in devices – alle bekannten Instanzen probieren
+            var tried = 0;
+            var MAX = 5;
+            var found = false;
+            for (var i = 0; i < MAX; i++) {
+                (function(instNum) {
+                    socket.emit('sendTo', 'laundrylens.' + instNum, cmd, data || {}, function(res) {
+                        tried++;
+                        if (!found && res && res.ok) {
+                            found = true;
+                            resolve(res);
+                        } else if (tried >= MAX && !found) {
+                            resolve(res); // letztes Ergebnis zurückgeben
+                        }
+                    });
+                })(i);
+            }
+        }
+    });
+}
+
+// ── Toast ─────────────────────────────────────────
+function toast(msg, type) {
+    var el = document.createElement('div');
+    el.className = 'toast ' + (type || 'info');
+    el.textContent = msg;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(function() { el.remove(); }, 3000);
+}
+
+// ── Tabs ──────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(function(t) {
+    t.addEventListener('click', function() { switchTab(t.dataset.tab); });
+});
+
+function switchTab(name) {
+    document.querySelectorAll('.tab, .pane').forEach(function(el) { el.classList.remove('active'); });
+    document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
+    document.getElementById('pane-' + name).classList.add('active');
+    if (name === 'overview')  refreshOverview();
+    if (name === 'programs')  loadPrograms();
+    if (name === 'cycles')    loadCycles();
+    if (name === 'feedback')  loadFeedback();
+    if (name === 'graph')     loadGraphCycles();
+    if (name === 'export') {
+        // Mit Verzögerung laden damit devices sicher befüllt sind
+        setTimeout(function() {
+            if (devices.length > 0) {
+                loadNotifAdapters();
+            } else {
+                // Nochmal warten
+                setTimeout(function() {
+                    if (devices.length > 0) loadNotifAdapters();
+                }, 1000);
+            }
+        }, 500);
+    }
+}
+
+// ── Device selectors ──────────────────────────────
+var selIds = ['overview','programs','cycles','feedback','export'];
+
+function populateSelectors(devs) {
+    var opts = devs.map(function(d) {
+        return '<option value="' + d.deviceId + '">' + (d.name || d.deviceId) + '</option>';
+    }).join('');
+    selIds.forEach(function(id) {
+        var el = document.getElementById('sel-' + id);
+        if (el) {
+            el.innerHTML = opts;
+            el.onchange = function() {
+                var val = this.value;
+                selIds.forEach(function(sid) {
+                    var s = document.getElementById('sel-' + sid);
+                    if (s && s !== el) s.value = val;
+                });
+                // Aktiven Tab neu laden
+                var activeTab = document.querySelector('.tab.active');
+                if (activeTab) {
+                    var tab = activeTab.dataset.tab;
+                    if (tab === 'overview')  refreshOverview();
+                    if (tab === 'programs')  loadPrograms();
+                    if (tab === 'cycles')    loadCycles();
+                    if (tab === 'feedback')  loadFeedback();
+                    if (tab === 'export')    loadNotifAdapters();
+                }
+            };
+        }
+    });
+}
+
+function selVal(suffix) {
+    var el = document.getElementById('sel-' + suffix);
+    return el ? el.value : '';
+}
+
+function setActiveDevice(deviceId) {
+    selIds.forEach(function(id) {
+        var el = document.getElementById('sel-' + id);
+        if (el) el.value = deviceId;
+    });
+}
+
+// ── Init ──────────────────────────────────────────
+function init() {
+    var allDevices = [];
+    var checked = 0;
+    var MAX = 5;
+    for (var i = 0; i < MAX; i++) {
+        (function(inst) {
+            var done = false;
+            var timer = setTimeout(function() {
+                if (!done) { done = true; checked++; if (checked >= MAX) finish(); }
+            }, 1500);
+            socket.emit('sendTo', 'laundrylens.' + inst, 'getDevices', {}, function(res) {
+                if (!done) {
+                    done = true;
+                    clearTimeout(timer);
+                    if (res && res.ok && res.devices && res.devices.length > 0) {
+                        res.devices.forEach(function(d) { d._instance = inst; allDevices.push(d); });
+                    }
+                    checked++;
+                    if (checked >= MAX) finish();
+                }
+            });
+        })(i);
+    }
+    function finish() {
+        if (allDevices.length > 0) {
+            devices = allDevices;
+            populateSelectors(devices);
+            refreshOverview();
+            // Wenn Export-Tab aktiv: Notif laden
+            var activeTab2 = document.querySelector('.tab.active');
+            // Export-Tab: nach devices laden sofort aktualisieren
+            var activeTab2 = document.querySelector('.tab.active');
+            if (activeTab2 && activeTab2.dataset.tab === 'export') loadNotifAdapters();
+            startAutoRefresh();
+        } else {
+            document.getElementById('ov-devices-wrap').innerHTML =
+                '<div class="empty"><p>Keine Geräte konfiguriert.</p></div>';
+        }
+    }
+}
+
+// ── OVERVIEW ──────────────────────────────────────
+function refreshOverview() {
+    var deviceId = selVal('overview');
+    if (!deviceId) return;
+
+    Promise.all([
+        send('getStatus',       { deviceId: deviceId }),
+        send('getCycleHistory', { deviceId: deviceId }),
+    ]).then(function(results) {
+        var stRes = results[0];
+        var cyRes = results[1];
+
+        var needsFb = cyRes && cyRes.ok && cyRes.cycles.some(function(c) { return !c.confirmed; });
+        document.getElementById('overview-feedback').style.display = needsFb ? '' : 'none';
+        updateFeedbackBadge(cyRes && cyRes.cycles || []);
+
+        if (stRes && stRes.ok) {
+            var s = stRes.status;
+            var labels = { off:'Aus', starting:'Startet…', running:'Läuft ⚙️', paused:'Pausiert', ending:'Endet…' };
+            document.getElementById('ov-dot').className = 'dot ' + s.state;
+            document.getElementById('ov-state').textContent     = labels[s.state] || s.state;
+            var progEl = document.getElementById('ov-program');
+            var confEl = document.getElementById('ov-confidence');
+            if (s.state === 'off') {
+                // Bei off: Pillen leeren
+                progEl.textContent = '–';
+                confEl.textContent = '–';
+            } else if (s.program && s.program !== 'detecting...') {
+                progEl.textContent = s.program;
+                confEl.textContent = s.confidence ? Math.round(s.confidence*100)+'%' : '–';
+            } else if (s.bestCandidate) {
+                progEl.innerHTML = '≈ ' + s.bestCandidate.name;
+                confEl.textContent = '~' + s.bestCandidate.confidence + '%';
+            } else {
+                progEl.textContent = s.program || '–';
+                confEl.textContent = s.confidence ? Math.round(s.confidence*100)+'%' : '–';
+            }
+            var running = s.state === 'running' || s.state === 'paused';
+            var isDetecting = !s.program || s.program === 'detecting...' || s.program === '–';
+            document.getElementById('ov-progress').style.display = running ? '' : 'none';
+            // Fortschrittsbalken – ausblenden wenn detecting
+            var bar = document.getElementById('ov-bar');
+            var pctEl = document.getElementById('ov-pct');
+            if (isDetecting) {
+                if (bar) bar.style.width = '0%';
+                if (pctEl) pctEl.textContent = '–';
+            } else {
+                if (bar) bar.style.width = (s.cycleProgress || 0) + '%';
+                if (pctEl) pctEl.textContent = (s.cycleProgress || 0) + '%';
+            }
+            // Restzeit – ausblenden wenn detecting
+            var remEl = document.getElementById('ov-remaining');
+            if (remEl) remEl.textContent = (!isDetecting && s.timeRemaining > 0)
+                ? Math.round(s.timeRemaining / 60) + ' min'
+                : '–';
+            // Verstrichene Zeit
+            var elRow = document.getElementById('ov-elapsed-row');
+            var elEl  = document.getElementById('ov-elapsed');
+            if (running && s.elapsedTime > 0) {
+                if (elRow) elRow.style.display = '';
+                if (elEl)  elEl.textContent = s.elapsedTime + ' min';
+            } else {
+                if (elRow) elRow.style.display = 'none';
+            }
+
+            // Phase anzeigen
+            var phaseRow = document.getElementById('ov-phase-row');
+            var phaseEl  = document.getElementById('ov-phase');
+            if (running && s.phase) {
+                if (phaseRow) phaseRow.style.display = '';
+                if (phaseEl)  phaseEl.textContent = s.phase;
+            } else {
+                if (phaseRow) phaseRow.style.display = 'none';
+            }
+        }
+
+        if (cyRes && cyRes.ok && cyRes.cycles.length > 0) {
+            var c   = cyRes.cycles[0];
+            var dur = Math.round((c.durationMs || 0) / 60000);
+            var kwh = ((c.energyWh || 0) / 1000).toFixed(3);
+            var conf = c.confidence ? Math.round(c.confidence * 100) + '%' : '–';
+            var confirmed = c.confirmed
+                ? '<span class="badge bg-green">✓ Bestätigt</span>'
+                : '<span class="badge bg-orange">❓ Offen</span>';
+            document.getElementById('ov-last').innerHTML =
+                '<table class="tbl">' +
+                '<tr><td class="text-muted" style="width:130px">Programm</td><td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong> ' + confirmed + '</td></tr>' +
+                '<tr><td class="text-muted">Start</td><td>' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</td></tr>' +
+                '<tr><td class="text-muted">Dauer</td><td>' + dur + ' min</td></tr>' +
+                '<tr><td class="text-muted">Verbrauch</td><td>' + kwh + ' kWh</td></tr>' +
+                '<tr><td class="text-muted">Konfidenz</td><td>' + conf + '</td></tr>' +
+                '</table>';
+        }
+
+        // Alle Geräte
+        var colors = { off:'#ccc', running:'#34a853', starting:'#ff9800', ending:'#ea4335' };
+        Promise.all(devices.map(function(d) {
+            return send('getStatus', { deviceId: d.deviceId }).then(function(r) { return { d: d, r: r }; });
+        })).then(function(allRes) {
+            document.getElementById('ov-devices-wrap').innerHTML =
+                '<table class="tbl"><thead><tr><th>Gerät</th><th>Status</th><th>Programm</th></tr></thead><tbody>' +
+                allRes.map(function(item) {
+                    var s = item.r && item.r.ok ? item.r.status : { state:'–', program:'–' };
+                    return '<tr><td><strong>' + item.d.name + '</strong></td>' +
+                        '<td><span style="display:inline-flex;align-items:center;gap:6px">' +
+                        '<span style="width:9px;height:9px;border-radius:50%;background:' + (colors[s.state]||'#ccc') + ';display:inline-block"></span>' +
+                        s.state + '</span></td>' +
+                        '<td>' + (s.program||'–') + '</td></tr>';
+                }).join('') +
+                '</tbody></table>';
+        });
+
+        document.getElementById('ov-updated').textContent = new Date().toLocaleTimeString('de-DE');
+
+        // Control Card aktualisieren
+        send('getProfiles', {deviceId: deviceId}).then(function(pr) {
+            updateControlCard(stRes && stRes.ok ? stRes.status : null, pr && pr.ok ? pr.profiles : []);
+        });
+
+        // Suggested Settings laden
+        if (!_suggestedApplied) {
+            send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
+                var card = document.getElementById('suggested-card');
+                if (!res || !res.ok || !res.settings) { card.style.display = 'none'; return; }
+                var s = res.settings;
+                var rows = '';
+                var fields = [
+                    { key:'startEnergyThreshold', label:'Start-Energie-Gate', unit:'Wh',  min:0,    max:50,  dec:1 },
+                    { key:'durationTolerance',    label:'Dauer-Toleranz',     unit:'',    min:0.05, max:0.5, dec:2 },
+                    { key:'offDelayMin',          label:'Ausschaltverzögerung',unit:'min', min:1,    max:60,  dec:0 },
+                    { key:'powerThreshold',       label:'Einschalt-Schwelle', unit:'W',   min:1,    max:500, dec:0 },
+                ];
+                fields.forEach(function(f) {
+                    if (s[f.key] === undefined) return;
+                    var val = Math.min(f.max, Math.max(f.min, s[f.key]));
+                    rows += '<tr><td class="text-muted">' + f.label + '</td><td><strong>' + val.toFixed(f.dec) + (f.unit ? ' ' + f.unit : '') + '</strong></td></tr>';
+                });
+                document.getElementById('suggested-body').innerHTML =
+                    '<p class="text-sm text-muted" style="margin-bottom:8px">Basierend auf <strong>' + s.basedOnCycles + ' Zyklen</strong> – nur Felder mit >10% Abweichung:</p>' +
+                    '<table class="tbl">' + rows + '</table>';
+                card.style.display = '';
+            });
+        }
+    });
+}
+
+function updateFeedbackBadge(cyc) {
+    var open = cyc.filter(function(c) { return !c.confirmed; }).length;
+    var badge = document.getElementById('feedback-badge');
+    badge.textContent = open;
+    badge.style.display = open > 0 ? '' : 'none';
+}
+
+// Uhr sekündlich aktualisieren
+setInterval(function() {
+    var el = document.getElementById('ov-time');
+    if (el) el.textContent = new Date().toLocaleTimeString('de-DE');
+}, 1000);
+
+setInterval(function(){ var e=document.getElementById("ov-updated"); if(e) e.textContent=new Date().toLocaleTimeString("de-DE"); },1000);
+function startAutoRefresh() {
+    clearInterval(_refreshTimer);
+    _refreshTimer = setInterval(function() {
+        if (document.getElementById('pane-overview').classList.contains('active')) refreshOverview();
+    }, 15000);
+}
+
+// ── PROGRAMME ─────────────────────────────────────
+function loadPrograms() {
+    var deviceId = selVal('programs');
+    var isDryerDev = isDryer(deviceId);
+
+    // Anti-Knitter Card nur bei Trockner zeigen
+    var akCard = document.getElementById('antiknitter-card');
+    if (akCard) akCard.style.display = isDryerDev ? '' : 'none';
+
+    Promise.all([
+        send('getProfiles', { deviceId: deviceId }),
+        isDryerDev ? send('getCycleHistory', { deviceId: deviceId }) : Promise.resolve(null),
+        isDryerDev ? send('getAntiKnitter',  { deviceId: deviceId }) : Promise.resolve(null),
+    ]).then(function(results) {
+        var res   = results[0];
+        var cyRes = results[1];
+        var akRes = results[2];
+        if (!res || !res.ok) return toast('Fehler beim Laden', 'err');
+        programs[deviceId] = res.profiles;
+        document.getElementById('prog-count').textContent = res.profiles.length;
+        renderPrograms(deviceId);
+
+        if (isDryerDev) {
+            // Dropdown mit Zyklen befüllen
+            var sel = document.getElementById('antiknitter-select');
+            sel.innerHTML = '<option value="">– Kein Zyklus gewählt –</option>';
+            var cyList = (cyRes && cyRes.ok) ? cyRes.cycles : [];
+            cyList.forEach(function(c) {
+                var dur = Math.round((c.durationMs||0)/60000);
+                var dt  = new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                var opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = dt + ' – ' + dur + ' min (' + ((c.energyWh||0)/1000).toFixed(3) + ' kWh)';
+                sel.appendChild(opt);
+            });
+            // Aktuellen Status anzeigen
+            var statusEl = document.getElementById('antiknitter-status');
+            if (akRes && akRes.ok && akRes.antiKnitter) {
+                var ak = akRes.antiKnitter;
+                var learnedDate = new Date(ak.learnedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                statusEl.innerHTML = '✅ Gelernt am ' + learnedDate + ' · max ' + Math.round(ak.maxWatts) + 'W · ' + Math.round(ak.durationMs/60000) + ' min Sperrzeit';
+                statusEl.style.color = '#1e7e34';
+            } else {
+                statusEl.textContent = 'Noch kein Anti-Knitter Muster gespeichert.';
+                statusEl.style.color = '';
+            }
+        }
+    });
+}
+
+function saveAntiKnitterFromDropdown() {
+    var deviceId = selVal('programs');
+    var cycleId  = document.getElementById('antiknitter-select').value;
+    if (!cycleId) return toast('Bitte einen Zyklus auswählen', 'err');
+    send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+        if (res && res.ok) {
+            toast('✅ Anti-Knitter gespeichert! ' + Math.round(res.durationMin) + ' min · max ' + Math.round(res.maxWatts) + 'W', 'ok');
+            loadPrograms(); // Status aktualisieren
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+function renderPrograms(deviceId) {
+    var list = programs[deviceId] || [];
+    var wrap = document.getElementById('prog-list-wrap');
+    if (list.length === 0) {
+        wrap.innerHTML = '<div class="empty"><p>Noch keine Programme angelegt.</p></div>';
+        return;
+    }
+    wrap.innerHTML = '<table class="tbl"><thead><tr><th>Name</th><th>Dauer (Ø)</th><th>Zyklen</th><th>Angelegt</th><th></th></tr></thead><tbody>' +
+        list.map(function(p) {
+            return '<tr>' +
+                '<td><strong>' + p.name + '</strong>' + (p.isManual ? ' <span class="badge bg-gray">manuell</span>' : ' <span class="badge bg-green">gelernt</span>') + '</td>' +
+                '<td>' + (p.durationMs ? Math.round(p.durationMs/60000)+' min' : '–') + '</td>' +
+                '<td>' + (p.cycleCount||0) + '</td>' +
+                '<td class="text-sm text-muted">' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–') + '</td>' +
+                '<td><div class="row" style="gap:4px">' +
+                '<button class="btn btn-outline btn-xs" onclick="openRename(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">✏️</button>' +
+                '<button class="btn btn-danger btn-xs" onclick="deleteProgram(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">🗑</button>' +
+                '</div></td></tr>';
+        }).join('') +
+        '</tbody></table>';
+}
+
+function createProgram() {
+    var deviceId    = selVal('programs');
+    var name        = document.getElementById('prog-name').value.trim();
+    var durationMin = parseInt(document.getElementById('prog-duration').value) || 90;
+    if (!name) return toast('Bitte einen Namen eingeben', 'err');
+    send('createProfile', { deviceId: deviceId, name: name, durationMin: durationMin }).then(function(res) {
+        if (res && res.ok) {
+            toast('Programm „' + name + '" angelegt', 'ok');
+            document.getElementById('prog-name').value = '';
+            loadPrograms();
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+function openRename(id, name) {
+    _renameId = id;
+    document.getElementById('rename-input').value = name;
+    document.getElementById('modal-rename').classList.add('open');
+    setTimeout(function() { document.getElementById('rename-input').focus(); }, 50);
+}
+
+function confirmRename() {
+    var deviceId = selVal('programs');
+    var name = document.getElementById('rename-input').value.trim();
+    if (!name || !_renameId) return;
+    send('renameProfile', { deviceId: deviceId, profileId: _renameId, name: name }).then(function(res) {
+        closeModal('modal-rename');
+        if (res && res.ok) { toast('Umbenannt', 'ok'); loadPrograms(); }
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+function deleteProgram(id, name) {
+    if (!confirm('Programm „' + name + '" wirklich löschen?')) return;
+    var deviceId = selVal('programs');
+    send('deleteProfile', { deviceId: deviceId, profileId: id }).then(function(res) {
+        if (res && res.ok) { toast('Gelöscht', 'ok'); loadPrograms(); }
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+// ── ZYKLEN ────────────────────────────────────────
+function loadCycles() {
+    var deviceId = selVal('cycles');
+    Promise.all([
+        send('getCycleHistory', { deviceId: deviceId }),
+        send('getProfiles',     { deviceId: deviceId }),
+    ]).then(function(results) {
+        var cyRes = results[0];
+        var prRes = results[1];
+        if (!cyRes || !cyRes.ok) return;
+        cycles[deviceId]   = cyRes.cycles;
+        programs[deviceId] = prRes && prRes.ok ? prRes.profiles : [];
+        document.getElementById('cycle-count').textContent = cyRes.cycles.length;
+        renderCycles(deviceId);
+    });
+}
+
+function renderCycles(deviceId) {
+    var list = cycles[deviceId] || [];
+    var wrap = document.getElementById('cycle-list-wrap');
+    if (list.length === 0) {
+        wrap.innerHTML = '<div class="empty"><p>Noch keine Zyklen aufgezeichnet.</p></div>';
+        return;
+    }
+    var rows = list.map(function(c, idx) {
+        var dur  = Math.round((c.durationMs||0)/60000);
+        var kwh  = ((c.energyWh||0)/1000).toFixed(3);
+        var conf = c.confidence ? Math.round(c.confidence*100)+'%'
+            : (c.bestCandidate && c.bestCandidate.confidence ? '~' + c.bestCandidate.confidence + '%' : '–');
+        var isAK = c.isAntiKnitter || c.matchedProfile === '🌀 Anti-Knitter';
+        var statusBadge = isAK
+            ? '<span class="badge" style="background:#34a853;color:#fff">🌀</span>'
+            : (c.confirmed
+                ? (c.corrected ? '<span class="badge bg-blue">🔄</span>' : '<span class="badge bg-green">✓</span>')
+                : '<span class="badge bg-orange">❓</span>');
+        var rowStyle = isAK ? 'opacity:0.6;' : '';
+        var rowId = 'cycle-detail-' + idx;
+        return '<tr class="cycle-row" onclick="toggleCycleDetail(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')" style="cursor:pointer;'+rowStyle+'">' +
+            '<td class="text-sm">' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</td>' +
+            '<td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
+            '<td>' + dur + ' min</td>' +
+            '<td>' + kwh + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td><span class="cycle-arrow" id="arrow-'+rowId+'">▶</span></td>' +
+            '</tr>' +
+            '<tr id="' + rowId + '" style="display:none"><td colspan="6" style="padding:0">' +
+            '<div class="cycle-detail-wrap" style="padding:12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+            '<span style="font-weight:600">Leistungskurve</span>' +
+            '<span>' +
+            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();trimInlineGraph(\''+rowId+'\')" style="margin-right:4px">✂️ Trimmen</button>' +
+            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();shareInlineGraph(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ Teilen</button>' +
+            '</span></div>' +
+            '<canvas id="canvas-'+rowId+'" style="width:100%;height:180px;cursor:crosshair"></canvas>' +
+            '<div id="legend-'+rowId+'" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>' +
+            '<div id="trim-controls-'+rowId+'" style="display:none;margin-top:8px;display:none">' +
+            '<div style="display:flex;gap:8px">' +
+            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyTrimInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">✅ Anwenden</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();cancelTrimInline(\''+rowId+'\')">✖</button>' +
+            '</div></div>' +
+            '<div id="split-controls-'+rowId+'" style="display:none;margin-top:8px">' +
+            '<div style="display:flex;gap:8px">' +
+            '<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();applySplitInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ Teilen</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();cancelSplitInline(\''+rowId+'\')">✖</button>' +
+            '</div></div>' +
+            '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
+            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveAsProgram(\''+deviceId+'\',\''+c.id+'\')">💾 Als Programm speichern</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();assignProgram(\''+deviceId+'\',\''+c.id+'\')">🏷 Programm zuweisen</button>' +
+
+            '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCycle(\''+deviceId+'\',\''+c.id+'\')">🗑 Löschen</button>' +
+            '</div></div></td></tr>';
+    }).join('');
+    wrap.innerHTML = '<table class="tbl" style="width:100%"><thead><tr><th>Start</th><th>Programm</th><th>min</th><th>kWh</th><th></th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function toggleCycleDetail(deviceId, cycleId, rowId) {
+    var row = document.getElementById(rowId);
+    var arrow = document.getElementById('arrow-' + rowId);
+    if (!row) return;
+    var isOpen = row.style.display !== 'none';
+    // Alle schließen
+    document.querySelectorAll('[id^="cycle-detail-"]').forEach(function(r) {
+        r.style.display = 'none';
+    });
+    document.querySelectorAll('[id^="arrow-cycle-detail-"]').forEach(function(a) {
+        a.textContent = '▶';
+    });
+    if (!isOpen) {
+        row.style.display = '';
+        if (arrow) arrow.textContent = '▼';
+        // Graph laden - setTimeout damit DOM gerendert ist
+        send('getTrace', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+            if (!res || !res.ok || !res.trace) return;
+            var cycleList = cycles[deviceId] || [];
+            var cyc = cycleList.find(function(c) { return c.id === cycleId; });
+            setTimeout(function() {
+                var canvas = document.getElementById('canvas-' + rowId);
+                var legendEl = document.getElementById('legend-' + rowId);
+                if (!canvas) return;
+                // Feste Größe setzen
+                var wrap = canvas.closest('.cycle-detail-wrap') || canvas.parentElement;
+                var w = (wrap ? wrap.clientWidth : 0) - 24;
+                if (w < 100) w = window.innerWidth - 60;
+                canvas.width  = w;
+                canvas.height = 180;
+                canvas.style.width  = w + 'px';
+                canvas.style.height = '180px';
+                var tracePoints = res.trace.points || res.trace.powerTrace || (Array.isArray(res.trace) ? res.trace : []);
+                // tracePoints für Trim speichern
+                if (!_inlineState[rowId]) _inlineState[rowId] = {};
+                _inlineState[rowId].tracePoints = tracePoints;
+                _inlineState[rowId].phaseHistory = (cyc && cyc.phaseHistory) || [];
+                _inlineState[rowId].canvas = canvas;
+                _inlineState[rowId].legendEl = legendEl;
+                drawInlineGraph(canvas, legendEl, tracePoints, _inlineState[rowId].phaseHistory);
+            }, 200);
+        });
+    }
+}
+
+function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
+    // Canvas Größe aus Attribut oder Parent
+    var dpr = window.devicePixelRatio || 1;
+    var W = canvas.style.width ? parseInt(canvas.style.width) :
+            (canvas.parentElement ? canvas.parentElement.clientWidth - 24 : 300);
+    if (W < 50) W = 300;
+    var H = 180;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+    if (!trace || trace.length < 2) {
+        ctx.fillStyle = '#666'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Keine Trace-Daten', W/2, H/2); return;
+    }
+    var PAD = {top:12, right:8, bottom:20, left:40};
+    var gW = W - PAD.left - PAD.right, gH = H - PAD.top - PAD.bottom;
+    var t0 = trace[0].ts, t1 = trace[trace.length-1].ts, tRange = t1 - t0 || 1;
+    var maxW = Math.max.apply(null, trace.map(function(p){return p.watts;})) || 1;
+    function tx(ts)    { return PAD.left + (ts - t0) / tRange * gW; }
+    function ty(w)     { return PAD.top  + gH - (w / maxW * gH); }
+
+    // Phasen-Hintergründe
+    ctx.save();
+    ctx.beginPath(); ctx.rect(PAD.left, PAD.top, gW, gH); ctx.clip();
+    if (phaseHist && phaseHist.length > 0) {
+        // startTime aus Trace für relative tMs Konvertierung
+        var traceStart = (trace && trace.length > 0) ? trace[0].ts : 0;
+        phaseHist.forEach(function(ph, i) {
+            // Unterstütze sowohl absolute ts als auch relative tMs
+            var phTs = ph.ts !== undefined ? ph.ts : (traceStart + (ph.tMs || 0));
+            var nextPh = phaseHist[i+1];
+            var nextTs = nextPh !== undefined
+                ? (nextPh.ts !== undefined ? nextPh.ts : (traceStart + (nextPh.tMs || 0)))
+                : null;
+            var xS = Math.max(tx(phTs), PAD.left);
+            var xE = nextTs !== null ? Math.min(tx(nextTs), PAD.left+gW) : PAD.left+gW;
+            ctx.fillStyle = (PHASE_BG_COLORS && PHASE_BG_COLORS[ph.phase]) || 'rgba(200,200,200,0.2)';
+            ctx.fillRect(xS, PAD.top, xE-xS, gH);
+            ctx.strokeStyle = (PHASE_LINE_COLORS && PHASE_LINE_COLORS[ph.phase]) || '#999';
+            ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+            ctx.beginPath(); ctx.moveTo(xS, PAD.top); ctx.lineTo(xS, PAD.top+gH); ctx.stroke();
+            ctx.setLineDash([]);
+        });
+    }
+    ctx.restore();
+
+    // Kurve
+    ctx.strokeStyle = '#1a73e8'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    trace.forEach(function(p, i) {
+        if (i === 0) ctx.moveTo(tx(p.ts), ty(p.watts));
+        else ctx.lineTo(tx(p.ts), ty(p.watts));
+    });
+    ctx.stroke();
+
+    // Achsen
+    ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 0.5;
+    [0.25,0.5,0.75,1].forEach(function(s) {
+        var y = PAD.top + gH*(1-s);
+        ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+gW,y); ctx.stroke();
+        ctx.fillStyle='#888'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+        ctx.fillText(Math.round(maxW*s)+'W', PAD.left-3, y+3);
+    });
+    // Zeit-Achse
+    ctx.fillStyle='#888'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+    var durMin = Math.round(tRange/60000);
+    [0, Math.round(durMin/2), durMin].forEach(function(m) {
+        var x = PAD.left + (m/durMin)*gW;
+        ctx.fillText(m+'min', x, PAD.top+gH+12);
+    });
+
+    // Legende
+    if (legendEl && phaseHist && phaseHist.length > 0) {
+        var seen = {}, unique = [];
+        phaseHist.forEach(function(ph) { if (!seen[ph.phase]) { seen[ph.phase]=true; unique.push(ph.phase); }});
+        legendEl.style.display = 'flex';
+        legendEl.innerHTML = unique.map(function(p) {
+            var col = (PHASE_LINE_COLORS && PHASE_LINE_COLORS[p]) || '#999';
+            return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444">' +
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+'"></span>'+p+'</span>';
+        }).join('');
+    } else if (legendEl) { legendEl.style.display='none'; }
+}
+
+// ── ZYKLUS LÖSCHEN ────────────────────────────────────────────
+function deleteCycle(deviceId, cycleId) {
+    if (!confirm('Zyklus wirklich löschen?')) return;
+    send('deleteCycle', {deviceId: deviceId, cycleId: cycleId}).then(function(res) {
+        if (res && res.ok) { toast('Zyklus gelöscht', 'ok'); loadCycles(); }
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+// ── LERNKONTROLLE ─────────────────────────────────
+function loadFeedback() {
+    var deviceId = selVal('feedback');
+    Promise.all([
+        send('getCycleHistory', { deviceId: deviceId }),
+        send('getProfiles',     { deviceId: deviceId }),
+    ]).then(function(results) {
+        var cyRes = results[0];
+        var prRes = results[1];
+        if (!cyRes || !cyRes.ok) return;
+        cycles[deviceId]   = cyRes.cycles;
+        programs[deviceId] = prRes && prRes.ok ? prRes.profiles : [];
+        updateFeedbackBadge(cyRes.cycles);
+        renderFeedback(deviceId);
+    });
+}
+
+function renderFeedback(deviceId) {
+    var open = (cycles[deviceId] || []).filter(function(c) { return !c.confirmed; });
+    var wrap = document.getElementById('feedback-list-wrap');
+    if (open.length === 0) {
+        wrap.innerHTML = '<div class="empty"><p>✅ Alle Zyklen bestätigt!</p></div>';
+        return;
+    }
+    wrap.innerHTML = open.map(function(c) {
+        var dur  = Math.round((c.durationMs||0)/60000);
+        var kwh  = ((c.energyWh||0)/1000).toFixed(3);
+        var conf = c.confidence ? Math.round(c.confidence*100) : 0;
+        var confColor = conf >= 80 ? 'bg-green' : conf >= 60 ? 'bg-orange' : 'bg-red';
+        return '<div class="card">' +
+            '<div class="card-head">' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '<span class="badge ' + confColor + '">' + conf + '% Konfidenz</span></div>' +
+            '<div class="card-body">' +
+            '<table class="tbl" style="margin-bottom:12px">' +
+            '<tr><td class="text-muted" style="width:110px">Erkannt als</td><td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong></td></tr>' +
+            '<tr><td class="text-muted">Dauer</td><td>' + dur + ' min</td></tr>' +
+            '<tr><td class="text-muted">Verbrauch</td><td>' + kwh + ' kWh</td></tr>' +
+            '</table>' +
+            '<div class="row" style="gap:8px">' +
+            '<button class="btn btn-success btn-sm" onclick="confirmCycle(\'' + deviceId + '\',\'' + c.id + '\')">✓ Stimmt – bestätigen</button>' +
+            '<button class="btn btn-warn btn-sm" onclick="openCorrect(\'' + deviceId + '\',\'' + c.id + '\')">🔄 Falsches Programm</button>' +
+            '</div></div></div>';
+    }).join('');
+}
+
+function confirmCycle(deviceId, cycleId) {
+    send('confirmCycle', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+        if (res && res.ok) { toast('Bestätigt – Adapter lernt!', 'ok'); loadFeedback(); refreshOverview(); }
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+function openCorrect(deviceId, cycleId) {
+    _correctCycleId = { deviceId: deviceId, cycleId: cycleId };
+    var progs = programs[deviceId] || [];
+    document.getElementById('correct-select').innerHTML =
+        progs.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+    document.getElementById('modal-correct').classList.add('open');
+}
+
+function confirmCorrect() {
+    if (!_correctCycleId) return;
+    var profileId = document.getElementById('correct-select').value;
+    send('correctCycle', { deviceId: _correctCycleId.deviceId, cycleId: _correctCycleId.cycleId, profileId: profileId }).then(function(res) {
+        closeModal('modal-correct');
+        if (res && res.ok) { toast('Korrigiert – Adapter lernt!', 'ok'); loadFeedback(); }
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+// ── EXPORT ────────────────────────────────────────
+function doExport() {
+    var deviceId = selVal('export');
+    send('exportConfig', { deviceId: deviceId }).then(function(res) {
+        if (!res || !res.ok) return toast('Export fehlgeschlagen', 'err');
+        var json = JSON.stringify(res.export, null, 2);
+        document.getElementById('export-preview').value = json;
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
+        a.download = 'laundrylens_' + deviceId + '_' + new Date().toISOString().slice(0,10) + '.json';
+        a.click();
+        toast('Export heruntergeladen', 'ok');
+    });
+}
+
+function doImport(evt) {
+    var file = evt.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var data;
+        try { data = JSON.parse(e.target.result); } catch(ex) { return toast('Ungültige JSON-Datei', 'err'); }
+        var deviceId = selVal('export');
+        send('importConfig', { deviceId: deviceId, data: data }).then(function(res) {
+            if (res && res.ok) toast(res.imported + ' Programme importiert', 'ok');
+            else toast((res && res.error) || 'Fehler', 'err');
+        });
+    };
+    reader.readAsText(file);
+    evt.target.value = '';
+}
+
+// ── Modals ────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(function(m) {
+    m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('open'); });
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(function(m) { m.classList.remove('open'); });
+});
+
+// ── TELEGRAM ──────────────────────────────────────────────────
+function saveTelegramConfig() {
+    var inst    = document.getElementById('tg-instance').value;
+    var target  = document.getElementById('tg-target').value;
+    var msg     = document.getElementById('tg-msg').value;
+    var deviceId = selVal('export');
+    var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+    var instNum = (dev && dev._instance !== undefined) ? dev._instance : 0;
+
+    var sendToCall = target
+        ? "sendTo('" + inst + "', {text: text, chatId: '" + target + "'});"
+        : "sendTo('" + inst + "', text);";
+
+    var script =
+        "on({id: 'laundrylens." + instNum + "." + deviceId + ".state', val: 'off', change: 'any'}, () => {\n" +
+        "    const prog  = getState('laundrylens." + instNum + "." + deviceId + ".lastCycleProgram').val;\n" +
+        "    const min   = getState('laundrylens." + instNum + "." + deviceId + ".lastCycleDuration').val;\n" +
+        "    const kwh   = (getState('laundrylens." + instNum + "." + deviceId + ".lastCycleEnergy').val / 1000).toFixed(3);\n" +
+        "    const name  = '" + (dev ? dev.name : deviceId) + "';\n" +
+        "    const text  = '" + msg + "'\n" +
+        "        .replace('{program}', prog)\n" +
+        "        .replace('{duration}', min)\n" +
+        "        .replace('{energy}', kwh)\n" +
+        "        .replace('{device}', name);\n" +
+        "    " + sendToCall + "\n" +
+        "});";
+
+    document.getElementById('tg-script').value = script;
+    document.getElementById('tg-script-wrap').style.display = '';
+}
+
+function copyTgScript() {
+    var el = document.getElementById('tg-script');
+    el.select();
+    navigator.clipboard.writeText(el.value).then(function() {
+        toast('Skript kopiert!', 'ok');
+    }).catch(function() {
+        document.execCommand('copy');
+        toast('Kopiert!', 'ok');
+    });
+}
+
+
+// ── LIVE-STEUERUNG ────────────────────────────────────────────
+function updateControlCard(status, profiles) {
+    var card = document.getElementById('ctrl-card');
+    var btn  = document.getElementById('btn-force-finish');
+    if (!card) return;
+
+    var running = status && (status.state === 'running' || status.state === 'starting' || status.state === 'paused');
+    card.style.display = running ? '' : 'none';
+    if (btn) btn.style.display = running ? '' : 'none';
+
+    // Override Dropdown füllen
+    var sel = document.getElementById('ctrl-override');
+    if (sel && profiles) {
+        var current = sel.value;
+        sel.innerHTML = '<option value="auto">🤖 Automatik</option>' +
+            (profiles || []).map(function(p) {
+                return '<option value="'+p.name+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
+            }).join('');
+        if (current) sel.value = current;
+    }
+}
+
+function setProgramOverride() {
+    var deviceId = selVal('overview');
+    var program  = document.getElementById('ctrl-override').value;
+    send('setProgramOverride', {deviceId: deviceId, program: program}).then(function(res) {
+        if (res && res.ok) {
+            toast(program === 'auto' ? 'Automatik aktiv' : 'Programm "'+program+'" gesetzt', 'ok');
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+function forceFinish() {
+    var deviceId = selVal('overview');
+    if (!confirm('Zyklus wirklich beenden?')) return;
+    send('forceFinish', {deviceId: deviceId}).then(function(res) {
+        if (res && res.ok) {
+            toast('Zyklus wird beendet…', 'ok');
+            // Auto-Refresh nach 1.5s
+            setTimeout(refreshOverview, 1500);
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+// ── BENACHRICHTIGUNGEN ────────────────────────────────────────
+var _notifAdapters = [];
+
+
+function toggleNotif(type) {
+    var tog = document.getElementById('notif-' + type + '-enabled-tog');
+    var inp = document.getElementById('notif-' + type + '-enabled');
+    if (!tog || !inp) return;
+    var on = !tog.classList.contains('on');
+    tog.classList.toggle('on', on);
+    inp.value = on ? '1' : '0';
+}
+function setNotifToggle(type, val) {
+    var tog = document.getElementById('notif-' + type + '-enabled-tog');
+    var inp = document.getElementById('notif-' + type + '-enabled');
+    if (!tog || !inp) return;
+    tog.classList.toggle('on', !!val);
+    inp.value = val ? '1' : '0';
+}
+function loadNotifTargets(targetVal) {
+    var adapter = document.getElementById('notif-adapter').value;
+    var tSel    = document.getElementById('notif-target');
+    if (!tSel) return;
+    tSel.innerHTML = '<option value="">Alle (broadcast)</option>';
+    if (!adapter || !adapter.startsWith('telegram')) return;
+    var dev  = devices.length > 0 ? devices[0] : null;
+    var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
+    socket.emit('sendTo', 'laundrylens.' + inst, 'getTelegramUsers',
+        { deviceId: dev ? dev.deviceId : '', instance: adapter },
+        function(res) {
+            if (!res || !res.ok || !res.users || !res.users.length) return;
+            tSel.innerHTML = '<option value="">Alle (broadcast)</option>' +
+                res.users.map(function(u) {
+                    return '<option value="' + u.id + '">' + u.name + '</option>';
+                }).join('');
+            // Target setzen NACH dem Befüllen des Dropdowns
+            if (targetVal) tSel.value = targetVal;
+        }
+    );
+}
+
+
+function loadNotifConfig() {
+    var deviceId = selVal('export');
+    if (!deviceId) return;
+    var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
+    var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
+    socket.emit('sendTo', 'laundrylens.' + inst, 'getNotifyConfig', {deviceId: deviceId}, function(r) {
+        if (!r || !r.ok || !r.config) return;
+        var cfg = r.config;
+        var sel = document.getElementById('notif-adapter');
+        // Nur setzen wenn Adapter in der Liste vorhanden
+        if (cfg.adapter && sel && sel.querySelector('option[value="'+cfg.adapter+'"]')) sel.value = cfg.adapter;
+        if (cfg.adapter && cfg.adapter.startsWith('telegram')) loadNotifTargets();
+        var se = document.getElementById('notif-start-enabled');
+        var sm = document.getElementById('notif-start-msg');
+        var ue = document.getElementById('notif-update-enabled');
+        var um = document.getElementById('notif-update-msg');
+        var de = document.getElementById('notif-done-enabled');
+        var dm = document.getElementById('notif-done-msg');
+        setNotifToggle('start', cfg.startEnabled);
+        if (sm) sm.value = cfg.startMsg || '';
+        setNotifToggle('update', cfg.updateEnabled);
+        if (um) um.value = cfg.updateMsg || '';
+        setNotifToggle('done', cfg.doneEnabled);
+        if (dm) dm.value = cfg.doneMsg || '';
+        // Update-Intervall Einstellungen
+        var ui = document.getElementById('notif-update-interval');
+        var np = document.getElementById('notif-update-nearend-pct');
+        var nd = document.getElementById('notif-update-nearend-diff-pct');
+        var nm = document.getElementById('notif-update-nearend-diff-min');
+        if (ui) ui.value = cfg.updateIntervalMin  || 20;
+        if (np) np.value = cfg.updateNearEndPct   || 85;
+        if (nd) nd.value = cfg.updateNearEndDiffPct || 50;
+        if (nm) nm.value = cfg.updateNearEndDiffMin || 10;
+        if (cfg.target) setTimeout(function() {
+            var t = document.getElementById('notif-target');
+            if (t) t.value = cfg.target;
+        }, 600);
+    });
+}
+function loadNotifAdapters() {
+    var deviceId = selVal('export');
+    var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
+    var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
+    if (!deviceId) deviceId = dev ? dev.deviceId : '';
+    socket.emit('sendTo', 'laundrylens.' + inst, 'getNotifAdapters', {deviceId: deviceId}, function(res) {
+        var sel = document.getElementById('notif-adapter');
+        if (!sel) return;
+        if (!res || !res.ok || !res.adapters || !res.adapters.length) {
+            sel.innerHTML = '<option value="">– Kein Adapter gefunden –</option>';
+            return;
+        }
+        sel.innerHTML = '<option value="">– Adapter wählen –</option>' +
+            res.adapters.map(function(a) {
+                return '<option value="'+a.id+'">'+a.name+' ('+a.id+')</option>';
+            }).join('');
+        // Gespeicherte Config laden
+        socket.emit('sendTo', 'laundrylens.' + inst, 'getNotifyConfig', {deviceId: deviceId}, function(r) {
+            if (!r || !r.ok || !r.config) return;
+            var cfg = r.config;
+            if (cfg.adapter && sel.querySelector('option[value="'+cfg.adapter+'"]')) sel.value = cfg.adapter;
+            if (cfg.adapter && cfg.adapter.startsWith('telegram')) loadNotifTargets();
+            var sm = document.getElementById('notif-start-msg');
+            var um = document.getElementById('notif-update-msg');
+            var dm = document.getElementById('notif-done-msg');
+            var DEFS = {
+                startMsg:  '🧺 {device} läuft\n⏳ Zeit wird ermittelt…',
+                updateMsg: '🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%',
+                doneMsg:   '🧺 {device} fertig!\n⏱️ Gesamtlaufzeit: {duration} min\n📊 Programm: {program}\n⚡ Verbrauch: {energy} kWh',
+            };
+            setNotifToggle('start', cfg.startEnabled);
+            if (sm) sm.value = cfg.startMsg || DEFS.startMsg;
+            setNotifToggle('update', cfg.updateEnabled);
+            if (um) um.value = cfg.updateMsg || DEFS.updateMsg;
+            setNotifToggle('done', cfg.doneEnabled);
+            if (dm) dm.value = cfg.doneMsg || DEFS.doneMsg;
+            // Update-Intervall Einstellungen
+            var ui2 = document.getElementById('notif-update-interval');
+            var np2 = document.getElementById('notif-update-nearend-pct');
+            var nd2 = document.getElementById('notif-update-nearend-diff-pct');
+            var nm2 = document.getElementById('notif-update-nearend-diff-min');
+            if (ui2) ui2.value = cfg.updateIntervalMin    || 20;
+            if (np2) np2.value = cfg.updateNearEndPct     || 85;
+            if (nd2) nd2.value = cfg.updateNearEndDiffPct || 50;
+            if (nm2) nm2.value = cfg.updateNearEndDiffMin || 10;
+            if (cfg.target) setTimeout(function() {
+                var t = document.getElementById('notif-target');
+                if (t) t.value = cfg.target;
+            }, 600);
+        });
+    });
+}
+
+function saveNotifConfig() {
+    var deviceId = selVal('export');
+    var cfg = {
+        adapter:              document.getElementById('notif-adapter').value,
+        target:               document.getElementById('notif-target').value,
+        startEnabled:         document.getElementById('notif-start-enabled').value === '1',
+        startMsg:             document.getElementById('notif-start-msg').value,
+        updateEnabled:        document.getElementById('notif-update-enabled').value === '1',
+        updateMsg:            document.getElementById('notif-update-msg').value,
+        updateIntervalMin:    parseInt(document.getElementById('notif-update-interval').value) || 20,
+        updateNearEndPct:     parseInt(document.getElementById('notif-update-nearend-pct').value) || 85,
+        updateNearEndDiffPct: parseInt(document.getElementById('notif-update-nearend-diff-pct').value) || 50,
+        updateNearEndDiffMin: parseInt(document.getElementById('notif-update-nearend-diff-min').value) || 10,
+        doneEnabled:          document.getElementById('notif-done-enabled').value === '1',
+        doneMsg:              document.getElementById('notif-done-msg').value,
+    };
+    // Kein Adapter = alles deaktiviert, trotzdem speichern
+    send('saveNotifyConfig', {deviceId: deviceId, config: cfg}).then(function(res) {
+        if (res && res.ok) toast('Benachrichtigung gespeichert!', 'ok');
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+function testNotif() {
+    var deviceId = selVal('export');
+    var adapter  = document.getElementById('notif-adapter').value;
+    var target   = document.getElementById('notif-target').value;
+    var msg      = (document.getElementById('notif-done-msg').value ||
+                    document.getElementById('notif-start-msg').value || '🔔 Test')
+        .replace(/{device}/g,   'Testgerät')
+        .replace(/{program}/g,  'Baumwolle 60')
+        .replace(/{duration}/g, '92')
+        .replace(/{energy}/g,   '0.890')
+        .replace(/{startTime}/g,'08:00')
+        .replace(/{endTime}/g,  '09:32');
+    if (!adapter) return toast('Bitte Adapter wählen', 'err');
+    send('sendNotification', {deviceId: deviceId, adapter: adapter, target: target, message: msg}).then(function(res) {
+        if (res && res.ok) toast('Testnachricht gesendet!', 'ok');
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+
+// ── SUGGESTED SETTINGS ────────────────────────────────────────
+function applySuggested() {
+    var deviceId = selVal('overview');
+    var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+    var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
+
+    send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
+        if (!res || !res.ok || !res.settings) return toast('Keine Empfehlungen verfügbar', 'err');
+        var s = res.settings;
+
+        var lines = [];
+        var native = {};
+        var fieldDefs = [
+            { key:'startEnergyThreshold', label:'Start-Energie-Gate', unit:'Wh',  min:0,    max:50  },
+            { key:'durationTolerance',    label:'Dauer-Toleranz',     unit:'',    min:0.05, max:0.5 },
+            { key:'offDelayMin',          label:'Ausschaltverzögerung',unit:'min', min:1,    max:60  },
+            { key:'powerThreshold',       label:'Einschalt-Schwelle', unit:'W',   min:1,    max:500 },
+        ];
+        fieldDefs.forEach(function(f) {
+            if (s[f.key] === undefined) return;
+            var val = Math.min(f.max, Math.max(f.min, s[f.key]));
+            native[f.key] = val;
+            lines.push(f.label + ': ' + val + (f.unit ? ' ' + f.unit : ''));
+        });
+        if (!confirm('Empfohlene Einstellungen anwenden?\n\n' + lines.join('\n') + '\n\nBasierend auf ' + s.basedOnCycles + ' Zyklen.')) return;
+        socket.emit('extendObject', 'system.adapter.laundrylens.' + inst, {
+            native: native
+        }, function(err) {
+            if (err) {
+                toast('Fehler beim Speichern: ' + err, 'err');
+            } else {
+                toast('Einstellungen gespeichert! Adapter wird neu gestartet…', 'ok');
+                document.getElementById('suggested-card').style.display = 'none';
+                _suggestedApplied = true;
+                // Adapter neu starten damit Werte aktiv werden
+                setTimeout(function() {
+                    socket.emit('sendTo', 'system.adapter.laundrylens.' + inst, 'restart', {}, function() {});
+                }, 1000);
+            }
+        });
+    });
+}
+
+// ── CLEAR ALL DATA ──────────────────────────────────────────
+function clearAllData() {
+    var deviceId = selVal('export');
+    if (!deviceId) return toast('Kein Gerät ausgewählt', 'err');
+    var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+    var name = dev ? dev.name : deviceId;
+    if (!confirm('Alle Daten für "' + name + '" löschen?\n\nProfile, Zyklen und Traces werden unwiderruflich gelöscht!')) return;
+    var inst = (dev && dev._instance !== undefined) ? dev._instance : instance;
+    socket.emit('sendTo', 'laundrylens.' + inst, 'clearAllData', {deviceId: deviceId}, function(res) {
+        if (res && res.ok) { toast('Alle Daten gelöscht!', 'ok'); }
+        else { toast('Fehler: ' + ((res && res.error) || 'Unbekannt'), 'err'); }
+    });
+}
+
+// ── HA IMPORT ────────────────────────────────────────────────
+function doHAImport(evt) {
+    var file = evt.target.files[0]; if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var data;
+        try { data = JSON.parse(e.target.result); } catch(ex) { return toast('Ungültige JSON-Datei', 'err'); }
+        var deviceId = selVal('export');
+        var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+        if (!deviceId && devices.length > 0) { deviceId = devices[0].deviceId; dev = devices[0]; }
+        if (!deviceId) return toast('Kein Gerät gefunden', 'err');
+        var inst = (dev && dev._instance !== undefined) ? dev._instance : instance;
+        socket.emit('sendTo', 'laundrylens.' + inst, 'importFromHA', {deviceId: deviceId, data: data}, function(res) {
+            if (res && res.ok) {
+                toast(res.importedProfiles + ' Programme + ' + res.importedCycles + ' Zyklen importiert!', 'ok');
+            } else {
+                toast('Fehler: ' + ((res && res.error) || 'Unbekannt'), 'err');
+            }
+        });
+    };
+    reader.readAsText(file);
+    evt.target.value = '';
+}
+
+
+// ── GRAPH ─────────────────────────────────────────────────────
+var _graphTrace   = null;
+var _graphCycleId = null;
+var _trimMode     = false;
+var _splitMode    = false;
+var _trimStart    = null;
+var _trimEnd      = null;
+var _splitTs      = null;
+
+function loadGraphCycles() {
+    var deviceId = selVal('graph');
+    send('getCycleHistory', {deviceId: deviceId}).then(function(res) {
+        if (!res || !res.ok) return;
+        var sel = document.getElementById('graph-cycle-select');
+        var withTrace = res.cycles.filter(function(c) { return c.hasTrace; });
+        sel.innerHTML = '<option value="">– Zyklus wählen –</option>' +
+            withTrace.map(function(c) {
+                var d   = Math.round((c.durationMs||0)/60000);
+                var dt  = new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                var tag = c.importedFromHA ? ' 🏠' : '';
+                return '<option value="'+c.id+'">'+dt+' – '+(c.matchedProfile||'?')+' ('+d+' min)'+tag+'</option>';
+            }).join('');
+        document.getElementById('graph-card').style.display = 'none';
+        document.getElementById('graph-actions').style.display = 'none';
+        if (withTrace.length === 0) toast('Keine Zyklen mit Kurvendaten verfügbar', 'info');
+    });
+}
+
+function loadGraph() {
+    var deviceId = selVal('graph');
+    var cycleId  = document.getElementById('graph-cycle-select').value;
+    if (!cycleId) return;
+    _graphCycleId = cycleId;
+    send('getTrace', {deviceId: deviceId, cycleId: cycleId}).then(function(res) {
+        if (!res || !res.ok || !res.trace) return toast('Keine Trace verfügbar', 'err');
+        _graphTrace = res.trace;
+        _trimStart  = _graphTrace.startTime;
+        _trimEnd    = _graphTrace.endTime;
+        cancelTrim();
+        cancelSplit();
+        document.getElementById('graph-card').style.display = '';
+        document.getElementById('graph-actions').style.display = '';
+        var isSynth = document.getElementById('graph-cycle-select').selectedOptions[0].text.includes('🏠');
+        document.getElementById('graph-title').textContent = isSynth ? 'Leistungskurve (synthetisch aus HA)' : 'Leistungskurve';
+        drawGraph();
+    });
+}
+
+function drawGraph() {
+    if (!_graphTrace || !_graphTrace.points.length) return;
+    var canvas = document.getElementById('power-graph');
+    canvas.width  = canvas.offsetWidth  * (window.devicePixelRatio||1);
+    canvas.height = canvas.offsetHeight * (window.devicePixelRatio||1);
+    var ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+    var W = canvas.offsetWidth, H = canvas.offsetHeight;
+    var pts = _graphTrace.points;
+    var t0  = _graphTrace.startTime, t1 = _graphTrace.endTime;
+    var tRange = t1 - t0 || 1;
+    var maxW = Math.max.apply(null, pts.map(function(p){return p.watts;})) * 1.1 || 100;
+    var PAD = {top:16, right:12, bottom:24, left:44};
+    var gW = W - PAD.left - PAD.right, gH = H - PAD.top - PAD.bottom;
+
+    function tx(ts)    { return PAD.left + (ts - t0) / tRange * gW; }
+    function ty(watts) { return PAD.top  + gH - (watts / maxW * gH); }
+
+    ctx.fillStyle = '#f8f9fa'; ctx.fillRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 0.5;
+    [0, 0.25, 0.5, 0.75, 1.0].forEach(function(s) {
+        var y = PAD.top + gH * (1 - s);
+        ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + gW, y); ctx.stroke();
+        ctx.fillStyle = '#999'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxW * s) + 'W', PAD.left - 4, y + 3);
+    });
+
+    // Zeit-Achse
+    var durMin = Math.round(tRange / 60000);
+    var tick = durMin <= 30 ? 5 : durMin <= 60 ? 10 : durMin <= 120 ? 20 : 30;
+    ctx.fillStyle = '#999'; ctx.textAlign = 'center';
+    for (var m = 0; m <= durMin; m += tick) {
+        var xp = tx(t0 + m * 60000);
+        ctx.beginPath(); ctx.moveTo(xp, PAD.top + gH); ctx.lineTo(xp, PAD.top + gH + 4); ctx.stroke();
+        ctx.fillText(m + 'min', xp, H - 4);
+    }
+
+    // Phasenwechsel als farbige Hintergrundbereiche
+    var PHASE_COLORS = {
+        '🔥 Aufheizen':   'rgba(234,67,53,0.10)',
+        '🫧 Wäscht':      'rgba(26,115,232,0.10)',
+        '💧 Spült':       'rgba(52,168,83,0.10)',
+        '🌀 Schleudert':  'rgba(251,188,4,0.10)',
+        '🪣 Einweichen':  'rgba(154,109,255,0.10)',
+        '♨️ Trocknet':    'rgba(250,123,23,0.10)',
+        '❄️ Abkühlen':    'rgba(26,115,232,0.10)',
+        '👕 Anti-Knitter':'rgba(52,168,83,0.10)',
+        '🧹 Spült':       'rgba(26,115,232,0.10)',
+        '💧 Klarspülen':  'rgba(52,168,83,0.10)',
+        '💨 Trocknet':    'rgba(251,188,4,0.10)',
+        '🫧 Wäscht/Trocknet': 'rgba(26,115,232,0.10)',
+        '♨️ Nachtrocknen': 'rgba(234,67,53,0.08)',
+        '⚡ Hohe Last':    'rgba(234,67,53,0.10)',
+        '🔄 Aktiv':        'rgba(26,115,232,0.10)',
+        '💤 Niedrige Last':'rgba(150,150,150,0.08)',
+        '⏳ Standby':      'rgba(150,150,150,0.05)',
+    };
+    // PHASE_LINE_COLORS: global definiert
+    // Clip auf Graph-Bereich damit Phasen nicht über Y-Achse laufen
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(PAD.left, PAD.top, gW, gH);
+    ctx.clip();
+
+    var phaseHist = (_graphTrace && _graphTrace.phaseHistory) || [];
+    var traceStartMain = (_graphTrace && _graphTrace.points && _graphTrace.points.length > 0)
+        ? _graphTrace.points[0].ts : 0;
+    if (phaseHist.length > 0) {
+        phaseHist.forEach(function(ph, i) {
+            var phTs = ph.ts !== undefined ? ph.ts : (traceStartMain + (ph.tMs || 0));
+            var nextPh = phaseHist[i+1];
+            var nextTs = nextPh !== undefined
+                ? (nextPh.ts !== undefined ? nextPh.ts : (traceStartMain + (nextPh.tMs || 0)))
+                : null;
+            var xStart = Math.max(tx(phTs), PAD.left);
+            var xEnd   = nextTs !== null ? Math.min(tx(nextTs), PAD.left + gW) : PAD.left + gW;
+            // Farbiger Hintergrundbereich
+            var bg = PHASE_COLORS[ph.phase] || 'rgba(150,150,150,0.07)';
+            ctx.fillStyle = bg;
+            ctx.fillRect(xStart, PAD.top, xEnd - xStart, gH);
+            // Vertikale Linie beim Phasenwechsel
+            if (i > 0) {
+                var lc = PHASE_LINE_COLORS[ph.phase] || '#999';
+                ctx.strokeStyle = lc; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+                ctx.beginPath(); ctx.moveTo(xStart, PAD.top); ctx.lineTo(xStart, PAD.top + gH); ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            // Kein Label mehr im Canvas – wird unten als Legende angezeigt
+        });
+    }
+
+    // Legende unter dem Graph
+    var legendEl = document.getElementById('phase-legend');
+    if (legendEl) {
+        if (phaseHist.length > 0) {
+            // Nur eindeutige Phasen
+            var seen = {}, uniquePhases = [];
+            phaseHist.forEach(function(ph) {
+                if (!seen[ph.phase]) { seen[ph.phase] = true; uniquePhases.push(ph.phase); }
+            });
+            legendEl.style.display = 'flex';
+            legendEl.innerHTML = uniquePhases.map(function(phase) {
+                var color = PHASE_LINE_COLORS[phase] || '#999';
+                return '<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#444">' +
+                    '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + '"></span>' +
+                    phase + '</span>';
+            }).join('');
+        } else {
+            legendEl.style.display = 'none';
+            legendEl.innerHTML = '';
+        }
+    }
+
+    ctx.restore(); // Clip aufheben
+
+    // Trim-Bereich
+    if (_trimMode) {
+        ctx.fillStyle = 'rgba(26,115,232,0.08)';
+        ctx.fillRect(tx(_trimStart), PAD.top, tx(_trimEnd) - tx(_trimStart), gH);
+        [_trimStart, _trimEnd].forEach(function(ts, i) {
+            var x = tx(ts);
+            ctx.strokeStyle = '#ea4335'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + gH); ctx.stroke();
+            ctx.fillStyle = '#ea4335';
+            ctx.beginPath(); ctx.arc(x, PAD.top + gH/2, 7, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(i===0?'◀':'▶', x, PAD.top + gH/2 + 4);
+        });
+    }
+
+    // Split-Marker
+    if (_splitMode && _splitTs) {
+        var xs = tx(_splitTs);
+        ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(xs, PAD.top); ctx.lineTo(xs, PAD.top + gH); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Kurve
+    ctx.strokeStyle = '#1a73e8'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.beginPath();
+    pts.forEach(function(p, i) {
+        i === 0 ? ctx.moveTo(tx(p.ts), ty(p.watts)) : ctx.lineTo(tx(p.ts), ty(p.watts));
+    });
+    ctx.stroke();
+
+    // Fläche
+    ctx.fillStyle = 'rgba(26,115,232,0.10)';
+    ctx.beginPath();
+    ctx.moveTo(tx(pts[0].ts), PAD.top + gH);
+    pts.forEach(function(p) { ctx.lineTo(tx(p.ts), ty(p.watts)); });
+    ctx.lineTo(tx(pts[pts.length-1].ts), PAD.top + gH);
+    ctx.closePath(); ctx.fill();
+
+    // Info
+    document.getElementById('graph-info-left').textContent  = '0 min';
+    document.getElementById('graph-info-mid').textContent   = 'Max: '+Math.round(maxW/1.1)+'W';
+    document.getElementById('graph-info-right').textContent = durMin+' min';
+}
+
+function fmt(ts) { return new Date(ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+// Canvas Touch/Click Events
+document.addEventListener('DOMContentLoaded', function() {
+    var canvas = document.getElementById('power-graph');
+    if (!canvas) return;
+    var dragging = null;
+
+    function getTs(e) {
+        var rect = canvas.getBoundingClientRect();
+        var cx = e.touches ? e.touches[0].clientX : e.clientX;
+        var x  = cx - rect.left;
+        var PAD_L = 44, PAD_R = 12;
+        var frac = Math.max(0, Math.min(1, (x - PAD_L) / (canvas.offsetWidth - PAD_L - PAD_R)));
+        return Math.round(_graphTrace.startTime + frac * (_graphTrace.endTime - _graphTrace.startTime));
+    }
+
+    canvas.addEventListener('mousedown',  function(e) {
+        if (!_graphTrace) return;
+        if (_splitMode) { _splitTs = getTs(e); document.getElementById('split-point').value = fmt(_splitTs); drawGraph(); return; }
+        if (_trimMode) { var ts = getTs(e); dragging = Math.abs(ts-_trimStart) < Math.abs(ts-_trimEnd) ? 'start' : 'end'; }
+    });
+    canvas.addEventListener('mousemove',  function(e) {
+        if (!_trimMode || !dragging) return; e.preventDefault();
+        var ts = getTs(e);
+        if (dragging==='start') _trimStart = Math.min(ts, _trimEnd-60000);
+        else _trimEnd = Math.max(ts, _trimStart+60000);
+        var dm = Math.round((_trimEnd-_trimStart)/60000);
+        document.getElementById('trim-start').value    = fmt(_trimStart);
+        document.getElementById('trim-end').value      = fmt(_trimEnd);
+        document.getElementById('trim-duration').value = dm+' min';
+        drawGraph();
+    });
+    canvas.addEventListener('mouseup',    function() { dragging = null; });
+    canvas.addEventListener('touchstart', function(e) {
+        if (!_graphTrace) return;
+        if (_splitMode) { _splitTs = getTs(e); document.getElementById('split-point').value = fmt(_splitTs); drawGraph(); return; }
+        if (_trimMode) { var ts = getTs(e); dragging = Math.abs(ts-_trimStart) < Math.abs(ts-_trimEnd) ? 'start' : 'end'; }
+    }, {passive:false});
+    canvas.addEventListener('touchmove',  function(e) {
+        if (!_trimMode || !dragging) return; e.preventDefault();
+        var ts = getTs(e);
+        if (dragging==='start') _trimStart = Math.min(ts, _trimEnd-60000);
+        else _trimEnd = Math.max(ts, _trimStart+60000);
+        drawGraph();
+    }, {passive:false});
+    canvas.addEventListener('touchend', function() { dragging = null; });
+});
+
+window.addEventListener('resize', function() { if (_graphTrace) drawGraph(); });
+
+function toggleTrimMode() {
+    _trimMode = !_trimMode; _splitMode = false;
+    document.getElementById('btn-trim').style.cssText  = _trimMode  ? 'background:var(--blue);color:#fff' : '';
+    document.getElementById('btn-split').style.cssText = '';
+    document.getElementById('trim-controls').style.display  = _trimMode ? '' : 'none';
+    document.getElementById('split-controls').style.display = 'none';
+    if (_trimMode) {
+        _trimStart = _graphTrace.startTime; _trimEnd = _graphTrace.endTime;
+        document.getElementById('trim-start').value    = fmt(_trimStart);
+        document.getElementById('trim-end').value      = fmt(_trimEnd);
+        document.getElementById('trim-duration').value = Math.round((_trimEnd-_trimStart)/60000)+' min';
+    }
+    drawGraph();
+}
+
+function cancelTrim() {
+    _trimMode = false;
+    document.getElementById('btn-trim').style.cssText = '';
+    document.getElementById('trim-controls').style.display = 'none';
+    if (_graphTrace) { _trimStart = _graphTrace.startTime; _trimEnd = _graphTrace.endTime; }
+    if (_graphTrace) drawGraph();
+}
+
+function applyTrim() {
+    var deviceId = selVal('graph');
+    send('trimTrace', {deviceId:deviceId, cycleId:_graphCycleId, newStartTs:_trimStart, newEndTs:_trimEnd}).then(function(res) {
+        if (res&&res.ok) { toast('Trimmen angewendet!','ok'); _graphTrace=res.trace; cancelTrim(); loadGraphCycles(); }
+        else toast((res&&res.error)||'Fehler','err');
+    });
+}
+
+function toggleSplitMode() {
+    _splitMode = !_splitMode; _trimMode = false;
+    document.getElementById('btn-split').style.cssText = _splitMode ? 'background:var(--orange);color:#fff' : '';
+    document.getElementById('btn-trim').style.cssText  = '';
+    document.getElementById('split-controls').style.display = _splitMode ? '' : 'none';
+    document.getElementById('trim-controls').style.display  = 'none';
+    _splitTs = null; document.getElementById('split-point').value = '';
+    drawGraph();
+}
+
+function cancelSplit() {
+    _splitMode = false; _splitTs = null;
+    document.getElementById('btn-split').style.cssText = '';
+    document.getElementById('split-controls').style.display = 'none';
+    if (_graphTrace) drawGraph();
+}
+
+function applySplit() {
+    if (!_splitTs) return toast('Teilungspunkt im Graph wählen','err');
+    var deviceId = selVal('graph');
+    send('splitTrace', {deviceId:deviceId, cycleId:_graphCycleId, splitTs:_splitTs}).then(function(res) {
+        if (res&&res.ok) { toast('Geteilt!','ok'); cancelSplit(); loadGraphCycles(); document.getElementById('graph-card').style.display='none'; }
+        else toast((res&&res.error)||'Fehler','err');
+    });
+}
+
+function deleteGraphCycle() {
+    if (!_graphCycleId) return;
+    var deviceId = selVal('graph');
+    if (!confirm('Diesen Zyklus wirklich löschen?')) return;
+    send('deleteCycle', {deviceId: deviceId, cycleId: _graphCycleId}).then(function(res) {
+        if (res && res.ok) {
+            toast('Zyklus gelöscht', 'ok');
+            document.getElementById('graph-card').style.display = 'none';
+            document.getElementById('graph-actions').style.display = 'none';
+            _graphCycleId = null;
+            _graphTrace   = null;
+            loadGraphCycles();
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+
+// Wrapper für inline Graph Aktionen
+
+// Trim/Split State
+var _inlineState = {};
+
+function trimInlineGraph(rowId) {
+    var st = _inlineState[rowId];
+    if (!st || !st.tracePoints) { toast('Graph zuerst laden', 'err'); return; }
+    var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+    st.trimMode  = !st.trimMode;
+    st.splitMode = false;
+    if (st.trimMode) {
+        st.trimStart = t0; st.trimEnd = t1;
+        st.canvas.style.cursor = 'ew-resize';
+        _setupInlineTouch(rowId);
+    } else {
+        st.canvas.style.cursor = '';
+    }
+    var trimDiv  = document.getElementById('trim-controls-'  + rowId);
+    var splitDiv = document.getElementById('split-controls-' + rowId);
+    if (trimDiv)  trimDiv.style.display  = st.trimMode ? '' : 'none';
+    if (splitDiv) splitDiv.style.display = 'none';
+    _inlineRedraw(rowId);
+}
+
+function shareInlineGraphSplit(rowId) {
+    var st = _inlineState[rowId];
+    if (!st || !st.tracePoints) { toast('Graph zuerst laden', 'err'); return; }
+    var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+    st.splitMode = !st.splitMode;
+    st.trimMode  = false;
+    st.trimStart = undefined; st.trimEnd = undefined;
+    if (st.splitMode) {
+        st.splitTs = Math.round(t0 + (t1-t0)/2);
+        st.canvas.style.cursor = 'ew-resize';
+        _setupInlineTouch(rowId);
+    } else {
+        st.canvas.style.cursor = '';
+    }
+    var trimDiv  = document.getElementById('trim-controls-'  + rowId);
+    var splitDiv = document.getElementById('split-controls-' + rowId);
+    if (trimDiv)  trimDiv.style.display  = 'none';
+    if (splitDiv) splitDiv.style.display = st.splitMode ? '' : 'none';
+    _inlineRedraw(rowId);
+}
+
+function cancelSplitInline(rowId) {
+    var st = _inlineState[rowId];
+    if (st) { st.splitMode = false; st.splitTs = undefined; }
+    var splitDiv = document.getElementById('split-controls-' + rowId);
+    if (splitDiv) splitDiv.style.display = 'none';
+    if (st && st.canvas) st.canvas.style.cursor = '';
+    _inlineRedraw(rowId);
+}
+
+function cancelTrimInline(rowId) {
+    var st = _inlineState[rowId];
+    if (st) { st.trimMode = false; st.trimStart = undefined; st.trimEnd = undefined; }
+    var trimDiv = document.getElementById('trim-controls-' + rowId);
+    if (trimDiv) trimDiv.style.display = 'none';
+    if (st && st.canvas) st.canvas.style.cursor = '';
+    _inlineRedraw(rowId);
+}
+
+function applyTrimInline(deviceId, cycleId, rowId) {
+    var st = _inlineState[rowId];
+    if (!st || !st.tracePoints || st.trimStart === undefined) return;
+    var startTs = Math.min(st.trimStart, st.trimEnd);
+    var endTs   = Math.max(st.trimStart, st.trimEnd);
+    send('trimTrace', { deviceId: deviceId, cycleId: cycleId, newStartTs: startTs, newEndTs: endTs }).then(function(res) {
+        if (res && res.ok) {
+            toast('Trimmen angewendet!', 'ok');
+            st.trimMode = false;
+            document.getElementById('trim-controls-' + rowId).style.display = 'none';
+            reloadInlineGraph(deviceId, cycleId, rowId);
+        } else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+function applySplitInline(deviceId, cycleId, rowId) {
+    var st = _inlineState[rowId];
+    if (!st) { toast('Kein State', 'err'); return; }
+    if (!st.tracePoints) { toast('Kein Trace', 'err'); return; }
+    if (st.splitTs === undefined || st.splitTs === null) { toast('Splitpunkt ziehen!', 'err'); return; }
+    send('splitTrace', { deviceId: deviceId, cycleId: cycleId, splitTs: Math.round(st.splitTs) }).then(function(res) {
+        if (res && res.ok) {
+            toast('Geteilt!', 'ok');
+            st.splitMode = false;
+            var sd = document.getElementById('split-controls-' + rowId);
+            if (sd) sd.style.display = 'none';
+            loadCycles();
+        } else toast((res && res.error) || 'Fehler beim Teilen', 'err');
+    });
+}
+
+function reloadInlineGraph(deviceId, cycleId, rowId) {
+    var row = document.getElementById(rowId);
+    if (row) row.style.display = 'none';
+    setTimeout(function() {
+        if (row) row.style.display = '';
+        send('getTrace', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+            if (!res || !res.ok || !res.trace) return;
+            var canvas = document.getElementById('canvas-' + rowId);
+            var legendEl = document.getElementById('legend-' + rowId);
+            if (!canvas) return;
+            var tracePoints = res.trace.points || res.trace.powerTrace || [];
+            if (!_inlineState[rowId]) _inlineState[rowId] = {};
+            _inlineState[rowId].tracePoints = tracePoints;
+            var cycleList = cycles[deviceId] || [];
+            var cyc = cycleList.find(function(c) { return c.id === cycleId; });
+            drawInlineGraph(canvas, legendEl, tracePoints, (cyc && cyc.phaseHistory) || []);
+        });
+    }, 100);
+}
+
+function shareInlineGraph(deviceId, cycleId, rowId) {
+    function activateSplit() {
+        var st = _inlineState[rowId];
+        if (!st || !st.tracePoints) return;
+        var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+        st.splitMode = !st.splitMode;
+        st.trimMode = false;
+        st.trimStart = undefined; st.trimEnd = undefined;
+        if (st.splitMode) {
+            st.splitTs = Math.round(t0 + (t1-t0)/2);
+            var canvas = document.getElementById('canvas-' + rowId) || st.canvas;
+            if (canvas) { st.canvas = canvas; canvas.style.cursor = 'ew-resize'; _setupInlineTouch(rowId); }
+        } else {
+            if (st.canvas) st.canvas.style.cursor = '';
+        }
+        var splitDiv = document.getElementById('split-controls-' + rowId);
+        var trimDiv  = document.getElementById('trim-controls-'  + rowId);
+        if (trimDiv)  trimDiv.style.display  = 'none';
+        if (splitDiv) splitDiv.style.display = st.splitMode ? '' : 'none';
+        _inlineRedraw(rowId);
+    }
+
+    var st = _inlineState[rowId];
+    if (!st || !st.tracePoints) {
+        send('getTrace', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+            if (!res || !res.ok || !res.trace) { toast('Trace nicht verfügbar', 'err'); return; }
+            if (!_inlineState[rowId]) _inlineState[rowId] = {};
+            var st2 = _inlineState[rowId];
+            st2.tracePoints = res.trace.points || res.trace.powerTrace || [];
+            var canvas = document.getElementById('canvas-' + rowId);
+            var legendEl = document.getElementById('legend-' + rowId);
+            if (canvas) {
+                st2.canvas = canvas; st2.legendEl = legendEl;
+                var cycleList = cycles[deviceId] || [];
+                var cyc = cycleList.find(function(c) { return c.id === cycleId; });
+                st2.phaseHistory = (cyc && cyc.phaseHistory) || [];
+                var dpr = window.devicePixelRatio || 1;
+                var wrap = canvas.closest('.cycle-detail-wrap') || canvas.parentElement;
+                var w = (wrap ? wrap.clientWidth : 0) - 24;
+                if (w < 100) w = window.innerWidth - 60;
+                canvas.width = w * dpr; canvas.height = 180 * dpr;
+                canvas.style.width = w + 'px'; canvas.style.height = '180px';
+                drawInlineGraph(canvas, legendEl, st2.tracePoints, st2.phaseHistory);
+            }
+            activateSplit();
+        });
+        return;
+    }
+    activateSplit();
+}
+
+
+// ── Inline Graph Touch/Drag ──────────────────────────────────
+
+function _inlineRedraw(rowId) {
+    var st = _inlineState[rowId];
+    if (!st || !st.tracePoints) return;
+    var canvas = document.getElementById('canvas-' + rowId) || st.canvas;
+    if (!canvas) return;
+    st.canvas = canvas;
+    var legendEl = document.getElementById('legend-' + rowId) || st.legendEl;
+    drawInlineGraph(canvas, legendEl, st.tracePoints, st.phaseHistory || []);
+    var ctx = canvas.getContext('2d');
+    var W = parseInt(canvas.style.width) || 300;
+    var H = 180;
+    var PAD = {top:12, right:8, bottom:20, left:40};
+    var gW = W - PAD.left - PAD.right;
+    var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+    function tx(ts) { return PAD.left + (ts - t0) / (t1 - t0) * gW; }
+
+    ctx.save();
+    if (st.trimMode) {
+        var xs = tx(st.trimStart), xe = tx(st.trimEnd);
+        // Abgedunkelte Bereiche außerhalb
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillRect(PAD.left, PAD.top, xs - PAD.left, H - PAD.top - PAD.bottom);
+        ctx.fillRect(xe, PAD.top, PAD.left + gW - xe, H - PAD.top - PAD.bottom);
+        // Rote Linien
+        ctx.strokeStyle = '#ea4335'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+        [xs, xe].forEach(function(x) {
+            ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, H - PAD.bottom); ctx.stroke();
+        });
+        ctx.setLineDash([]);
+        // Pfeil-Handles
+        ctx.fillStyle = '#ea4335';
+        [xs, xe].forEach(function(x) {
+            ctx.beginPath();
+            ctx.arc(x, H/2, 12, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('↔', x, H/2);
+            ctx.fillStyle = '#ea4335';
+        });
+    }
+    if (st.splitMode && st.splitTs !== undefined) {
+        var xs2 = tx(st.splitTs);
+        ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 3; ctx.setLineDash([6,3]);
+        ctx.beginPath(); ctx.moveTo(xs2, PAD.top); ctx.lineTo(xs2, H - PAD.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        // Oranger Handle
+        ctx.fillStyle = '#ff9800';
+        ctx.beginPath(); ctx.arc(xs2, H/2, 14, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('↔', xs2, H/2);
+    }
+    ctx.restore();
+}
+
+function _setupInlineTouch(rowId, deviceId, cycleId) {
+    var st = _inlineState[rowId];
+    if (!st || !st.canvas) return;
+    var canvas = st.canvas;
+    var dragging = null;
+
+    function getTs(e) {
+        var rect = canvas.getBoundingClientRect();
+        var cx = e.touches ? e.touches[0].clientX : e.clientX;
+        var x = cx - rect.left;
+        var W = parseInt(canvas.style.width) || 300;
+        var PAD_L = 40, PAD_R = 8;
+        var ratio = Math.max(0, Math.min(1, (x - PAD_L) / (W - PAD_L - PAD_R)));
+        var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+        return t0 + ratio * (t1 - t0);
+    }
+
+    function onStart(e) {
+        e.stopPropagation();
+        var ts = getTs(e);
+        var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+        var range = t1 - t0;
+        if (st.splitMode) {
+            st.splitTs = ts; dragging = 'split';
+            _inlineRedraw(rowId); return;
+        }
+        if (st.trimMode) {
+            var dS = Math.abs(ts - st.trimStart) / range;
+            var dE = Math.abs(ts - st.trimEnd)   / range;
+            dragging = dS < dE ? 'trimStart' : 'trimEnd';
+        }
+    }
+    function onMove(e) {
+        if (!dragging) return;
+        e.preventDefault(); e.stopPropagation();
+        var ts = getTs(e);
+        var t0 = st.tracePoints[0].ts, t1 = st.tracePoints[st.tracePoints.length-1].ts;
+        var minGap = (t1-t0) * 0.05;
+        if (dragging === 'trimStart') st.trimStart = Math.min(ts, st.trimEnd - minGap);
+        else if (dragging === 'trimEnd') st.trimEnd = Math.max(ts, st.trimStart + minGap);
+        else if (dragging === 'split') st.splitTs = ts;
+        _inlineRedraw(rowId);
+    }
+    function onEnd() { dragging = null; }
+
+    // Event Listener direkt auf Canvas setzen
+    canvas.addEventListener('mousedown',  onStart, {passive:false});
+    canvas.addEventListener('mousemove',  onMove,  {passive:false});
+    canvas.addEventListener('mouseup',    onEnd);
+    canvas.addEventListener('touchstart', onStart, {passive:false});
+    canvas.addEventListener('touchmove',  onMove,  {passive:false});
+    canvas.addEventListener('touchend',   onEnd);
+}
+
+function isDryer(deviceId) {
+    var dev = devices.find(function(d) { return d.deviceId === deviceId; });
+    if (!dev) return false;
+    var t = (dev.deviceType || '').toLowerCase();
+    return t === 'dryer' || t === 'trockner';
+}
+
+function saveAsAntiKnitter(deviceId, cycleId) {
+    if (!confirm('Diesen Zyklus als Anti-Knitter-Muster speichern?\nEr wird verwendet um Anti-Knitter nach dem Trocknen zu erkennen.')) return;
+    send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
+        if (res && res.ok) toast('✅ Anti-Knitter gespeichert! Dauer: ' + Math.round(res.durationMin) + ' min, Max: ' + Math.round(res.maxWatts) + 'W', 'ok');
+        else toast((res && res.error) || 'Fehler', 'err');
+    });
+}
+
+function saveAsProgram(deviceId, cycleId) {
+    var name = prompt('Programmname:');
+    if (!name) return;
+    send('createProfileFromTrace', {deviceId: deviceId, cycleId: cycleId, name: name}).then(function(res) {
+        if (!res || !res.ok) return toast((res && res.error) || 'Fehler', 'err');
+        // Direkt dem Zyklus zuweisen
+        send('correctCycle', {deviceId: deviceId, cycleId: cycleId, profileId: res.profileId}).then(function(res2) {
+            if (res2 && res2.ok) { toast('Programm gespeichert & zugewiesen!', 'ok'); loadCycles(); }
+            else toast((res2 && res2.error) || 'Fehler beim Zuweisen', 'err');
+        });
+    });
+}
+
+function assignProgram(deviceId, cycleId) {
+    send('getProfiles', {deviceId: deviceId}).then(function(res) {
+        if (!res || !res.ok || !res.profiles.length) return toast('Keine Programme vorhanden', 'err');
+        var sel = document.getElementById('assign-select');
+        sel.innerHTML = res.profiles.map(function(p) {
+            return '<option value="'+p.id+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
+        }).join('');
+        // cycleId und deviceId für Bestätigung merken
+        document.getElementById('modal-assign').dataset.cycleId = cycleId;
+        document.getElementById('modal-assign').dataset.deviceId = deviceId;
+        document.getElementById('modal-assign').classList.add('open');
+    });
+}
+
+function createProfileFromGraph() {
+    var name = prompt('Programmname:');
+    if (!name) return;
+    send('createProfileFromTrace', {deviceId:selVal('graph'), cycleId:_graphCycleId, name:name}).then(function(res) {
+        if (res&&res.ok) toast('Programm gespeichert!','ok');
+        else toast((res&&res.error)||'Fehler','err');
+    });
+}
+
+function assignGraphCycle() {
+    var deviceId = selVal('graph');
+    send('getProfiles', {deviceId: deviceId}).then(function(res) {
+        if (!res || !res.ok || !res.profiles.length) return toast('Keine Programme vorhanden', 'err');
+        var sel = document.getElementById('assign-select');
+        sel.innerHTML = res.profiles.map(function(p) {
+            return '<option value="'+p.id+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
+        }).join('');
+        document.getElementById('modal-assign').classList.add('open');
+    });
+}
+
+function confirmAssign() {
+    var modal     = document.getElementById('modal-assign');
+    var deviceId  = modal.dataset.deviceId || selVal('graph');
+    var cycleId   = modal.dataset.cycleId  || _graphCycleId;
+    var profileId = document.getElementById('assign-select').value;
+    if (!profileId) return;
+    send('correctCycle', {deviceId: deviceId, cycleId: cycleId, profileId: profileId}).then(function(res) {
+        closeModal('modal-assign');
+        modal.dataset.deviceId = '';
+        modal.dataset.cycleId  = '';
+        if (res && res.ok) {
+            toast('Zugewiesen & gelernt!', 'ok');
+            loadCycles();
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+// ── Boot ──────────────────────────────────────────
+socket.on('connect', function() {
+    init();
+});
+
+// Falls bereits verbunden
+if (socket.connected) {
+    init();
+}
+</script>
+</body>
+</html>

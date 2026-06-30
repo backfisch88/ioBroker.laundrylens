@@ -1,0 +1,52 @@
+{
+  "name": "iobroker.laundrylens",
+  "version": "0.9.1",
+  "description": "ioBroker adapter that detects washing machine and dryer cycles via smart plug power measurement, matches them against learned programs and estimates remaining time",
+  "author": {
+    "name": "backfisch88",
+    "url": "https://github.com/backfisch88"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/backfisch88/ioBroker.laundrylens",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backfisch88/ioBroker.laundrylens.git"
+  },
+  "bugs": {
+    "url": "https://github.com/backfisch88/ioBroker.laundrylens/issues"
+  },
+  "main": "main.js",
+  "files": [
+    "admin/",
+    "lib/",
+    "io-package.json",
+    "main.js",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha --exit tests/",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@iobroker/adapter-core": "^3.2.2"
+  },
+  "devDependencies": {
+    "@iobroker/testing": "^4.1.3",
+    "mocha": "^10.0.0",
+    "chai": "^4.3.0",
+    "eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ioBroker",
+    "washing machine",
+    "dryer",
+    "smart plug",
+    "shelly",
+    "power monitoring",
+    "cycle detection",
+    "laundrylens"
+  ]
+}

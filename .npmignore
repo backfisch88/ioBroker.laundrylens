@@ -1,0 +1,9 @@
+test/
+tests/
+.github/
+.gitignore
+.eslintrc*
+*.tgz
+*.zip
+.nyc_output/
+coverage/

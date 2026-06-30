@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaundryLens</title>
+<link rel="stylesheet" href="../../css/adapter.css">
+<style>
+:root {
+  --blue:   #1a73e8;
+  --green:  #34a853;
+  --orange: #ff9800;
+  --red:    #ea4335;
+  --surf:   #f8f9fa;
+  --bord:   #e0e0e0;
+  --text:   #202124;
+  --muted:  #5f6368;
+  --r:      8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Roboto, sans-serif; font-size: 14px; color: var(--text); background: #fff; }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 2px solid var(--bord); background: #fff; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+.tab  { padding: 12px 16px; cursor: pointer; color: var(--muted); font-weight: 500; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: .2s; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.tab:hover { color: var(--blue); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.badge-tab { background: var(--red); color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+
+.pane { display: none; padding: 16px; }
+.pane.active { display: block; }
+
+/* Cards */
+.card { background: #fff; border: 1px solid var(--bord); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.card-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surf); border-bottom: 1px solid var(--bord); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+.card-body { padding: 14px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: .15s; }
+.btn:hover { opacity: .85; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--blue);   color: #fff; }
+.btn-success { background: var(--green);  color: #fff; }
+.btn-danger  { background: var(--red);    color: #fff; }
+.btn-warn    { background: var(--orange); color: #fff; }
+.btn-outline { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 7px; font-size: 11px; }
+
+/* Forms */
+.form-row   { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 120px; }
+label { font-size: 12px; color: var(--muted); font-weight: 500; }
+input, select, textarea { padding: 7px 9px; border: 1px solid var(--bord); border-radius: 6px; font-size: 13px; color: var(--text); width: 100%; }
+input:focus, select:focus { outline: none; border-color: var(--blue); }
+
+/* Table */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; padding: 7px 10px; background: var(--surf); border-bottom: 1px solid var(--bord); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); font-weight: 600; }
+.tbl td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: #fafbfc; }
+
+/* Badges */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.bg-green  { background: #e6f4ea; color: #1e7e34; }
+.bg-blue   { background: #e8f0fe; color: #1967d2; }
+.bg-orange { background: #fef3e2; color: #e37400; }
+.bg-red    { background: #fce8e6; color: #c5221f; }
+.bg-gray   { background: #f1f3f4; color: var(--muted); }
+
+/* Status */
+.status-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 20px; border: 1px solid var(--bord); font-size: 13px; background: var(--surf); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bord); flex-shrink: 0; }
+.dot.running  { background: var(--green); animation: pulse 1.5s infinite; }
+.dot.starting, .dot.ending { background: var(--orange); animation: pulse 1s infinite; }
+.dot.off { background: #ccc; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* Progress */
+.prog-wrap { margin: 4px 0; }
+.prog-bg { height: 6px; background: #e8eaed; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width .5s; border-radius: 3px; }
+
+/* Feedback card */
+.feedback-card { border: 2px solid var(--orange); border-radius: var(--r); padding: 14px; margin-bottom: 14px; background: #fef3e2; }
+.feedback-card h4 { margin-bottom: 8px; color: #e37400; display: flex; align-items: center; gap: 6px; }
+
+/* Modal */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 22px; width: 92%; max-width: 460px; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
+.modal h3 { margin-bottom: 14px; font-size: 15px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* Device selector */
+.dev-sel { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 9px 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: var(--r); }
+.dev-sel label { white-space: nowrap; font-size: 12px; color: var(--muted); }
+.dev-sel select { flex: 1; }
+
+/* Toast */
+#toasts { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+.toast { padding: 9px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #fff; animation: slideIn .2s; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.toast.ok    { background: var(--green); }
+.toast.err   { background: var(--red); }
+.toast.info  { background: var(--blue); }
+@keyframes slideIn { from{transform:translateX(60px);opacity:0} to{transform:none;opacity:1} }
+
+/* Helpers */
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ml-auto { margin-left: auto; }
+.text-muted { color: var(--muted); }
+.text-sm { font-size: 12px; }
+.mt-8 { margin-top: 8px; }
+.empty { text-align: center; padding: 36px 16px; color: var(--muted); }
+.empty i { font-size: 32px; margin-bottom: 10px; display: block; }
+</style>
+</head>
+<body>
+
+<!-- TAB BAR -->
+<div class="tabs" id="tabbar">
+  <div class="tab active" data-tab="overview">📊 Übersicht</div>
+  <div class="tab" data-tab="programs">🗂 Programme</div>
+  <div class="tab" data-tab="cycles">🕐 Zyklen</div>
+  <div class="tab" data-tab="feedback">✅ Lernkontrolle <span class="badge-tab" id="feedback-badge" style="display:none">0</span></div>
+  <div class="tab" data-tab="export">💾 Export</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ÜBERSICHT
+════════════════════════════════════════ -->
+<div class="pane active" id="pane-overview">
+
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-overview" onchange="refreshOverview()"></select>
+    <button class="btn btn-outline btn-sm" onclick="refreshOverview()">↻</button>
+  </div>
+
+  <!-- Feedback-Hinweis -->
+  <div class="feedback-card" id="overview-feedback" style="display:none">
+    <h4>⚠️ Lernkontrolle erforderlich</h4>
+    <p class="text-sm">Der letzte Zyklus wurde nicht sicher erkannt. Bitte im Tab <strong>Lernkontrolle</strong> bestätigen oder korrigieren.</p>
+    <button class="btn btn-warn btn-sm mt-8" onclick="switchTab('feedback')">Zur Lernkontrolle →</button>
+  </div>
+
+  <!-- Live Status -->
+  <div class="card">
+    <div class="card-head">
+      <span>Live-Status</span>
+      <span class="text-sm text-muted" id="ov-updated"></span>
+    </div>
+    <div class="card-body">
+      <div class="status-row">
+        <div class="chip">
+          <div class="dot off" id="ov-dot"></div>
+          <span id="ov-state">–</span>
+        </div>
+        <div class="chip">🏷 <span id="ov-program">–</span></div>
+        <div class="chip">📊 <span id="ov-confidence">–</span></div>
+      </div>
+      <div id="ov-progress" style="display:none">
+        <div class="row" style="margin-bottom:5px">
+          <span class="text-sm text-muted">Fortschritt</span>
+          <span class="text-sm ml-auto" id="ov-pct">0%</span>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" id="ov-bar" style="width:0%"></div></div>
+        <div class="row mt-8">
+          <span class="text-sm text-muted">Restzeit</span>
+          <span class="text-sm ml-auto" id="ov-remaining">–</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Letzter Zyklus -->
+  <div class="card">
+    <div class="card-head">Letzter Zyklus</div>
+    <div class="card-body" id="ov-last">
+      <span class="text-muted text-sm">Noch kein Zyklus aufgezeichnet.</span>
+    </div>
+  </div>
+
+  <!-- Alle Geräte Übersicht -->
+  <div class="card">
+    <div class="card-head">Alle Geräte</div>
+    <div id="ov-devices-wrap">
+      <div class="empty"><span class="text-muted text-sm">Lade…</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PROGRAMME
+════════════════════════════════════════ -->
+<div class="pane" id="pane-programs">
+
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-programs" onchange="loadPrograms()"></select>
+  </div>
+
+  <!-- Neues Programm -->
+  <div class="card">
+    <div class="card-head">Neues Programm anlegen</div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Programmname</label>
+          <input type="text" id="prog-name" placeholder="z.B. Baumwolle 60°">
+        </div>
+        <div class="form-group" style="max-width:130px">
+          <label>Dauer (min)</label>
+          <input type="number" id="prog-duration" value="90" min="1" max="480">
+        </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-success" onclick="createProgram()">+ Anlegen</button>
+        </div>
+      </div>
+      <p class="text-sm text-muted">
+        💡 Tipp: Lass die Maschine 2–3 Mal laufen. Der Adapter lernt die echte Dauer und Leistungskurve automatisch.
+      </p>
+    </div>
+  </div>
+
+  <!-- Programmliste -->
+  <div class="card">
+    <div class="card-head">
+      <span>Gespeicherte Programme</span>
+      <span class="badge bg-blue" id="prog-count">0</span>
+    </div>
+    <div id="prog-list-wrap">
+      <div class="empty">
+        <span>🗂</span>
+        <p>Noch keine Programme.<br>Lege dein erstes Programm oben an.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ZYKLEN
+════════════════════════════════════════ -->
+<div class="pane" id="pane-cycles">
+
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-cycles" onchange="loadCycles()"></select>
+    <button class="btn btn-outline btn-sm" onclick="loadCycles()">↻</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span>Zyklushistorie</span>
+      <span class="badge bg-gray" id="cycle-count">0</span>
+    </div>
+    <div id="cycle-list-wrap">
+      <div class="empty">
+        <span>🕐</span>
+        <p>Noch keine Zyklen aufgezeichnet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     LERNKONTROLLE
+════════════════════════════════════════ -->
+<div class="pane" id="pane-feedback">
+
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-feedback" onchange="loadFeedback()"></select>
+    <button class="btn btn-outline btn-sm" onclick="loadFeedback()">↻</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Erkennungen bestätigen oder korrigieren</div>
+    <div class="card-body">
+      <p class="text-sm text-muted" style="margin-bottom:12px">
+        Zyklen ohne Bestätigung haben ein ❓. Deine Rückmeldung verbessert die Erkennung (80/20-Lerngewichtung).
+      </p>
+    </div>
+  </div>
+
+  <div id="feedback-list-wrap">
+    <div class="empty">
+      <span>✅</span>
+      <p>Keine offenen Zyklen – alles bestätigt!</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     EXPORT
+════════════════════════════════════════ -->
+<div class="pane" id="pane-export">
+
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-export"></select>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Konfiguration sichern & wiederherstellen</div>
+    <div class="card-body">
+      <div class="row" style="gap:8px; margin-bottom:12px">
+        <button class="btn btn-outline" onclick="doExport()">⬇ Export (JSON)</button>
+        <label class="btn btn-outline" style="cursor:pointer">
+          ⬆ Import
+          <input type="file" accept=".json" style="display:none" onchange="doImport(event)">
+        </label>
+      </div>
+      <textarea id="export-preview" rows="8" readonly placeholder="JSON erscheint hier nach Export…"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">JavaScript-Beispiele</div>
+    <div class="card-body">
+      <p class="text-sm text-muted" style="margin-bottom:8px">Benachrichtigung wenn Wäsche fertig (Telegram):</p>
+      <textarea rows="5" readonly style="font-family:monospace;font-size:11px">on({id:'laundrylens.0.washer_1.state', val:'off', change:'any'}, () => {
+  const prog = getState('laundrylens.0.washer_1.lastCycleProgram').val;
+  const min  = getState('laundrylens.0.washer_1.lastCycleDuration').val;
+  sendTo('telegram.0', `🧺 Fertig! ${prog} – ${min} min`);
+});</textarea>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="modal-rename">
+  <div class="modal">
+    <h3>✏️ Programm umbenennen</h3>
+    <div class="form-group">
+      <label>Neuer Name</label>
+      <input type="text" id="rename-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-rename')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="confirmRename()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-correct">
+  <div class="modal">
+    <h3>🔄 Programm korrigieren</h3>
+    <p class="text-sm text-muted" style="margin-bottom:12px">Welches Programm war das wirklich?</p>
+    <div class="form-group">
+      <label>Programm auswählen</label>
+      <select id="correct-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-correct')">Abbrechen</button>
+      <button class="btn btn-warn" onclick="confirmCorrect()">Korrigieren & Lernen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+'use strict';
+
+// ── State ────────────────────────────────────────
+let devices  = [];
+let programs = {};   // deviceId → []
+let cycles   = {};   // deviceId → []
+let _renameId = null;
+let _correctCycleId = null;
+let _refreshTimer = null;
+
+// ── ioBroker bridge ──────────────────────────────
+function send(cmd, data) {
+  return new Promise(resolve => {
+    if (typeof socket !== 'undefined' && socket.emit) {
+      socket.emit('sendTo', `laundrylens.${instance}`, cmd, data, resolve);
+    } else {
+      resolve({ error: 'no socket' });
+    }
+  });
+}
+
+// ── Toast ────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ── Tabs ─────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => switchTab(t.dataset.tab));
+});
+
+function switchTab(name) {
+  document.querySelectorAll('.tab, .pane').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`pane-${name}`).classList.add('active');
+  if (name === 'overview')  refreshOverview();
+  if (name === 'programs')  loadPrograms();
+  if (name === 'cycles')    loadCycles();
+  if (name === 'feedback')  loadFeedback();
+}
+
+// ── Device selectors ─────────────────────────────
+const selIds = ['overview','programs','cycles','feedback','export'];
+
+function populateSelectors(devs) {
+  const opts = devs.map(d => `<option value="${d.deviceId}">${d.name || d.deviceId}</option>`).join('');
+  selIds.forEach(id => {
+    const el = document.getElementById(`sel-${id}`);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function selVal(suffix) {
+  const el = document.getElementById(`sel-${suffix}`);
+  return el ? el.value : '';
+}
+
+// ── Init ─────────────────────────────────────────
+async function init() {
+  const res = await send('getDevices', {});
+  if (res && res.ok) {
+    devices = res.devices || [];
+    populateSelectors(devices);
+  }
+  await refreshOverview();
+  startAutoRefresh();
+}
+
+// ── OVERVIEW ─────────────────────────────────────
+async function refreshOverview() {
+  const deviceId = selVal('overview');
+  if (!deviceId) return;
+
+  const [stRes, cyRes] = await Promise.all([
+    send('getStatus',       { deviceId }),
+    send('getCycleHistory', { deviceId }),
+  ]);
+
+  // Feedback-Hinweis
+  const needsFb = cyRes?.ok && cyRes.cycles.some(c => !c.confirmed);
+  document.getElementById('overview-feedback').style.display = needsFb ? '' : 'none';
+  updateFeedbackBadge(cyRes?.cycles || []);
+
+  // Status
+  if (stRes?.ok) {
+    const s = stRes.status;
+    const labels = { off:'Aus', starting:'Startet…', running:'Läuft ⚙️', paused:'Pausiert', ending:'Endet…' };
+    document.getElementById('ov-dot').className   = `dot ${s.state}`;
+    document.getElementById('ov-state').textContent     = labels[s.state] || s.state;
+    document.getElementById('ov-program').textContent   = s.program || '–';
+    document.getElementById('ov-confidence').textContent = s.confidence ? `${Math.round(s.confidence*100)}%` : '–';
+    const running = s.state === 'running' || s.state === 'paused';
+    document.getElementById('ov-progress').style.display = running ? '' : 'none';
+  }
+
+  // Letzter Zyklus
+  if (cyRes?.ok && cyRes.cycles.length > 0) {
+    const c   = cyRes.cycles[0];
+    const dur = Math.round((c.durationMs || 0) / 60000);
+    const kwh = ((c.energyWh || 0) / 1000).toFixed(3);
+    const conf= c.confidence ? Math.round(c.confidence * 100) + '%' : '–';
+    const confirmed = c.confirmed
+      ? '<span class="badge bg-green">✓ Bestätigt</span>'
+      : '<span class="badge bg-orange">❓ Offen</span>';
+    document.getElementById('ov-last').innerHTML = `
+      <table class="tbl">
+        <tr><td class="text-muted" style="width:130px">Programm</td><td><strong>${c.matchedProfile || 'Unbekannt'}</strong> ${confirmed}</td></tr>
+        <tr><td class="text-muted">Start</td><td>${new Date(c.startTime).toLocaleString('de-DE')}</td></tr>
+        <tr><td class="text-muted">Dauer</td><td>${dur} min</td></tr>
+        <tr><td class="text-muted">Verbrauch</td><td>${kwh} kWh</td></tr>
+        <tr><td class="text-muted">Konfidenz</td><td>${conf}</td></tr>
+      </table>`;
+  }
+
+  // Alle Geräte Mini-Status
+  const allRes = await Promise.all(
+    devices.map(d => send('getStatus', { deviceId: d.deviceId }).then(r => ({ d, r })))
+  );
+  const colors = { off:'#ccc', running:'#34a853', starting:'#ff9800', ending:'#ea4335' };
+  document.getElementById('ov-devices-wrap').innerHTML = `
+    <table class="tbl">
+      <thead><tr><th>Gerät</th><th>Status</th><th>Programm</th></tr></thead>
+      <tbody>${allRes.map(({ d, r }) => {
+        const s = r?.ok ? r.status : { state: '–', program: '–' };
+        return `<tr>
+          <td><strong>${d.name}</strong></td>
+          <td><span style="display:inline-flex;align-items:center;gap:6px">
+            <span style="width:9px;height:9px;border-radius:50%;background:${colors[s.state]||'#ccc'};display:inline-block"></span>
+            ${s.state}
+          </span></td>
+          <td>${s.program || '–'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+
+  document.getElementById('ov-updated').textContent = new Date().toLocaleTimeString('de-DE');
+}
+
+function updateFeedbackBadge(cyc) {
+  const open = (cyc || []).filter(c => !c.confirmed).length;
+  const badge = document.getElementById('feedback-badge');
+  badge.textContent = open;
+  badge.style.display = open > 0 ? '' : 'none';
+}
+
+function startAutoRefresh() {
+  clearInterval(_refreshTimer);
+  _refreshTimer = setInterval(() => {
+    if (document.getElementById('pane-overview').classList.contains('active')) refreshOverview();
+  }, 15000);
+}
+
+// ── PROGRAMME ────────────────────────────────────
+async function loadPrograms() {
+  const deviceId = selVal('programs');
+  const res = await send('getProfiles', { deviceId });
+  if (!res?.ok) return toast('Fehler beim Laden', 'err');
+  programs[deviceId] = res.profiles;
+  document.getElementById('prog-count').textContent = res.profiles.length;
+  renderPrograms(deviceId);
+}
+
+function renderPrograms(deviceId) {
+  const list = programs[deviceId] || [];
+  const wrap = document.getElementById('prog-list-wrap');
+  if (list.length === 0) {
+    wrap.innerHTML = `<div class="empty"><span>🗂</span><p>Noch keine Programme angelegt.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<table class="tbl">
+    <thead><tr><th>Name</th><th>Dauer (Ø)</th><th>Zyklen</th><th>Angelegt</th><th></th></tr></thead>
+    <tbody>${list.map(p => `
+      <tr>
+        <td><strong>${p.name}</strong>${p.isManual ? ' <span class="badge bg-gray">manuell</span>' : ' <span class="badge bg-green">gelernt</span>'}</td>
+        <td>${p.durationMs ? Math.round(p.durationMs/60000)+' min' : '–'}</td>
+        <td>${p.cycleCount||0}</td>
+        <td class="text-sm text-muted">${p.createdAt ? new Date(p.createdAt).toLocaleDateString('de-DE') : '–'}</td>
+        <td>
+          <div class="row" style="gap:4px">
+            <button class="btn btn-outline btn-xs" onclick="openRename('${p.id}','${p.name.replace(/'/g,"\\'")}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteProgram('${p.id}','${p.name.replace(/'/g,"\\'")}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+async function createProgram() {
+  const deviceId    = selVal('programs');
+  const name        = document.getElementById('prog-name').value.trim();
+  const durationMin = parseInt(document.getElementById('prog-duration').value) || 90;
+  if (!name) return toast('Bitte einen Namen eingeben', 'err');
+  const res = await send('createProfile', { deviceId, name, durationMin });
+  if (res?.ok) {
+    toast(`Programm „${name}" angelegt`, 'ok');
+    document.getElementById('prog-name').value = '';
+    await loadPrograms();
+  } else {
+    toast(res?.error || 'Fehler', 'err');
+  }
+}
+
+function openRename(id, name) {
+  _renameId = id;
+  document.getElementById('rename-input').value = name;
+  document.getElementById('modal-rename').classList.add('open');
+  setTimeout(() => document.getElementById('rename-input').focus(), 50);
+}
+
+async function confirmRename() {
+  const deviceId = selVal('programs');
+  const name = document.getElementById('rename-input').value.trim();
+  if (!name || !_renameId) return;
+  const res = await send('renameProfile', { deviceId, profileId: _renameId, name });
+  closeModal('modal-rename');
+  if (res?.ok) { toast('Umbenannt', 'ok'); await loadPrograms(); }
+  else toast(res?.error || 'Fehler', 'err');
+}
+
+async function deleteProgram(id, name) {
+  if (!confirm(`Programm „${name}" wirklich löschen?\nAlle gelernten Daten gehen verloren.`)) return;
+  const deviceId = selVal('programs');
+  const res = await send('deleteProfile', { deviceId, profileId: id });
+  if (res?.ok) { toast('Gelöscht', 'ok'); await loadPrograms(); }
+  else toast(res?.error || 'Fehler', 'err');
+}
+
+// ── ZYKLEN ────────────────────────────────────────
+async function loadCycles() {
+  const deviceId = selVal('cycles');
+  const [cyRes, prRes] = await Promise.all([
+    send('getCycleHistory', { deviceId }),
+    send('getProfiles',     { deviceId }),
+  ]);
+  if (!cyRes?.ok) return toast('Fehler beim Laden', 'err');
+  cycles[deviceId]   = cyRes.cycles;
+  programs[deviceId] = prRes?.profiles || [];
+  document.getElementById('cycle-count').textContent = cyRes.cycles.length;
+  renderCycles(deviceId);
+}
+
+function renderCycles(deviceId) {
+  const list = cycles[deviceId] || [];
+  const wrap = document.getElementById('cycle-list-wrap');
+  if (list.length === 0) {
+    wrap.innerHTML = `<div class="empty"><span>🕐</span><p>Noch keine Zyklen aufgezeichnet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<table class="tbl">
+    <thead><tr><th>Start</th><th>Programm</th><th>Dauer</th><th>kWh</th><th>Status</th></tr></thead>
+    <tbody>${list.map(c => {
+      const dur  = Math.round((c.durationMs||0)/60000);
+      const kwh  = ((c.energyWh||0)/1000).toFixed(3);
+      const conf = c.confidence ? Math.round(c.confidence*100)+'%' : '–';
+      const statusBadge = c.confirmed
+        ? (c.corrected ? '<span class="badge bg-blue">🔄 Korrigiert</span>' : '<span class="badge bg-green">✓ Best.</span>')
+        : '<span class="badge bg-orange">❓ Offen</span>';
+      return `<tr>
+        <td class="text-sm">${new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+        <td><strong>${c.matchedProfile||'Unbekannt'}</strong><br><span class="text-sm text-muted">${conf}</span></td>
+        <td>${dur} min</td>
+        <td>${kwh}</td>
+        <td>${statusBadge}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+// ── LERNKONTROLLE ────────────────────────────────
+async function loadFeedback() {
+  const deviceId = selVal('feedback');
+  const [cyRes, prRes] = await Promise.all([
+    send('getCycleHistory', { deviceId }),
+    send('getProfiles',     { deviceId }),
+  ]);
+  if (!cyRes?.ok) return;
+  cycles[deviceId]   = cyRes.cycles;
+  programs[deviceId] = prRes?.profiles || [];
+  updateFeedbackBadge(cyRes.cycles);
+  renderFeedback(deviceId);
+}
+
+function renderFeedback(deviceId) {
+  const open = (cycles[deviceId] || []).filter(c => !c.confirmed);
+  const wrap = document.getElementById('feedback-list-wrap');
+
+  if (open.length === 0) {
+    wrap.innerHTML = `<div class="empty"><span>✅</span><p>Alle Zyklen bestätigt – super!</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = open.map(c => {
+    const dur  = Math.round((c.durationMs||0)/60000);
+    const kwh  = ((c.energyWh||0)/1000).toFixed(3);
+    const conf = c.confidence ? Math.round(c.confidence*100) : 0;
+    const confColor = conf >= 80 ? 'bg-green' : conf >= 60 ? 'bg-orange' : 'bg-red';
+    return `
+    <div class="card">
+      <div class="card-head">
+        ${new Date(c.startTime).toLocaleString('de-DE')}
+        <span class="badge ${confColor}">${conf}% Konfidenz</span>
+      </div>
+      <div class="card-body">
+        <table class="tbl" style="margin-bottom:12px">
+          <tr><td class="text-muted" style="width:110px">Erkannt als</td><td><strong>${c.matchedProfile || 'Unbekannt'}</strong></td></tr>
+          <tr><td class="text-muted">Dauer</td><td>${dur} min</td></tr>
+          <tr><td class="text-muted">Verbrauch</td><td>${kwh} kWh</td></tr>
+        </table>
+        <div class="row" style="gap:8px">
+          <button class="btn btn-success btn-sm" onclick="confirmCycle('${deviceId}','${c.id}')">
+            ✓ Stimmt – bestätigen
+          </button>
+          <button class="btn btn-warn btn-sm" onclick="openCorrect('${deviceId}','${c.id}')">
+            🔄 War ein anderes Programm
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function confirmCycle(deviceId, cycleId) {
+  const res = await send('confirmCycle', { deviceId, cycleId });
+  if (res?.ok) { toast('Bestätigt – Adapter lernt!', 'ok'); await loadFeedback(); await refreshOverview(); }
+  else toast(res?.error || 'Fehler', 'err');
+}
+
+function openCorrect(deviceId, cycleId) {
+  _correctCycleId = { deviceId, cycleId };
+  const progs = programs[deviceId] || [];
+  document.getElementById('correct-select').innerHTML =
+    progs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('modal-correct').classList.add('open');
+}
+
+async function confirmCorrect() {
+  if (!_correctCycleId) return;
+  const { deviceId, cycleId } = _correctCycleId;
+  const profileId = document.getElementById('correct-select').value;
+  const res = await send('correctCycle', { deviceId, cycleId, profileId });
+  closeModal('modal-correct');
+  if (res?.ok) { toast('Korrigiert – Adapter lernt!', 'ok'); await loadFeedback(); }
+  else toast(res?.error || 'Fehler', 'err');
+}
+
+// ── EXPORT ────────────────────────────────────────
+async function doExport() {
+  const deviceId = selVal('export');
+  const res = await send('exportConfig', { deviceId });
+  if (!res?.ok) return toast('Export fehlgeschlagen', 'err');
+  const json = JSON.stringify(res.export, null, 2);
+  document.getElementById('export-preview').value = json;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
+  a.download = `laundrylens_${deviceId}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('Export heruntergeladen', 'ok');
+}
+
+async function doImport(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); } catch { return toast('Ungültige JSON-Datei', 'err'); }
+  const deviceId = selVal('export');
+  const res = await send('importConfig', { deviceId, data });
+  if (res?.ok) toast(`${res.imported} Programme importiert`, 'ok');
+  else toast(res?.error || 'Import fehlgeschlagen', 'err');
+  evt.target.value = '';
+}
+
+// ── Modals ────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(m => m.classList.remove('open'));
+});
+
+// ── Boot ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
