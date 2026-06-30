@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "news": {
+      "0.2.2": {
+        "en": "Debug log now shows the best candidate (program + confidence) and current match threshold even when there is no official match yet",
+        "de": "Debug-Log zeigt jetzt den besten Kandidaten (Programm + Konfidenz) und die aktuelle Erkennungsschwelle, auch wenn noch kein offizielles Match vorliegt"
+      },
       "0.2.1": {
         "en": "Removed HA-Import feature (unused, button + backend handler)",
         "de": "HA-Import entfernt (ungenutzt, Button + Backend-Handler)"
