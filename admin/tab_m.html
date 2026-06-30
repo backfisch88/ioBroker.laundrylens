@@ -1225,7 +1225,7 @@ function doImport(evt) {
         try { data = JSON.parse(e.target.result); } catch(ex) { return toast('Ungültige JSON-Datei', 'err'); }
         var deviceId = selVal('export');
         send('importConfig', { deviceId: deviceId, data: data }).then(function(res) {
-            if (res && res.ok) toast(res.imported + ' Programme importiert', 'ok');
+            if (res && res.ok) toast(res.imported + ' Programme, ' + (res.importedCycles||0) + ' Zyklen, ' + (res.importedTraces||0) + ' Graphen importiert', 'ok');
             else toast((res && res.error) || 'Fehler', 'err');
         });
     };

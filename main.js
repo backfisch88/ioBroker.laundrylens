@@ -570,9 +570,29 @@ class WashdataAdapter extends utils.Adapter {
                     const mgr = this._mgr(obj.message);
                     if (!mgr) return respond({ error: 'Gerät nicht gefunden' });
                     if (!data || !data.profiles) return respond({ error: 'Ungültige Daten' });
+
                     for (const p of data.profiles) mgr.profileStore.profiles[p.id] = p;
                     await mgr.profileStore.save();
-                    respond({ ok: true, imported: data.profiles.length });
+
+                    let importedCycles = 0;
+                    if (Array.isArray(data.cycles)) {
+                        mgr.cycleHistory = data.cycles;
+                        importedCycles = data.cycles.length;
+                    }
+
+                    let importedTraces = 0;
+                    if (data.traces && typeof data.traces === 'object') {
+                        mgr.traceStore.traces = data.traces;
+                        await mgr.traceStore.save();
+                        importedTraces = Object.keys(data.traces).length;
+                    }
+
+                    respond({
+                        ok: true,
+                        imported: data.profiles.length,
+                        importedCycles,
+                        importedTraces,
+                    });
                     break;
                 }
 
@@ -583,6 +603,9 @@ class WashdataAdapter extends utils.Adapter {
                         deviceId:   obj.message.deviceId,
                         profiles:   mgr.getProfiles(),
                         cycles:     mgr.getCycleHistory(),
+                        traces:     mgr.traceStore.traces,
+                        currentProgram: mgr.currentProgram || null,
+                        formatVersion: 2,
                         exportedAt: new Date().toISOString(),
                     }});
                     break;

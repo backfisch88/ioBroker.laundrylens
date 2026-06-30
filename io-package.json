@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "news": {
+      "0.9.2": {
+        "en": "Export/Import now includes power traces, cycle history and current program (full backup/restore)",
+        "de": "Export/Import enthält jetzt Leistungskurven, Zyklus-Historie und aktuelles Programm (vollständiges Backup/Restore)"
+      },
       "0.9.1": {
         "en": "GitHub repository preparation, packaging cleanup",
         "de": "GitHub-Repository-Vorbereitung, Paket-Aufräumarbeiten"
