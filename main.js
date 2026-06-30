@@ -611,102 +611,6 @@ class WashdataAdapter extends utils.Adapter {
                     break;
                 }
 
-                case 'importFromHA': {
-                    const { data } = obj.message || {};
-                    const mgr = this._mgr(obj.message);
-                    if (!mgr) return respond({ error: 'Gerät nicht gefunden' });
-                    if (!data) return respond({ error: 'Keine Daten' });
-
-                    try {
-                        let store = null;
-                        if (data.data && data.data.store_export && data.data.store_export.data) {
-                            store = data.data.store_export.data;
-                        } else if (data.store_export && data.store_export.data) {
-                            store = data.store_export.data;
-                        } else if (data.profiles && data.past_cycles) {
-                            store = data;
-                        }
-                        if (!store) return respond({ error: 'Format unbekannt. Keys: ' + Object.keys(data).join(', ') });
-
-                        const haProfiles = store.profiles || {};
-                        const haCycles   = store.past_cycles || [];
-                        let importedProfiles = 0;
-                        let importedCycles   = 0;
-
-                        const devCfg = this._getDeviceConfig().find(d => d.deviceId === (obj.message && obj.message.deviceId));
-
-                        // Vor Import alles leeren
-                        mgr.profileStore.profiles = {};
-                        mgr.cycleHistory = [];
-                        mgr.traceStore.traces = {};
-
-                        for (const [name, haP] of Object.entries(haProfiles)) {
-                            const durationMs = (haP.avg_duration || 0) * 1000;
-                            const pid = mgr.profileStore.createManualProfile(name, durationMs, devCfg ? devCfg.deviceType : 'washing_machine');
-                            const profile = mgr.profileStore.getProfile(pid);
-                            profile.durationHistory = [
-                                (haP.min_duration||durationMs*0.8)*1000,
-                                durationMs,
-                                (haP.max_duration||durationMs*1.2)*1000
-                            ];
-                            profile.importedFromHA = true;
-                            importedProfiles++;
-                        }
-
-
-                        for (const haC of haCycles) {
-                            const startTime  = new Date(haC.start_time).getTime();
-                            const endTime    = new Date(haC.end_time).getTime();
-                            const durationMs = (haC.duration || 0) * 1000;
-                            const sig        = haC.signature || {};
-                            const energyWh   = sig.total_energy || 0;
-                            const cycleId    = 'ha_' + (haC.id || Date.now());
-
-                            const cycle = {
-                                id: cycleId, startTime, endTime, durationMs,
-                                energyWh, matchedProfile: haC.profile_name || 'Unknown',
-                                profileId: null, confidence: haC.profile_name ? 0.9 : 0,
-                                status: haC.status || 'completed', confirmed: true,
-                                importedFromHA: true, traceLength: 0,
-                                hasTrace: !!(sig.max_power > 0), haSignature: sig,
-                            };
-
-                            const matchedProfile = mgr.profileStore.getAllProfiles().find(p => p.name === cycle.matchedProfile);
-                            if (matchedProfile) {
-                                cycle.profileId = matchedProfile.id;
-                                mgr.profileStore.learnFromCycle(matchedProfile.id, [], durationMs);
-                            }
-
-                            if (sig.max_power > 0) {
-                                const synthTrace = this._generateSyntheticTrace(sig, startTime, endTime);
-                                if (synthTrace.length >= 2) {
-                                    mgr.traceStore.saveTrace(cycleId, synthTrace, startTime, endTime);
-                                    cycle.traceLength = synthTrace.length;
-                                }
-                            }
-
-                            const exists = mgr.cycleHistory.find(ch => ch.id === cycleId);
-                            if (!exists) { mgr.cycleHistory.push(cycle); importedCycles++; }
-                        }
-
-                        mgr.cycleHistory.sort((a, b) => b.startTime - a.startTime);
-                        if (mgr.cycleHistory.length > 100) mgr.cycleHistory.length = 100;
-
-                        await mgr.profileStore.save();
-                        await mgr.traceStore.save();
-                        await mgr._saveState();
-                        await this._updateOverrideStates(obj.message.deviceId, mgr);
-
-                        this.log.info('[HA-Import] Fertig: ' + importedProfiles + ' Profile, ' + importedCycles + ' Zyklen');
-                        respond({ ok: true, importedProfiles, importedCycles });
-
-                    } catch (err) {
-                        this.log.error('[HA-Import] Fehler: ' + err.message);
-                        respond({ error: err.message });
-                    }
-                    break;
-                }
-
                 // ── Benachrichtigungen ────────────────────────────
                 case 'sendNotification': {
                     const { adapter: notifAdapter, target, message } = obj.message || {};
@@ -839,30 +743,6 @@ class WashdataAdapter extends utils.Adapter {
         });
     }
 
-    // ── Synthetische Trace aus HA-Signatur ───────────────────────
-    _generateSyntheticTrace(sig, startTime, endTime) {
-        const durationMs = endTime - startTime;
-        const durationS  = durationMs / 1000;
-        const POINTS     = 60;
-        const stepMs     = durationMs / POINTS;
-        const p05 = sig.p05||0, p25=sig.p25||0, p50=sig.p50||0, p75=sig.p75||0, p95=sig.p95||0;
-        const maxW = sig.max_power||p95;
-        const t2first = sig.time_to_first_high||durationS*0.1;
-        const trace = [];
-        for (let i = 0; i <= POINTS; i++) {
-            const ts = startTime + i * stepMs;
-            const frac = i / POINTS;
-            const tSec = frac * durationS;
-            let watts;
-            if (tSec < t2first*0.1) watts = p25*(tSec/(t2first*0.1));
-            else if (tSec < t2first*0.3) { const f=(tSec-t2first*0.1)/(t2first*0.2); watts=p25+(maxW-p25)*Math.min(1,f); }
-            else if (tSec < durationS*0.7) { const n=(Math.sin(frac*47)*0.05+Math.cos(frac*23)*0.03); watts=p75*(1+n); }
-            else if (tSec < durationS*0.85) { const f=(tSec-durationS*0.7)/(durationS*0.15); watts=p75-(p75-p50)*f; }
-            else { const f=(tSec-durationS*0.85)/(durationS*0.15); watts=p50-(p50-p05)*Math.min(1,f*1.5); }
-            trace.push({ ts, watts: Math.max(0, Math.round(watts*10)/10) });
-        }
-        return trace;
-    }
 
     // ── Callbacks ────────────────────────────────────────────────
     _onManagerState(deviceId, state, status) {

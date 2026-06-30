@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "news": {
+      "0.2.1": {
+        "en": "Removed HA-Import feature (unused, button + backend handler)",
+        "de": "HA-Import entfernt (ungenutzt, Button + Backend-Handler)"
+      },
       "0.2.0": {
         "en": "Alpha release: cycle detection, self-learning program matching, admin UI with cycle graphs, Telegram notifications, full export/import",
         "de": "Alpha-Release: Zykluserkennung, selbstlernendes Programm-Matching, Admin-UI mit Zyklus-Graphen, Telegram-Benachrichtigungen, vollständiger Export/Import"

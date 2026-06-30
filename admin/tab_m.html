@@ -284,10 +284,9 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
   <div class="card">
     <div class="card-head">Konfiguration sichern</div>
     <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
         <button class="btn btn-outline" onclick="doExport()" style="justify-content:center">⬇ Export</button>
         <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center">⬆ Import<input type="file" accept=".json" style="display:none" onchange="doImport(event)"></label>
-        <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center;border-color:#ff9800;color:#e37400">🏠 HA-Import<input type="file" accept=".json" style="display:none" onchange="doHAImport(event)"></label>
         <button class="btn btn-outline" onclick="clearAllData()" style="justify-content:center;border-color:#ea4335;color:#c5221f">🗑 Löschen</button>
       </div>
       <textarea id="export-preview" rows="8" readonly placeholder="JSON erscheint hier nach Export…"></textarea>
@@ -1567,29 +1566,6 @@ function clearAllData() {
     });
 }
 
-// ── HA IMPORT ────────────────────────────────────────────────
-function doHAImport(evt) {
-    var file = evt.target.files[0]; if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        var data;
-        try { data = JSON.parse(e.target.result); } catch(ex) { return toast('Ungültige JSON-Datei', 'err'); }
-        var deviceId = selVal('export');
-        var dev = devices.find(function(d) { return d.deviceId === deviceId; });
-        if (!deviceId && devices.length > 0) { deviceId = devices[0].deviceId; dev = devices[0]; }
-        if (!deviceId) return toast('Kein Gerät gefunden', 'err');
-        var inst = (dev && dev._instance !== undefined) ? dev._instance : instance;
-        socket.emit('sendTo', 'laundrylens.' + inst, 'importFromHA', {deviceId: deviceId, data: data}, function(res) {
-            if (res && res.ok) {
-                toast(res.importedProfiles + ' Programme + ' + res.importedCycles + ' Zyklen importiert!', 'ok');
-            } else {
-                toast('Fehler: ' + ((res && res.error) || 'Unbekannt'), 'err');
-            }
-        });
-    };
-    reader.readAsText(file);
-    evt.target.value = '';
-}
 
 
 // ── GRAPH ─────────────────────────────────────────────────────
