@@ -104,39 +104,10 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ---
 
-## Project structure
-
-```
-ioBroker.laundrylens/
-├── main.js                  ← Adapter entry point
-├── io-package.json          ← Adapter metadata
-├── package.json
-├── lib/
-│   ├── cycleDetector.js     ← State machine
-│   ├── mathUtils.js         ← Correlation, DTW-lite
-│   ├── profileStore.js      ← Profile matching + persistence
-│   ├── traceStore.js        ← Power curve recording
-│   └── washDataManager.js   ← Central orchestrator
-├── admin/
-│   ├── jsonConfig.json      ← Instance configuration UI
-│   ├── tab_m.html           ← Admin tab (cycles, profiles, export)
-│   └── icon.png
-└── tests/
-    └── test_basics.js
-```
-
----
-
 ## Changelog
 
 ### 0.2.2 (2026-07-01)
-- Debug log now shows best candidate (program + confidence) and current match threshold even when no official match is reached yet
-
-### 0.2.1 (2026-06-30)
-- Removed HA-Import feature (button and backend handler)
-
-### 0.2.0 (2026-06-30)
-- Alpha release: cycle detection, self-learning program matching, admin UI with cycle graphs, Telegram notifications, full export/import (including power traces and cycle history)
+- beta release
 
 ---
 
