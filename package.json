@@ -25,7 +25,8 @@
   ],
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha --exit tests/",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:package": "echo \"No package test configured\" && exit 0"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.2.2"

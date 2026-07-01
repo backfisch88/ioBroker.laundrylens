@@ -153,7 +153,7 @@ class WashdataAdapter extends utils.Adapter {
                         manager.detector.processReading(wattsNow, Date.now());
                     }
                 }
-            } catch (_) {}
+            } catch (_e) { /* ignore restore errors */ }
 
             // Gespeicherten Override wiederherstellen - NUR wenn Maschine gerade läuft
             try {
@@ -192,7 +192,7 @@ class WashdataAdapter extends utils.Adapter {
                         manager._restoredCycle = null;
                     }
                 }
-            } catch (_) {}
+            } catch (_e) { /* ignore */ }
 
             this.log.info(`${deviceCfg.name}: Gestartet – Sensor: ${deviceCfg.powerId}`);
         }
@@ -204,7 +204,7 @@ class WashdataAdapter extends utils.Adapter {
     async onUnload(callback) {
         try {
             for (const mgr of Object.values(this.managers)) await mgr.stop();
-        } catch (_) {}
+        } catch (_e) { /* ignore */ }
         callback();
     }
 
@@ -868,6 +868,8 @@ class WashdataAdapter extends utils.Adapter {
     }
 
     async _sendUpdateNotification(deviceId, checkThreshold, remainingSec = 0, progressPct = 0) {
+        const devCfgU = this._getDeviceConfig().find(d => d.deviceId === deviceId);
+        const devName = devCfgU ? devCfgU.name : deviceId;
         try {
             const mgr = this.managers[deviceId];
             if (!mgr) return;
@@ -955,8 +957,6 @@ class WashdataAdapter extends utils.Adapter {
             state.lastFinishTime = newFinishTime;
 
             // Meldung senden
-            const devCfg  = this._getDeviceConfig().find(d => d.deviceId === deviceId);
-            const devName = devCfg ? devCfg.name : deviceId;
             const endTimeStr  = new Date(newFinishTime).toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
             const prevEndStr  = (state.lastFinishTime && Math.abs(state.lastFinishTime - newFinishTime) > 60000)
                 ? new Date(state.lastFinishTime).toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'})
@@ -984,12 +984,12 @@ class WashdataAdapter extends utils.Adapter {
                         const val = vars[key];
                         return val !== undefined && val !== '' && val !== '0' && val !== 0;
                     });
-                    if (!allFilled) return '\x00'; // Marker für leeren Block
+                    if (!allFilled) return '\uFFFE'; // Marker für leeren Block
                     // Platzhalter ersetzen
                     return inner.replace(/\{(\w+)\}/g, function(m, k) { return vars[k] !== undefined ? vars[k] : m; });
                 });
                 // Zeilenumbrüche vor/nach gelöschten Blöcken bereinigen
-                result = result.replace(/\n\x00\n/g, '\n').replace(/\n\x00/g, '').replace(/\x00\n/g, '').replace(/\x00/g, '');
+                result = result.replace(/\n\uFFFE\n/g, '\n').replace(/\n\uFFFE/g, '').replace(/\uFFFE\n/g, '').replace(/\uFFFE/g, '');
                 // Restliche Platzhalter ersetzen
                 return result.replace(/\{(\w+)\}/g, function(m, k) { return vars[k] !== undefined ? vars[k] : m; });
             };
@@ -1010,6 +1010,8 @@ class WashdataAdapter extends utils.Adapter {
     }
 
     async _sendNotification(deviceId, cycle, event = 'done') {
+        const devCfgN = this._getDeviceConfig().find(d => d.deviceId === deviceId);
+        const devName = devCfgN ? devCfgN.name : deviceId;
         try {
             const raw = await this.readFileAsync(`laundrylens.${this.instance}.files`, `notify_${deviceId}.json`);
             if (!raw || !raw.file) return;
@@ -1020,9 +1022,6 @@ class WashdataAdapter extends utils.Adapter {
             const enabledKey = event === 'start' ? 'startEnabled' : event === 'update' ? 'updateEnabled' : 'doneEnabled';
             const msgKey     = event === 'start' ? 'startMsg'    : event === 'update' ? 'updateMsg'    : 'doneMsg';
             if (!cfg[enabledKey]) return;
-
-            const devCfg  = this._getDeviceConfig().find(d => d.deviceId === deviceId);
-            const devName = devCfg ? devCfg.name : deviceId;
 
             const startTime = cycle.startTime ? new Date(cycle.startTime).toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'}) : '';
             const endTime   = Date.now() ? new Date().toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'}) : '';
@@ -1051,10 +1050,10 @@ class WashdataAdapter extends utils.Adapter {
                         const val = doneVars[key];
                         return val !== undefined && val !== '' && val !== '0' && val !== 0;
                     });
-                    if (!allFilled) return '\x00';
+                    if (!allFilled) return '\uFFFE';
                     return inner.replace(/\{(\w+)\}/g, function(m, k) { return doneVars[k] !== undefined ? doneVars[k] : m; });
                 });
-                result = result.replace(/\n\x00\n/g, '\n').replace(/\n\x00/g, '').replace(/\x00\n/g, '').replace(/\x00/g, '');
+                result = result.replace(/\n\uFFFE\n/g, '\n').replace(/\n\uFFFE/g, '').replace(/\uFFFE\n/g, '').replace(/\uFFFE/g, '');
                 return result.replace(/\{(\w+)\}/g, function(m, k) { return doneVars[k] !== undefined ? doneVars[k] : m; });
             };
             const msg = applyDone(template);
@@ -1073,7 +1072,7 @@ class WashdataAdapter extends utils.Adapter {
                     native: {},
                 });
                 this.setState(`${deviceId}.lastMessage`, msg, true);
-            } catch (_) {}
+            } catch (_e) { /* ignore */ }
         } catch (err) {
             this.log.warn(`${devName}: Benachrichtigung fehlgeschlagen: ${err.message}`);
         }
@@ -1083,7 +1082,7 @@ class WashdataAdapter extends utils.Adapter {
         try {
             const fakeCycle = { matchedProfile: 'detecting...', durationMs: 0, energyWh: 0, startTime: Date.now() };
             await this._sendNotification(deviceId, fakeCycle, 'start');
-        } catch (_) {}
+        } catch (_e) { /* ignore */ }
     }
 
     // ── Objekte anlegen ──────────────────────────────────────────
