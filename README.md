@@ -3,68 +3,98 @@
 [![NPM version](https://img.shields.io/npm/v/iobroker.laundrylens.svg)](https://www.npmjs.com/package/iobroker.laundrylens)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Überwacht Haushaltsgeräte (Waschmaschine, Trockner) über Smart-Plug-Leistungswerte. Erkennt Zyklen, gleicht erkannte Verläufe gegen gelernte Programme ab und schätzt die Restzeit – vollständig lokal, keine Cloud.
+Self-learning ioBroker adapter that monitors household appliances (washing machine, dryer) via smart plug power measurements. Detects cycles, matches power traces against learned programs and estimates remaining time – fully local, no cloud.
 
 ---
 
 ## Features
 
-- **Zyklus-Erkennung** via State Machine (OFF → STARTING → RUNNING ↔ PAUSED → ENDING)
-- **Selbstlernendes Programm-Matching**: segmentgewichtete Korrelation der frühen Phase + DTW-Tiebreak gegen gespeicherte Profile
-- **Score-Akkumulation über mehrere Runden** mit gerätespezifischen Konfidenz-Schwellen, damit ein einzelner Ausreißer keine falsche Erkennung auslöst
-- **Override-Sperre**: manuell gewählte Programme werden nicht durch Hintergrund-Matching überschrieben
-- **Adaptive Restzeitschätzung** aus Zeit- und Energiesignal kombiniert
-- **Admin-UI**: ausklappbare Zyklus-Liste mit Inline-Graph (Canvas), Phasenlegende, Trimmen (zwei Linien) und Teilen (Linie) per Touch/Drag
-- **Telegram-Benachrichtigungen** mit konfigurierbaren Update-Schwellen, Platzhaltern (`{progress}`, `{prevTime}`) und bedingten Textblöcken `[Text {prevTime}]`, die automatisch ausgeblendet werden, wenn der Platzhalter leer ist
-- **Mehrere Geräte**: beliebig viele Geräte in einer Adapter-Instanz
+- **Cycle detection** via state machine (OFF → STARTING → RUNNING ↔ PAUSED → ENDING)
+- **Self-learning program matching**: segment-weighted correlation of the early phase + DTW tiebreak against stored profiles
+- **Score accumulation over multiple rounds** with device-specific confidence thresholds, so a single outlier does not trigger a false match
+- **Override lock**: manually selected programs are not overwritten by background matching
+- **Adaptive remaining time estimation** combining time-based and energy-rate signals
+- **Admin UI**: expandable cycle list with inline canvas graph, phase legend, trim (two drag lines) and split (one drag line) via touch/drag
+- **Telegram notifications** with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`) and conditional text blocks `[Text {prevTime}]` that are automatically hidden when the placeholder is empty
+- **Multiple devices**: any number of devices per adapter instance
 
-### Datenpunkte je Gerät
+### Data points per device
 
-| Datenpunkt | Typ | Beschreibung |
+| Data point | Type | Description |
 |---|---|---|
 | `state` | string | off / starting / running / paused / ending |
-| `running` | boolean | Einfacher Ein/Aus-Indikator |
-| `program` | string | Erkanntes Programm (z. B. "Baumwolle 60") |
-| `confidence` | number | Übereinstimmungs-Konfidenz in % |
-| `timeRemaining` | number | Restzeit in Sekunden |
-| `totalDuration` | number | Geschätzte Gesamtlaufzeit in Sekunden |
-| `cycleProgress` | number | Fortschritt 0–100 % |
-| `phase` | string | Aktuelle Phase des Zyklus |
-| `lastMessage` | string | Letzte gesendete Telegram-Nachricht |
-| `lastCycleProgram` | string | Programm des letzten Zyklus |
-| `lastCycleDuration` | number | Dauer des letzten Zyklus in Minuten |
-| `lastCycleEnergy` | number | Verbrauch des letzten Zyklus in Wh |
+| `running` | boolean | Simple on/off indicator |
+| `program` | string | Detected program (e.g. "Cotton 60") |
+| `confidence` | number | Match confidence in % |
+| `timeRemaining` | number | Remaining time in seconds |
+| `totalDuration` | number | Estimated total duration in seconds |
+| `cycleProgress` | number | Progress 0–100 % |
+| `phase` | string | Current phase of the cycle |
+| `lastMessage` | string | Last sent Telegram message |
+| `lastCycleProgram` | string | Program of the last cycle |
+| `lastCycleDuration` | number | Duration of the last cycle in minutes |
+| `lastCycleEnergy` | number | Energy consumption of the last cycle in Wh |
 
 ---
 
-## Voraussetzungen
+## Requirements
 
-- ioBroker mit js-controller ≥ 5.0.0
+- ioBroker with js-controller ≥ 5.0.0
 - Node.js ≥ 18
-- Ein Smart-Plug/Leistungsmesser-Adapter, der pro Gerät einen Watt-Datenpunkt liefert (z. B. Shelly EM)
+- A smart plug / power meter adapter that provides a watt data point per device (e.g. Shelly EM)
 
 ---
 
 ## Installation
 
-Über den ioBroker-Admin: **Adapter → ⚙ (oben rechts) → Benutzerdefiniert von URL/GitHub installieren**
+Via the ioBroker admin: **Adapters → ⚙ (top right) → Install from custom URL/GitHub**
 
 ```
 https://github.com/backfisch88/ioBroker.laundrylens
 ```
 
-Oder per CLI:
+Or via CLI:
 
 ```bash
 iobroker url https://github.com/backfisch88/ioBroker.laundrylens --allow-root
 iobroker add laundrylens --allow-root
 ```
 
-Danach pro Gerät (Waschmaschine, Trockner, …) eine eigene Adapter-Instanz anlegen und in der Instanz-Konfiguration den passenden Leistungs-Datenpunkt auswählen.
+Then create a separate adapter instance for each device (washing machine, dryer, …) and select the appropriate watt data point in the instance configuration.
 
 ---
 
-## Entwicklung
+## Getting started
+
+LaundryLens learns from your devices. There are no pre-built profiles – every program is trained individually on your machine. A few things to keep in mind:
+
+- **Give it time.** The first few cycles of a program will not be reliably detected. Recognition improves with every completed cycle.
+- **Start with fewer programs.** The fewer different programs you teach it, the higher the detection accuracy. Start with the 2–3 programs you use most often.
+- **Tested on**: washing machine and dryer (Siemens iQ series). Dishwasher and washer-dryer are supported in code but not yet tested in practice – feedback welcome.
+
+---
+
+## Configuration
+
+Each instance has the following settings you can tune if detection does not work well out of the box:
+
+| Setting | Description |
+|---|---|
+| Power threshold (W) | Minimum wattage for "device is running" detection |
+| Off delay (min) | How long to wait after power drops before ending the cycle |
+| Start energy gate (Wh) | Prevents short power spikes from being mistaken for a cycle start |
+| Duration tolerance | How much the cycle length may deviate from the learned average |
+| Match confirmations | How many consecutive rounds a match must hold before it is accepted |
+| Auto-confirm threshold (%) | Confidence level at which a match is confirmed automatically |
+| Instant-confirm threshold (%) | Confidence level at which a match is accepted immediately (2 rounds in a row) |
+| Program detection threshold (%) | Minimum confidence for a program to be considered at all |
+| Ignore anti-crease | For dryers with anti-crease phases that would otherwise disturb detection |
+
+The defaults are tuned to work on Siemens iQ appliances. Different brands and models may have very different power curves – that is exactly what these settings are for. There is no single right answer: lowering the detection threshold gives you faster notifications but increases the risk of a wrong match. Finding the right balance takes a bit of experimentation.
+
+---
+
+## Development
 
 ```bash
 git clone https://github.com/backfisch88/ioBroker.laundrylens.git
@@ -73,41 +103,39 @@ npm install
 npm test
 ```
 
-### Projektstruktur
+### Project structure
 
 ```
 ioBroker.laundrylens/
-├── main.js                  ← Adapter-Einstiegspunkt
-├── io-package.json          ← Adapter-Metadaten
+├── main.js                  ← Adapter entry point
+├── io-package.json          ← Adapter metadata
 ├── package.json
 ├── lib/
-│   ├── cycleDetector.js     ← State Machine
-│   ├── mathUtils.js         ← Korrelation, DTW-Lite
-│   ├── profileStore.js      ← Profil-Matching + Persistenz
-│   ├── traceStore.js        ← Aufzeichnung der Leistungskurven
-│   └── washDataManager.js   ← Zentraler Orchestrator
+│   ├── cycleDetector.js     ← State machine
+│   ├── mathUtils.js         ← Correlation, DTW-lite
+│   ├── profileStore.js      ← Profile matching + persistence
+│   ├── traceStore.js        ← Power curve recording
+│   └── washDataManager.js   ← Central orchestrator
 ├── admin/
-│   ├── jsonConfig.json      ← Admin-UI Instanzkonfiguration
-│   ├── tab_m.html           ← Admin-Tab (Zyklus-/Profilverwaltung)
+│   ├── jsonConfig.json      ← Admin UI instance configuration
+│   ├── tab_m.html           ← Admin tab (cycle/profile management)
 │   └── icon.png
 └── tests/
-    └── test_basics.js       ← Unit-Tests
+    └── test_basics.js       ← Unit tests
 ```
 
-Profile und Zyklus-Historie werden über das ioBroker-Dateisystem gespeichert (**Admin → Dateien → laundrylens.0**).
-
-> **Tipp**: Lass das Gerät erst einige Zyklen laufen. Der Adapter lernt automatisch die typischen Verläufe und verbessert seine Erkennung mit jedem abgeschlossenen Zyklus.
+Profiles and cycle history are stored via the ioBroker file system (**Admin → Files → laundrylens.0**).
 
 ---
 
-## Mitwirken
+## Contributing
 
-Issues und Pull Requests sind willkommen: [Issues](https://github.com/backfisch88/ioBroker.laundrylens/issues)
+Issues and pull requests are welcome: [Issues](https://github.com/backfisch88/ioBroker.laundrylens/issues)
 
 ---
 
-## Lizenz
+## License
 
-MIT License, siehe [LICENSE](LICENSE).
+MIT License, see [LICENSE](LICENSE).
 
-LaundryLens ist ursprünglich von der Idee des Home-Assistant-Projekts [ha_washdata](https://github.com/3dg1luk43/ha_washdata) inspiriert, wurde für ioBroker aber als eigenständige Neuentwicklung umgesetzt (eigene State Machine, eigenes Matching, eigene Admin-UI).
+LaundryLens was originally inspired by the idea of the Home Assistant project [ha_washdata](https://github.com/3dg1luk43/ha_washdata), but has been reimplemented from scratch for ioBroker with its own state machine, matching algorithm and admin UI.
