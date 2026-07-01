@@ -123,7 +123,9 @@ describe('CycleDetector – state machine', () => {
         const d = makeDetector(s => states.push(s));
         const t = Date.now();
         d.processReading(100, t);
-        d.processReading(0,   t + 1000);
+        assert(states.includes(STATES.STARTING));
+        // Must stay below threshold for startOffDelay (120s) before returning to OFF
+        d.processReading(0, t + 121_000);
         assert(states.includes(STATES.OFF));
         assert(!states.includes(STATES.RUNNING));
     });
