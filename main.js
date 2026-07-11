@@ -22,8 +22,8 @@ class WashdataAdapter extends utils.Adapter {
                 deviceId:             cfg.deviceId,
                 deviceType:           cfg.deviceType           || 'washing_machine',
                 powerId:              cfg.powerId,
-                powerThreshold:       cfg.powerThreshold       || 10,
-                startEnergyThreshold: cfg.startEnergyThreshold || (
+                powerThreshold:       (cfg.powerThreshold !== undefined && cfg.powerThreshold !== null && cfg.powerThreshold !== '') ? Number(cfg.powerThreshold) : 10,
+                startEnergyThreshold: (cfg.startEnergyThreshold !== undefined && cfg.startEnergyThreshold !== null && cfg.startEnergyThreshold !== '') ? Number(cfg.startEnergyThreshold) : (
                     cfg.deviceType === 'dryer' || cfg.deviceType === 'washer_dryer' ? 5 : 2
                 ),
                 offDelayMin:          cfg.offDelayMin || (
@@ -44,8 +44,8 @@ class WashdataAdapter extends utils.Adapter {
                 deviceId:             d.deviceId,
                 deviceType:           d.deviceType           || 'washing_machine',
                 powerId:              d.powerId,
-                powerThreshold:       d.powerThreshold       || 10,
-                startEnergyThreshold: d.startEnergyThreshold || (
+                powerThreshold:       (d.powerThreshold !== undefined && d.powerThreshold !== null && d.powerThreshold !== '') ? Number(d.powerThreshold) : 10,
+                startEnergyThreshold: (d.startEnergyThreshold !== undefined && d.startEnergyThreshold !== null && d.startEnergyThreshold !== '') ? Number(d.startEnergyThreshold) : (
                     d.deviceType === 'dryer' || d.deviceType === 'washer_dryer' ? 5 : 2
                 ),
                 offDelayMin:          d.offDelayMin || (
@@ -149,8 +149,15 @@ class WashdataAdapter extends utils.Adapter {
                         this.log.info(`${deviceCfg.name}: Zyklus wiederhergestellt → running`);
                     } else {
                         // Kein gespeicherter Zyklus aber Strom fließt → direkt starten
+                        // WICHTIG: nicht über processReading() aus OFF heraus starten, das
+                        // würde _handleOff() durchlaufen und accumulatedEnergy auf 0 zurücksetzen.
+                        // Stattdessen State direkt setzen (wie beim "Zyklus wiederhergestellt"-Zweig oben).
+                        manager.detector.cycleStartTime    = Date.now();
                         manager.detector.accumulatedEnergy = manager.detector.cfg.startEnergyThreshold;
-                        manager.detector.processReading(wattsNow, Date.now());
+                        manager.detector.powerTrace        = [{ ts: Date.now(), watts: wattsNow }];
+                        manager.detector.state             = 'running';
+                        manager.currentState                = 'running';
+                        this.log.info(`${deviceCfg.name}: Kein gespeicherter Zyklus, aber Sensor aktiv → direkt running`);
                     }
                 }
             } catch (_e) { /* ignore restore errors */ }

@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "news": {
+      "0.2.3": {
+        "en": "Fix: startEnergyThreshold=0 was silently replaced by the default (falsy-zero bug); fix: restart while device is already running could get stuck in STARTING state instead of resuming RUNNING",
+        "de": "Fix: Start-Energie-Gate = 0 wurde durch den Standardwert ersetzt (Falsy-Zero-Bug); Fix: Neustart während das Gerät bereits läuft konnte im Zustand 'Startet' hängen bleiben statt zu 'Läuft' zurückzukehren"
+      },
       "0.2.2": {
         "en": "Debug log now shows the best candidate (program + confidence) and current match threshold even when there is no official match yet",
         "de": "Debug-Log zeigt jetzt den besten Kandidaten (Programm + Konfidenz) und die aktuelle Erkennungsschwelle, auch wenn noch kein offizielles Match vorliegt"
