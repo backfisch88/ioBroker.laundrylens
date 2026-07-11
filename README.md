@@ -106,6 +106,10 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.2.3 (2026-07-07)
+- Fix: `startEnergyThreshold = 0` (and `powerThreshold = 0`) was silently replaced by the default value due to a falsy-zero check — this blocked correct detection for devices with a very low initial power draw (e.g. dishwashers during pump-out)
+- Fix: restarting the adapter while the device was already running (with no cycle to restore) could leave the cycle stuck in "starting" instead of resuming "running"
+
 ### 0.2.2 (2026-07-01)
 - beta release
 
