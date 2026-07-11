@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "news": {
+      "0.2.4": {
+        "en": "Fix: power sensor readings with ack=false were silently ignored, causing the adapter to stay 'off' forever even at full power. This affects power sensors fed by user scripts (common for 0_userdata.0.* datapoints) that don't set ack:true.",
+        "de": "Fix: Leistungssensor-Werte mit ack=false wurden stillschweigend ignoriert, wodurch der Adapter dauerhaft auf 'Aus' blieb, selbst bei voller Leistung. Betrifft Leistungssensoren, die von Nutzer-Skripten befüllt werden (häufig bei 0_userdata.0.*-Datenpunkten), die kein ack:true setzen."
+      },
       "0.2.3": {
         "en": "Fix: startEnergyThreshold=0 was silently replaced by the default (falsy-zero bug); fix: restart while device is already running could get stuck in STARTING state instead of resuming RUNNING",
         "de": "Fix: Start-Energie-Gate = 0 wurde durch den Standardwert ersetzt (Falsy-Zero-Bug); Fix: Neustart während das Gerät bereits läuft konnte im Zustand 'Startet' hängen bleiben statt zu 'Läuft' zurückzukehren"

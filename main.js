@@ -237,8 +237,9 @@ class WashdataAdapter extends utils.Adapter {
             }
         }
 
-        // Fremde States (Leistungssensor)
-        if (!state.ack) return;
+        // Fremde States (Leistungssensor) – ack wird bewusst NICHT geprüft:
+        // viele Nutzer-Skripte (v.a. 0_userdata.0.*) setzen ihre Werte ohne ack:true,
+        // ein solcher Wert wäre sonst komplett unsichtbar für den Adapter.
         const deviceId = this.sensorToDevice[id];
         if (!deviceId) return;
         const mgr = this.managers[deviceId];
