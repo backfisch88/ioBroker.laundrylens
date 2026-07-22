@@ -107,6 +107,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.2.7 (2026-07-22)
+- Attempted fix: hash-based deep-linking no longer triggers data loading for the target tab before device discovery has completed (visual tab switch only; data loading deferred until devices are known). Addresses a suspected race where early sendTo() calls with an empty deviceId may have interfered with device discovery.
+
 ### 0.2.6 (2026-07-22)
 - Fix: hash-based deep-linking (`#1`–`#6`) could get stuck showing an empty page when device loading was slow or failed (e.g. standalone access outside Admin). Tab switching via hash now happens immediately on page load, independent of the device data pipeline.
 

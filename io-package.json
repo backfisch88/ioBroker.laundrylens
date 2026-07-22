@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.6",
+    "version": "0.2.7",
     "news": {
+      "0.2.7": {
+        "en": "Attempted fix: hash-based deep-linking no longer triggers data loading (getCycleHistory/getProfiles/etc.) for the target tab before device discovery has completed - only a visual tab switch happens immediately, data loading is deferred until devices are actually known. This addresses a suspected race where early sendTo() calls with an empty deviceId may have interfered with the getDevices flow.",
+        "de": "Versuchter Fix: Hash-basiertes Deep-Linking löst keine Datenladung (getCycleHistory/getProfiles/etc.) für den Ziel-Tab mehr aus, bevor die Geräteerkennung abgeschlossen ist - es passiert zunächst nur ein visueller Tab-Wechsel, die Datenladung erfolgt erst sobald Geräte bekannt sind. Dies adressiert eine vermutete Race Condition, bei der frühe sendTo()-Aufrufe mit leerer deviceId den getDevices-Ablauf gestört haben könnten."
+      },
       "0.2.6": {
         "en": "Fix: hash-based deep-linking (#1-#6) could get stuck showing an empty page when device loading was slow or failed (e.g. standalone access outside Admin). Tab switching via hash now happens immediately on page load, independent of the device data pipeline.",
         "de": "Fix: Hash-basiertes Deep-Linking (#1-#6) konnte bei langsamer oder fehlgeschlagener Geräteladung (z.B. Standalone-Aufruf außerhalb von Admin) in einer leeren Seite hängen bleiben. Tab-Wechsel per Hash passiert jetzt sofort beim Laden, unabhängig von der Geräte-Datenladung."

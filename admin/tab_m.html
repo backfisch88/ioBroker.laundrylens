@@ -519,15 +519,21 @@ document.querySelectorAll('.tab').forEach(function(t) {
     t.addEventListener('click', function() { switchTab(t.dataset.tab); });
 });
 
-function switchTab(name) {
+// Nur visuelles Umschalten (Klassen + Hash) – OHNE Datenladung auszulösen.
+// Wichtig für den sofortigen Hash-Check beim Booten: dort sollen noch keine
+// sendTo()-Anfragen an alle Instanzen rausgehen, solange devices[] noch leer ist.
+function activateTabUI(name) {
     document.querySelectorAll('.tab, .pane').forEach(function(el) { el.classList.remove('active'); });
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
     document.getElementById('pane-' + name).classList.add('active');
-    // Deep-Link-Hash mitführen (z.B. #3), rein numerisch statt Tab-Name
     var idx = TAB_ORDER.indexOf(name);
     if (idx >= 0 && window.location.hash !== '#' + (idx + 1)) {
         history.replaceState(null, '', '#' + (idx + 1));
     }
+}
+
+function switchTab(name) {
+    activateTabUI(name);
     if (name === 'overview')  refreshOverview();
     if (name === 'programs')  loadPrograms();
     if (name === 'cycles')    loadCycles();
@@ -548,16 +554,17 @@ function switchTab(name) {
     }
 }
 
-// Deep-Link per Hash (#1..#6) SOFORT auswerten – bewusst UNABHÄNGIG vom
-// Geräte-Ladevorgang (init()/finish()), damit der Tab auch dann korrekt
-// wechselt, wenn getDevices() aus irgendeinem Grund langsam ist oder
-// nie zurückkommt (z.B. beim direkten Standalone-Aufruf der Seite).
-// Die jeweilige Tab-Ladefunktion selbst kümmert sich darum, sich neu zu
-// laden, sobald die Geräte tatsächlich verfügbar sind (siehe finish()).
+// Deep-Link per Hash (#1..#6) SOFORT auswerten – bewusst nur visuell und
+// UNABHÄNGIG vom Geräte-Ladevorgang (init()/finish()). Es wird hier bewusst
+// KEINE Datenladung ausgelöst (kein loadFeedback() etc.), damit keine
+// sendTo()-Anfragen mit leerer deviceId an alle Instanzen rausgehen, bevor
+// getDevices() überhaupt einmal durchgelaufen ist. Die eigentliche
+// Datenladung für den so aktivierten Tab passiert erst in finish(), sobald
+// die Geräteliste wirklich da ist.
 (function() {
     var hashNum = parseInt((window.location.hash || '').replace('#', ''), 10);
     if (hashNum >= 1 && hashNum <= TAB_ORDER.length) {
-        switchTab(TAB_ORDER[hashNum - 1]);
+        activateTabUI(TAB_ORDER[hashNum - 1]);
     }
 })();
 
