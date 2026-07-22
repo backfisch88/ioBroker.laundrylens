@@ -456,11 +456,13 @@ var PHASE_BG_COLORS = {
     '💨 Trocknet':    'rgba(251,188,4,0.10)',
 };
 var instance = 0;
+var instanceExplicit = false;
 
 // Instance aus URL lesen
 var urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('instance') !== null) {
     instance = parseInt(urlParams.get('instance')) || 0;
+    instanceExplicit = true;
 }
 
 // ── State ─────────────────────────────────────────
@@ -641,6 +643,14 @@ function init() {
         if (allDevices.length > 0) {
             devices = allDevices;
             populateSelectors(devices);
+            // Falls die URL explizit ?instance=X angibt (z.B. wenn Admin diesen
+            // Tab aus der Konfiguration einer bestimmten Instanz heraus öffnet),
+            // das zu dieser Instanz gehörende Gerät vorauswählen statt einfach
+            // das erste gefundene Gerät zu zeigen.
+            if (instanceExplicit) {
+                var matchingDevice = devices.find(function(d) { return d._instance === instance; });
+                if (matchingDevice) setActiveDevice(matchingDevice.deviceId);
+            }
             // Aktuell aktiven Tab (ggf. schon per Hash beim Booten gesetzt) mit
             // den jetzt verfügbaren Gerätedaten neu laden – Hash-Auswertung
             // selbst passiert bereits sofort beim Skriptstart, unabhängig davon.
