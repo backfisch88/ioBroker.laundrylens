@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "news": {
+      "0.2.6": {
+        "en": "Fix: hash-based deep-linking (#1-#6) could get stuck showing an empty page when device loading was slow or failed (e.g. standalone access outside Admin). Tab switching via hash now happens immediately on page load, independent of the device data pipeline.",
+        "de": "Fix: Hash-basiertes Deep-Linking (#1-#6) konnte bei langsamer oder fehlgeschlagener Geräteladung (z.B. Standalone-Aufruf außerhalb von Admin) in einer leeren Seite hängen bleiben. Tab-Wechsel per Hash passiert jetzt sofort beim Laden, unabhängig von der Geräte-Datenladung."
+      },
       "0.2.5": {
         "en": "New: separate 'Notifications' tab (was previously buried under 'Export', which users found unintuitive). New: hash-based deep-linking to tabs using numbers (#1-#6), independent of UI language. New: 'availablePrograms' JSON data point per device listing all saved program names, for use in external dropdowns (e.g. VIS)",
         "de": "Neu: eigener Tab 'Benachrichtigungen' (lag vorher unter 'Export', was Nutzer als wenig intuitiv empfanden). Neu: Hash-basiertes Deep-Linking zu Tabs per Nummer (#1-#6), unabhängig von der UI-Sprache. Neu: Datenpunkt 'availablePrograms' (JSON) pro Gerät mit allen gespeicherten Programmnamen, nutzbar für externe Dropdowns (z.B. VIS)"

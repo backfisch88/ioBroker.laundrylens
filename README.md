@@ -107,6 +107,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.2.6 (2026-07-22)
+- Fix: hash-based deep-linking (`#1`–`#6`) could get stuck showing an empty page when device loading was slow or failed (e.g. standalone access outside Admin). Tab switching via hash now happens immediately on page load, independent of the device data pipeline.
+
 ### 0.2.5 (2026-07-14)
 - New: separate "Notifications" tab (previously buried under "Export", which testers found unintuitive)
 - New: hash-based deep-linking to admin tabs using numbers (`#1`–`#6`), independent of UI language

@@ -548,6 +548,19 @@ function switchTab(name) {
     }
 }
 
+// Deep-Link per Hash (#1..#6) SOFORT auswerten – bewusst UNABHÄNGIG vom
+// Geräte-Ladevorgang (init()/finish()), damit der Tab auch dann korrekt
+// wechselt, wenn getDevices() aus irgendeinem Grund langsam ist oder
+// nie zurückkommt (z.B. beim direkten Standalone-Aufruf der Seite).
+// Die jeweilige Tab-Ladefunktion selbst kümmert sich darum, sich neu zu
+// laden, sobald die Geräte tatsächlich verfügbar sind (siehe finish()).
+(function() {
+    var hashNum = parseInt((window.location.hash || '').replace('#', ''), 10);
+    if (hashNum >= 1 && hashNum <= TAB_ORDER.length) {
+        switchTab(TAB_ORDER[hashNum - 1]);
+    }
+})();
+
 // ── Device selectors ──────────────────────────────
 var selIds = ['overview','programs','cycles','feedback','notify','export'];
 
@@ -621,15 +634,16 @@ function init() {
         if (allDevices.length > 0) {
             devices = allDevices;
             populateSelectors(devices);
-            refreshOverview();
-            // Deep-Link per Hash (#1..#5) auswerten – sprachunabhängig per Nummer
-            var hashNum = parseInt((window.location.hash || '').replace('#', ''), 10);
-            if (hashNum >= 1 && hashNum <= TAB_ORDER.length) {
-                switchTab(TAB_ORDER[hashNum - 1]);
-            }
-            // Wenn Notify-Tab aktiv: Notif laden
+            // Aktuell aktiven Tab (ggf. schon per Hash beim Booten gesetzt) mit
+            // den jetzt verfügbaren Gerätedaten neu laden – Hash-Auswertung
+            // selbst passiert bereits sofort beim Skriptstart, unabhängig davon.
             var activeTab2 = document.querySelector('.tab.active');
-            if (activeTab2 && activeTab2.dataset.tab === 'notify') loadNotifAdapters();
+            var activeName = activeTab2 ? activeTab2.dataset.tab : 'overview';
+            if (activeName === 'overview')  refreshOverview();
+            if (activeName === 'programs')  loadPrograms();
+            if (activeName === 'cycles')    loadCycles();
+            if (activeName === 'feedback')  loadFeedback();
+            if (activeName === 'notify')    loadNotifAdapters();
             startAutoRefresh();
         } else {
             document.getElementById('ov-devices-wrap').innerHTML =
