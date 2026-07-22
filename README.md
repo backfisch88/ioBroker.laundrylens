@@ -92,6 +92,7 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 | `lastCycleProgram` | string | Program of the last completed cycle |
 | `lastCycleDuration` | number | Duration of the last cycle in minutes |
 | `lastCycleEnergy` | number | Energy consumed in the last cycle in Wh |
+| `availablePrograms` | string (JSON) | Array of all saved program names, e.g. for external dropdowns |
 
 ---
 
@@ -105,6 +106,11 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 ---
 
 ## Changelog
+
+### 0.2.5 (2026-07-14)
+- New: separate "Notifications" tab (previously buried under "Export", which testers found unintuitive)
+- New: hash-based deep-linking to admin tabs using numbers (`#1`–`#6`), independent of UI language
+- New: `availablePrograms` JSON data point per device listing all saved program names, for use in external dropdowns (e.g. VIS program override selector)
 
 ### 0.2.4 (2026-07-11)
 - Fix: power sensor readings with `ack=false` were silently ignored, causing the adapter to stay "off" forever even at full power. This affects power sensors fed by user scripts (common for `0_userdata.0.*` datapoints) that don't explicitly set `ack: true`.

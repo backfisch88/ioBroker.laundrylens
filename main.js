@@ -749,6 +749,9 @@ class WashdataAdapter extends utils.Adapter {
                 states: states.reduce((o, s) => { o[s] = s; return o; }, {}),
             }
         });
+        // Separater, rein lesbarer JSON-Datenpunkt für externe Dropdowns (z.B. VIS)
+        // enthält nur die Programmnamen, ohne 'auto', da das kein echtes Programm ist
+        this.setState(`${deviceId}.availablePrograms`, JSON.stringify(profiles.map(p => p.name)), true);
     }
 
 
@@ -1124,6 +1127,7 @@ class WashdataAdapter extends utils.Adapter {
             { id: 'phase',             name: 'Aktuelle Phase',          type: 'string',  role: 'text',             def: '',      write: false },
             { id: 'lastMessage',       name: 'Letzte Benachrichtigung', type: 'string',  role: 'text',             def: '',      write: false },
             { id: 'lastUpdateSent',    name: 'Letztes Update gesendet', type: 'number',  role: 'value.time',       def: 0,       write: false },
+            { id: 'availablePrograms', name: 'Gespeicherte Programme (JSON)', type: 'string', role: 'json',       def: '[]',    write: false },
             // Steuerung (writable)
             { id: 'programOverride',   name: 'Programm-Override',       type: 'string',  role: 'text',             def: 'auto',  write: true },
             { id: 'forceFinish',       name: 'Zyklus beenden',          type: 'boolean', role: 'button',           def: false,   write: true },

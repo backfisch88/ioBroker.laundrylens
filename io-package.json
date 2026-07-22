@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "news": {
+      "0.2.5": {
+        "en": "New: separate 'Notifications' tab (was previously buried under 'Export', which users found unintuitive). New: hash-based deep-linking to tabs using numbers (#1-#6), independent of UI language. New: 'availablePrograms' JSON data point per device listing all saved program names, for use in external dropdowns (e.g. VIS)",
+        "de": "Neu: eigener Tab 'Benachrichtigungen' (lag vorher unter 'Export', was Nutzer als wenig intuitiv empfanden). Neu: Hash-basiertes Deep-Linking zu Tabs per Nummer (#1-#6), unabhängig von der UI-Sprache. Neu: Datenpunkt 'availablePrograms' (JSON) pro Gerät mit allen gespeicherten Programmnamen, nutzbar für externe Dropdowns (z.B. VIS)"
+      },
       "0.2.4": {
         "en": "Fix: power sensor readings with ack=false were silently ignored, causing the adapter to stay 'off' forever even at full power. This affects power sensors fed by user scripts (common for 0_userdata.0.* datapoints) that don't set ack:true.",
         "de": "Fix: Leistungssensor-Werte mit ack=false wurden stillschweigend ignoriert, wodurch der Adapter dauerhaft auf 'Aus' blieb, selbst bei voller Leistung. Betrifft Leistungssensoren, die von Nutzer-Skripten befüllt werden (häufig bei 0_userdata.0.*-Datenpunkten), die kein ack:true setzen."

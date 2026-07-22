@@ -114,6 +114,7 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
   <div class="tab" data-tab="programs">🗂 Programme</div>
   <div class="tab" data-tab="cycles">🕐 Zyklen</div>
   <div class="tab" data-tab="feedback">✅ Lernkontrolle <span class="badge-tab" id="feedback-badge" style="display:none">0</span></div>
+  <div class="tab" data-tab="notify">🔔 Benachrichtigungen</div>
   <div class="tab" data-tab="export">💾 Export</div>
 </div>
 
@@ -292,6 +293,13 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
       <textarea id="export-preview" rows="8" readonly placeholder="JSON erscheint hier nach Export…"></textarea>
     </div>
   </div>
+</div>
+
+<div class="pane" id="pane-notify">
+  <div class="dev-sel">
+    <label>Gerät:</label>
+    <select id="sel-notify"></select>
+  </div>
   <div class="card">
     <div class="card-head">🔔 Benachrichtigungen</div>
     <div class="card-body">
@@ -361,7 +369,7 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
         <button class="btn btn-outline btn-sm" onclick="testNotif()">🔔 Test</button>
       </div>
     </div>
-  </div></div>
+  </div>
 </div>
 
 
@@ -503,6 +511,10 @@ function toast(msg, type) {
 }
 
 // ── Tabs ──────────────────────────────────────────
+// Reihenfolge = Nummerierung fürs Deep-Linking (#1, #2, ...) – bewusst sprachunabhängig,
+// damit Links stabil bleiben, egal ob die Oberfläche später mal auf Englisch läuft.
+var TAB_ORDER = ['overview', 'programs', 'cycles', 'feedback', 'notify', 'export'];
+
 document.querySelectorAll('.tab').forEach(function(t) {
     t.addEventListener('click', function() { switchTab(t.dataset.tab); });
 });
@@ -511,12 +523,17 @@ function switchTab(name) {
     document.querySelectorAll('.tab, .pane').forEach(function(el) { el.classList.remove('active'); });
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
     document.getElementById('pane-' + name).classList.add('active');
+    // Deep-Link-Hash mitführen (z.B. #3), rein numerisch statt Tab-Name
+    var idx = TAB_ORDER.indexOf(name);
+    if (idx >= 0 && window.location.hash !== '#' + (idx + 1)) {
+        history.replaceState(null, '', '#' + (idx + 1));
+    }
     if (name === 'overview')  refreshOverview();
     if (name === 'programs')  loadPrograms();
     if (name === 'cycles')    loadCycles();
     if (name === 'feedback')  loadFeedback();
     if (name === 'graph')     loadGraphCycles();
-    if (name === 'export') {
+    if (name === 'notify') {
         // Mit Verzögerung laden damit devices sicher befüllt sind
         setTimeout(function() {
             if (devices.length > 0) {
@@ -532,7 +549,7 @@ function switchTab(name) {
 }
 
 // ── Device selectors ──────────────────────────────
-var selIds = ['overview','programs','cycles','feedback','export'];
+var selIds = ['overview','programs','cycles','feedback','notify','export'];
 
 function populateSelectors(devs) {
     var opts = devs.map(function(d) {
@@ -556,7 +573,8 @@ function populateSelectors(devs) {
                     if (tab === 'programs')  loadPrograms();
                     if (tab === 'cycles')    loadCycles();
                     if (tab === 'feedback')  loadFeedback();
-                    if (tab === 'export')    loadNotifAdapters();
+                    if (tab === 'notify')    loadNotifAdapters();
+                    if (tab === 'export')    { /* export braucht kein Reload bei Gerätewechsel */ }
                 }
             };
         }
@@ -604,11 +622,14 @@ function init() {
             devices = allDevices;
             populateSelectors(devices);
             refreshOverview();
-            // Wenn Export-Tab aktiv: Notif laden
+            // Deep-Link per Hash (#1..#5) auswerten – sprachunabhängig per Nummer
+            var hashNum = parseInt((window.location.hash || '').replace('#', ''), 10);
+            if (hashNum >= 1 && hashNum <= TAB_ORDER.length) {
+                switchTab(TAB_ORDER[hashNum - 1]);
+            }
+            // Wenn Notify-Tab aktiv: Notif laden
             var activeTab2 = document.querySelector('.tab.active');
-            // Export-Tab: nach devices laden sofort aktualisieren
-            var activeTab2 = document.querySelector('.tab.active');
-            if (activeTab2 && activeTab2.dataset.tab === 'export') loadNotifAdapters();
+            if (activeTab2 && activeTab2.dataset.tab === 'notify') loadNotifAdapters();
             startAutoRefresh();
         } else {
             document.getElementById('ov-devices-wrap').innerHTML =
@@ -1375,7 +1396,7 @@ function loadNotifTargets(targetVal) {
 
 
 function loadNotifConfig() {
-    var deviceId = selVal('export');
+    var deviceId = selVal('notify');
     if (!deviceId) return;
     var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
     var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
@@ -1414,7 +1435,7 @@ function loadNotifConfig() {
     });
 }
 function loadNotifAdapters() {
-    var deviceId = selVal('export');
+    var deviceId = selVal('notify');
     var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
     var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
     if (!deviceId) deviceId = dev ? dev.deviceId : '';
@@ -1467,7 +1488,7 @@ function loadNotifAdapters() {
 }
 
 function saveNotifConfig() {
-    var deviceId = selVal('export');
+    var deviceId = selVal('notify');
     var cfg = {
         adapter:              document.getElementById('notif-adapter').value,
         target:               document.getElementById('notif-target').value,
@@ -1490,7 +1511,7 @@ function saveNotifConfig() {
 }
 
 function testNotif() {
-    var deviceId = selVal('export');
+    var deviceId = selVal('notify');
     var adapter  = document.getElementById('notif-adapter').value;
     var target   = document.getElementById('notif-target').value;
     var msg      = (document.getElementById('notif-done-msg').value ||
