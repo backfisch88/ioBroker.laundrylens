@@ -52,7 +52,10 @@
     "authors": [
       "backfisch88 <backfisch88@users.noreply.github.com>"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
     "platform": "Javascript/Node.js",
     "main": "main.js",
     "icon": "icon.png",
