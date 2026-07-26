@@ -54,7 +54,6 @@
     ],
     "license": "MIT",
     "platform": "Javascript/Node.js",
-    "main": "main.js",
     "icon": "icon.png",
     "extIcon": "https://raw.githubusercontent.com/backfisch88/ioBroker.laundrylens/main/admin/icon.png",
     "readme": "https://github.com/backfisch88/ioBroker.laundrylens/blob/main/README.md",
