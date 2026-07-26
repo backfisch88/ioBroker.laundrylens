@@ -135,6 +135,8 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ---
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## Contributing
 
 Issues and pull requests are welcome: [Issues](https://github.com/backfisch88/ioBroker.laundrylens/issues)
