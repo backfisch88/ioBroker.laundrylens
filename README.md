@@ -107,6 +107,11 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.2.8 (2026-07-26)
+- New: proper post-hoc phase detection for dishwashers (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen based on ordinal heating-block count, instead of a flat per-reading power threshold that mislabeled every heat spike as "Aufheizen")
+- Fix: `instance` URL parameter was ignored for initial device pre-selection in the admin tab
+- Fix attempt: hash-based deep-linking no longer triggers premature data loading before device discovery completes
+
 ### 0.2.7 (2026-07-22)
 - Attempted fix: hash-based deep-linking no longer triggers data loading for the target tab before device discovery has completed (visual tab switch only; data loading deferred until devices are known). Addresses a suspected race where early sendTo() calls with an empty deviceId may have interfered with device discovery.
 

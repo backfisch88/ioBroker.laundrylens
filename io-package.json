@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.7",
+    "version": "0.2.8",
     "news": {
+      "0.2.8": {
+        "en": "New: proper post-hoc phase detection for dishwashers (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen based on ordinal heating-block count, instead of a flat per-reading power threshold that mislabeled every heat spike as 'Aufheizen'). Fix: instance URL param was ignored for initial device pre-selection in the admin tab. Fix attempt: hash-based deep-linking no longer triggers premature data loading before device discovery completes.",
+        "de": "Neu: richtige nachträgliche Phasenerkennung für Spülmaschinen (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen anhand der Anzahl der Heizblöcke, statt einer reinen Momentanwert-Schwelle, die jede Heizspitze als 'Aufheizen' bezeichnet hat). Fix: instance-URL-Parameter wurde bei der Geräte-Vorauswahl im Admin-Tab ignoriert. Fix-Versuch: Hash-basiertes Deep-Linking löst keine verfrühte Datenladung mehr aus, bevor die Geräteerkennung abgeschlossen ist."
+      },
       "0.2.7": {
         "en": "Attempted fix: hash-based deep-linking no longer triggers data loading (getCycleHistory/getProfiles/etc.) for the target tab before device discovery has completed - only a visual tab switch happens immediately, data loading is deferred until devices are actually known. This addresses a suspected race where early sendTo() calls with an empty deviceId may have interfered with the getDevices flow.",
         "de": "Versuchter Fix: Hash-basiertes Deep-Linking löst keine Datenladung (getCycleHistory/getProfiles/etc.) für den Ziel-Tab mehr aus, bevor die Geräteerkennung abgeschlossen ist - es passiert zunächst nur ein visueller Tab-Wechsel, die Datenladung erfolgt erst sobald Geräte bekannt sind. Dies adressiert eine vermutete Race Condition, bei der frühe sendTo()-Aufrufe mit leerer deviceId den getDevices-Ablauf gestört haben könnten."
