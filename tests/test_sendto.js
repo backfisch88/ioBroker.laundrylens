@@ -5,7 +5,7 @@
  * Integration test for the sendTo()-API logic (without real ioBroker socket).
  */
 
-const assert = require('assert');
+const assert = require('node:assert');
 const { ProfileStore } = require('../lib/profileStore');
 const { WashDataManager } = require('../lib/washDataManager');
 
