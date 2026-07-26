@@ -81,7 +81,7 @@
     "dataSource": "push",
     "dependencies": [
       {
-        "js-controller": ">=5.0.0"
+        "js-controller": ">=6.0.11"
       }
     ],
     "node": ">=18.0.0"
