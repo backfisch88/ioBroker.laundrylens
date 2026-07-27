@@ -30,17 +30,8 @@
       "0.2.2": {
         "en": "Debug log now shows the best candidate (program + confidence) and current match threshold even when there is no official match yet",
         "de": "Debug-Log zeigt jetzt den besten Kandidaten (Programm + Konfidenz) und die aktuelle Erkennungsschwelle, auch wenn noch kein offizielles Match vorliegt"
-      },
-      "0.2.1": {
-        "en": "Removed HA-Import feature (unused, button + backend handler)",
-        "de": "HA-Import entfernt (ungenutzt, Button + Backend-Handler)"
-      },
-      "0.2.0": {
-        "en": "Alpha release: cycle detection, self-learning program matching, admin UI with cycle graphs, Telegram notifications, full export/import",
-        "de": "Alpha-Release: Zykluserkennung, selbstlernendes Programm-Matching, Admin-UI mit Zyklus-Graphen, Telegram-Benachrichtigungen, vollständiger Export/Import"
       }
     },
-    "title": "LaundryLens",
     "titleLang": {
       "en": "LaundryLens",
       "de": "LaundryLens"
@@ -52,9 +43,22 @@
     "authors": [
       "backfisch88 <backfisch88@users.noreply.github.com>"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "tier": 4,
+    "keywords": [
+      "ioBroker",
+      "washing machine",
+      "dryer",
+      "smart plug",
+      "shelly",
+      "power monitoring",
+      "cycle detection",
+      "laundrylens"
+    ],
     "platform": "Javascript/Node.js",
-    "main": "main.js",
     "icon": "icon.png",
     "extIcon": "https://raw.githubusercontent.com/backfisch88/ioBroker.laundrylens/main/admin/icon.png",
     "readme": "https://github.com/backfisch88/ioBroker.laundrylens/blob/main/README.md",
@@ -64,14 +68,12 @@
     "type": "general",
     "compact": true,
     "messagebox": true,
-    "materializeTab": true,
     "adminTab": {
       "singleton": true,
       "name": {
         "en": "LaundryLens",
         "de": "LaundryLens"
-      },
-      "fa-icon": "bath"
+      }
     },
     "adminUI": {
       "config": "json",
@@ -84,7 +86,6 @@
         "js-controller": ">=6.0.11"
       }
     ],
-    "node": ">=22.0.0",
     "globalDependencies": [
       {
         "admin": ">=7.8.23"

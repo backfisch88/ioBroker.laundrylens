@@ -21,3 +21,6 @@ coverage/
 
 # local ioBroker data (if ever run from this folder)
 /iobroker-data/
+
+# release-script metadata file
+.commitinfo
