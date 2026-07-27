@@ -20,6 +20,7 @@ export default [
       "jsdoc/require-param": "off",
       "jsdoc/require-param-description": "off",
       "jsdoc/require-returns-description": "off",
+      "jsdoc/tag-lines": "off",
       // Formatting-only (Prettier-via-ESLint) is disabled deliberately: the
       // existing ~3500 line codebase uses single quotes / 4-space indent
       // throughout, predating this migration. Reformatting everything to
@@ -33,7 +34,7 @@ export default [
       // (e.g. `getX() { return this._x; }`) throughout. Enforcing braces/
       // multi-line bodies everywhere is another large, purely stylistic,
       // mechanical rewrite we're not doing wholesale right now.
-      "curly": "off",
+      curly: "off",
       "brace-style": "off",
       "nonblock-statement-body-position": "off",
     },
