@@ -11,7 +11,7 @@ export default [
   {
     rules: {
       "no-console": "warn",
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
       // This project is plain JS without a documentation requirement (yet) -
       // disabling these matches the same override used in ioBroker's own
       // core-team repos (e.g. ioBroker.admin's eslint.config.mjs) for

@@ -88,9 +88,9 @@ class WashdataAdapter extends utils.Adapter {
 
         // Auto-generate deviceId if not set - einmalig speichern
         if (!this.config.deviceId || this.config.deviceId.trim() === '') {
-            const newId = 'device_' + this.instance + '_' + Math.random().toString(36).slice(2, 6);
-            this.log.info('Auto-generated deviceId: ' + newId);
-            await this.extendForeignObjectAsync('system.adapter.' + this.namespace, {
+            const newId = `device_${this.instance}_${Math.random().toString(36).slice(2, 6)}`;
+            this.log.info(`Auto-generated deviceId: ${newId}`);
+            await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
                 native: { deviceId: newId }
             });
             this.config.deviceId = newId;
@@ -472,7 +472,7 @@ class WashdataAdapter extends utils.Adapter {
 
                 case 'splitTrace': {
                     const { cycleId, splitTs } = obj.message || {};
-                    this.log.info('splitTrace: cycleId=' + cycleId + ' splitTs=' + splitTs);
+                    this.log.info(`splitTrace: cycleId=${cycleId} splitTs=${splitTs}`);
                     const mgr = this._mgr(obj.message);
                     if (!mgr) return respond({ error: 'Gerät nicht gefunden' });
                     const result = mgr.splitTrace(cycleId, splitTs);
@@ -675,7 +675,7 @@ class WashdataAdapter extends utils.Adapter {
                             }
                         }
                         respond({ ok: true, adapters: found });
-                    } catch (err) {
+                    } catch {
                         respond({ ok: true, adapters: [] });
                     }
                     break;
@@ -698,7 +698,7 @@ class WashdataAdapter extends utils.Adapter {
                         }
                         respond({ ok: true, users });
                     } catch (e) {
-                        this.log.warn('getTelegramUsers error: ' + e.message);
+                        this.log.warn(`getTelegramUsers error: ${e.message}`);
                         respond({ ok: true, users: [] });
                     }
                     break;
@@ -790,7 +790,7 @@ class WashdataAdapter extends utils.Adapter {
         // Confidence + program Datenpunkt immer aktuell halten
         if (status.bestCandidate) {
             this.setState(`${deviceId}.confidence`, status.bestCandidate.confidence, true);
-            this.setState(`${deviceId}.program`,    '≈ ' + status.bestCandidate.name, true);
+            this.setState(`${deviceId}.program`,    `≈ ${status.bestCandidate.name}`, true);
         } else if (status.program && status.program !== 'detecting...') {
             // Wird schon durch _onProgram gesetzt, aber zur Sicherheit
         } else if (status.state === 'off') {

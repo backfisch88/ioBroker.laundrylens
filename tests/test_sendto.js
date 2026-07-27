@@ -6,17 +6,16 @@
  */
 
 const assert = require('node:assert');
-const { ProfileStore } = require('../lib/profileStore');
 const { WashDataManager } = require('../lib/washDataManager');
 
 // Minimal adapter mock (same as in smoke test)
 function makeAdapter() {
     return {
         log: {
-            info:  m => {},
-            debug: m => {},
-            warn:  m => console.log('[WARN]', m),
-            error: m => console.error('[ERR]', m),
+            info:  _m => {},
+            debug: _m => {},
+            warn:  _m => {},
+            error: _m => {},
         },
         instance: 0,
         writeFileAsync: async () => {},
