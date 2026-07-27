@@ -9,13 +9,15 @@ const { tests } = require('@iobroker/testing');
 // than crashing, since a fresh install always starts with no devices.
 tests.integration(path.join(__dirname, '..'), {
     defineAdditionalTests(getHarness) {
-        it('Adapter starts up without crashing (no devices configured)', function () {
-            this.timeout(60000);
-            return new Promise((resolve, reject) => {
-                const harness = getHarness();
-                harness.startAdapterAndWait()
-                    .then(() => resolve())
-                    .catch(err => reject(err));
+        describe('Adapter startup', () => {
+            it('Adapter starts up without crashing (no devices configured)', function () {
+                this.timeout(60000);
+                return new Promise((resolve, reject) => {
+                    const harness = getHarness();
+                    harness.startAdapterAndWait()
+                        .then(() => resolve())
+                        .catch(err => reject(err));
+                });
             });
         });
     },
