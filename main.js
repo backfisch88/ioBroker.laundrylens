@@ -727,7 +727,7 @@ class WashdataAdapter extends utils.Adapter {
                     try {
                         const raw = await this.readFileAsync(`laundrylens.${this.instance}.files`, `notify_${deviceId}.json`);
                         respond({ ok: true, config: raw && raw.file ? JSON.parse(raw.file) : null });
-                    } catch (_) {
+                    } catch {
                         respond({ ok: true, config: null });
                     }
                     break;

@@ -28,6 +28,14 @@ export default [
       // of adopting the shared config. The other (non-cosmetic) rules from
       // @iobroker/eslint-config still apply normally.
       "prettier/prettier": "off",
+      // Same reasoning as prettier/prettier above: this codebase uses
+      // single-line `if (cond) return;` and compact one-line getters
+      // (e.g. `getX() { return this._x; }`) throughout. Enforcing braces/
+      // multi-line bodies everywhere is another large, purely stylistic,
+      // mechanical rewrite we're not doing wholesale right now.
+      "curly": "off",
+      "brace-style": "off",
+      "nonblock-statement-body-position": "off",
     },
   },
 ];
