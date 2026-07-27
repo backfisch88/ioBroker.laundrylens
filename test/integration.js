@@ -8,8 +8,8 @@ const { tests } = require('@iobroker/testing');
 // zero devices configured - the adapter must handle that gracefully rather
 // than crashing, since a fresh install always starts with no devices.
 tests.integration(path.join(__dirname, '..'), {
-    defineAdditionalTests(getHarness) {
-        describe('Adapter startup', () => {
+    defineAdditionalTests({ suite }) {
+        suite('Adapter startup', getHarness => {
             it('Adapter starts up without crashing (no devices configured)', function () {
                 this.timeout(60000);
                 return new Promise((resolve, reject) => {
