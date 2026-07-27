@@ -22,6 +22,8 @@ jobs:
         with:
           node-version: "22.x"
           lint: true
+          install-command: "npm install"
+          package-cache: "false"
 
   # Our own unit tests (mocha), independent of the checker action above
   unit-tests:
