@@ -486,6 +486,18 @@ class WashdataAdapter extends utils.Adapter {
                     break;
                 }
 
+                case 'clearAntiKnitter': {
+                    const mgr = this._mgr(obj.message);
+                    if (!mgr) return respond({ error: 'Gerät nicht gefunden' });
+                    await mgr.profileStore.clearAntiKnitter();
+                    mgr.clearAntiKnitterConfig();
+                    const akClearDevCfg = this._getDeviceConfig().find(d => d.deviceId === obj.message.deviceId);
+                    const akClearDevName = akClearDevCfg ? akClearDevCfg.name : obj.message.deviceId;
+                    this.log.info(`${akClearDevName}: Anti-Knitter Muster gelöscht`);
+                    respond({ ok: true });
+                    break;
+                }
+
                 case 'setAntiKnitter': {
                     const { cycleId } = obj.message || {};
                     const mgr = this._mgr(obj.message);

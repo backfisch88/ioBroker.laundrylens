@@ -242,6 +242,10 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
           <label>&nbsp;</label>
           <button class="btn btn-warn" onclick="saveAntiKnitterFromDropdown()">🌀 Speichern</button>
         </div>
+        <div class="form-group" style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn btn-outline" style="border-color:#ea4335;color:#c5221f" onclick="clearAntiKnitter()">🗑 Löschen</button>
+        </div>
       </div>
       <div id="antiknitter-status" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
     </div>
@@ -899,6 +903,20 @@ function saveAntiKnitterFromDropdown() {
     send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
         if (res && res.ok) {
             toast('✅ Anti-Knitter gespeichert! ' + Math.round(res.durationMin) + ' min · max ' + Math.round(res.maxWatts) + 'W', 'ok');
+            loadPrograms(); // Status aktualisieren
+        } else {
+            toast((res && res.error) || 'Fehler', 'err');
+        }
+    });
+}
+
+function clearAntiKnitter() {
+    var deviceId = selVal('programs');
+    if (!confirm('Gespeichertes Anti-Knitter-Muster wirklich löschen?')) return;
+    send('clearAntiKnitter', { deviceId: deviceId }).then(function(res) {
+        if (res && res.ok) {
+            toast('🗑 Anti-Knitter-Muster gelöscht', 'ok');
+            document.getElementById('antiknitter-select').value = '';
             loadPrograms(); // Status aktualisieren
         } else {
             toast((res && res.error) || 'Fehler', 'err');
