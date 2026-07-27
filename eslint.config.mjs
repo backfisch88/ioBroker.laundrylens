@@ -12,6 +12,12 @@ export default [
     rules: {
       "no-console": "warn",
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+      // @iobroker/eslint-config apparently enables the TypeScript-aware
+      // extension rule (which replaces, not just supplements, the base
+      // no-unused-vars rule) even for plain .js files. Overriding only the
+      // base rule name above had no effect - need to configure this one too
+      // with the same ignore patterns.
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
       // This project is plain JS without a documentation requirement (yet) -
       // disabling these matches the same override used in ioBroker's own
       // core-team repos (e.g. ioBroker.admin's eslint.config.mjs) for
@@ -37,6 +43,22 @@ export default [
       curly: "off",
       "brace-style": "off",
       "nonblock-statement-body-position": "off",
+    },
+  },
+  {
+    // @iobroker/eslint-config doesn't assume any particular test framework,
+    // so mocha's globals (describe/it/before/after/etc.) aren't defined by
+    // default - they need to be added explicitly for our test files.
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        describe: "readonly",
+        it: "readonly",
+        before: "readonly",
+        after: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+      },
     },
   },
 ];
