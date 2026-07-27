@@ -18,7 +18,7 @@ jobs:
       - name: Check package files
         uses: ioBroker/testing-action-check@v1
         with:
-          node-version: "20.x"
+          node-version: '24.x'
           install-command: "npm install"
           package-cache: "false"
 
