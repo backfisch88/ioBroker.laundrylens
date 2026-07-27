@@ -13,36 +13,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-package-files:
+  # Performs quick checks before the expensive test runs
+  check-and-lint:
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: ioBroker/testing-action-check@v2
         with:
-          node-version: '22.x'
-      - run: npm install
-      - name: Check package files
-        uses: ioBroker/testing-action-check@v2
-        with:
-          node-version: '22.x'
-          install-command: "npm install"
-          package-cache: "false"
+          node-version: "22.x"
+          lint: true
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22.x'
-      - run: npm install
-      - run: npm run lint
-
+  # Our own unit tests (mocha), independent of the checker action above
   unit-tests:
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 22.x]
+        node-version: [20.x, 22.x]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -51,15 +38,30 @@ jobs:
       - run: npm install
       - run: npm test
 
+  # Runs adapter tests on all supported node versions and OSes
+  adapter-tests:
+    needs: [check-and-lint]
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x, 24.x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: ioBroker/testing-action-adapter@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+          os: ${{ matrix.os }}
+
   release:
-    needs: [lint, unit-tests]
+    needs: [check-and-lint, unit-tests, adapter-tests]
     if: contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: '22.x'
+          node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
       - run: npm install
       - name: Publish to npm

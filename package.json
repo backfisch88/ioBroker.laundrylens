@@ -33,13 +33,15 @@
   },
   "devDependencies": {
     "@iobroker/testing": "^5.3.0",
-    "@types/node": ">=22",
+    "@iobroker/eslint-config": "^1.0.0",
+    "@types/node": "^22.0.0",
     "eslint": "^10.7.0"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "keywords": [
+    "ioBroker",
     "washing machine",
     "dryer",
     "smart plug",
