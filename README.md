@@ -109,6 +109,8 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
 
 ### 0.2.8 (2026-07-26)
 - New: proper phase detection for dishwashers, both in the historical cycle graph and the live status display (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen based on ordinal heating-block count, instead of a flat per-reading power threshold that mislabeled every heat spike as "Aufheizen")

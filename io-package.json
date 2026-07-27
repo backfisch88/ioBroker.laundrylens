@@ -81,10 +81,15 @@
     "dataSource": "push",
     "dependencies": [
       {
-        "js-controller": ">=5.0.0"
+        "js-controller": ">=6.0.11"
       }
     ],
-    "node": ">=22.0.0"
+    "node": ">=22.0.0",
+    "globalDependencies": [
+      {
+        "admin": ">=7.8.23"
+      }
+    ]
   },
   "objects": [],
   "instanceObjects": [
