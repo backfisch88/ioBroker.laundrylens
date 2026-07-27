@@ -51,7 +51,10 @@
     "authors": [
       "backfisch88 <backfisch88@users.noreply.github.com>"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
     "platform": "Javascript/Node.js",
     "icon": "icon.png",
     "extIcon": "https://raw.githubusercontent.com/backfisch88/ioBroker.laundrylens/main/admin/icon.png",
