@@ -319,6 +319,7 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
           <select id="notif-target">
             <option value="">Alle (broadcast)</option>
           </select>
+          <input type="email" id="notif-target-email" placeholder="z.B. name@example.com (leer = Adapter-Standard)" style="display:none">
         </div>
       </div>
       <p class="text-sm text-muted" style="margin-bottom:10px">Platzhalter: <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code></p>
@@ -1427,10 +1428,39 @@ function setNotifToggle(type, val) {
     tog.classList.toggle('on', !!val);
     inp.value = val ? '1' : '0';
 }
+function getNotifTargetValue() {
+    var adapter = document.getElementById('notif-adapter').value;
+    if (adapter.startsWith('email')) {
+        var e = document.getElementById('notif-target-email');
+        return e ? e.value.trim() : '';
+    }
+    var s = document.getElementById('notif-target');
+    return s ? s.value : '';
+}
+
+function setNotifTargetValue(val) {
+    var adapter = document.getElementById('notif-adapter').value;
+    if (adapter.startsWith('email')) {
+        var e = document.getElementById('notif-target-email');
+        if (e) e.value = val || '';
+    } else {
+        var s = document.getElementById('notif-target');
+        if (s) s.value = val || '';
+    }
+}
+
 function loadNotifTargets(targetVal) {
     var adapter = document.getElementById('notif-adapter').value;
     var tSel    = document.getElementById('notif-target');
+    var tEmail  = document.getElementById('notif-target-email');
     if (!tSel) return;
+    var isEmail = adapter.startsWith('email');
+    tSel.style.display   = isEmail ? 'none' : '';
+    if (tEmail) tEmail.style.display = isEmail ? '' : 'none';
+    if (isEmail) {
+        if (tEmail && targetVal) tEmail.value = targetVal;
+        return;
+    }
     tSel.innerHTML = '<option value="">Alle (broadcast)</option>';
     if (!adapter || !adapter.startsWith('telegram')) return;
     var dev  = devices.length > 0 ? devices[0] : null;
@@ -1461,7 +1491,7 @@ function loadNotifConfig() {
         var sel = document.getElementById('notif-adapter');
         // Nur setzen wenn Adapter in der Liste vorhanden
         if (cfg.adapter && sel && sel.querySelector('option[value="'+cfg.adapter+'"]')) sel.value = cfg.adapter;
-        if (cfg.adapter && cfg.adapter.startsWith('telegram')) loadNotifTargets();
+        if (cfg.adapter && (cfg.adapter.startsWith('telegram') || cfg.adapter.startsWith('email'))) loadNotifTargets();
         var se = document.getElementById('notif-start-enabled');
         var sm = document.getElementById('notif-start-msg');
         var ue = document.getElementById('notif-update-enabled');
@@ -1484,8 +1514,7 @@ function loadNotifConfig() {
         if (nd) nd.value = cfg.updateNearEndDiffPct || 50;
         if (nm) nm.value = cfg.updateNearEndDiffMin || 10;
         if (cfg.target) setTimeout(function() {
-            var t = document.getElementById('notif-target');
-            if (t) t.value = cfg.target;
+            setNotifTargetValue(cfg.target);
         }, 600);
     });
 }
@@ -1510,7 +1539,7 @@ function loadNotifAdapters() {
             if (!r || !r.ok || !r.config) return;
             var cfg = r.config;
             if (cfg.adapter && sel.querySelector('option[value="'+cfg.adapter+'"]')) sel.value = cfg.adapter;
-            if (cfg.adapter && cfg.adapter.startsWith('telegram')) loadNotifTargets();
+            if (cfg.adapter && (cfg.adapter.startsWith('telegram') || cfg.adapter.startsWith('email'))) loadNotifTargets();
             var sm = document.getElementById('notif-start-msg');
             var um = document.getElementById('notif-update-msg');
             var dm = document.getElementById('notif-done-msg');
@@ -1535,8 +1564,7 @@ function loadNotifAdapters() {
             if (nd2) nd2.value = cfg.updateNearEndDiffPct || 50;
             if (nm2) nm2.value = cfg.updateNearEndDiffMin || 10;
             if (cfg.target) setTimeout(function() {
-                var t = document.getElementById('notif-target');
-                if (t) t.value = cfg.target;
+                setNotifTargetValue(cfg.target);
             }, 600);
         });
     });
@@ -1546,7 +1574,7 @@ function saveNotifConfig() {
     var deviceId = selVal('notify');
     var cfg = {
         adapter:              document.getElementById('notif-adapter').value,
-        target:               document.getElementById('notif-target').value,
+        target:               getNotifTargetValue(),
         startEnabled:         document.getElementById('notif-start-enabled').value === '1',
         startMsg:             document.getElementById('notif-start-msg').value,
         updateEnabled:        document.getElementById('notif-update-enabled').value === '1',
@@ -1568,7 +1596,7 @@ function saveNotifConfig() {
 function testNotif() {
     var deviceId = selVal('notify');
     var adapter  = document.getElementById('notif-adapter').value;
-    var target   = document.getElementById('notif-target').value;
+    var target   = getNotifTargetValue();
     var msg      = (document.getElementById('notif-done-msg').value ||
                     document.getElementById('notif-start-msg').value || '🔔 Test')
         .replace(/{device}/g,   'Testgerät')

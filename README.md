@@ -28,6 +28,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Adaptive remaining time estimation combining time-based and energy-rate signals
 - Admin UI with expandable cycle list, inline power graph (canvas), phase legend, trim and split per touch/drag
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`) and conditional text blocks
+- Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
 
 ---

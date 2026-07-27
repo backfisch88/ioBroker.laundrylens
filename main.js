@@ -14,6 +14,20 @@ class WashdataAdapter extends utils.Adapter {
         this.on('unload',      this.onUnload.bind(this));
     }
 
+    // ── Benachrichtigungs-Payload passend zum Ziel-Adapter bauen ──
+    // E-Mail (ioBroker.email) erwartet {to, subject, text} statt {text, chatId}
+    // wie Telegram/Pushover/Signal/WhatsApp/Matrix/notify-my-android/Prowl.
+    _buildNotifyPayload(adapterName, target, text, subject) {
+        const isEmail = (adapterName || '').startsWith('email');
+        if (isEmail) {
+            const payload = { text, subject: subject || 'LaundryLens' };
+            if (target) payload.to = target;
+            return payload;
+        }
+        if (target) return { text, chatId: target };
+        return text;
+    }
+
     _getDeviceConfig() {
         const cfg = this.config;
         if (cfg.deviceId && cfg.powerId) {
@@ -636,11 +650,8 @@ class WashdataAdapter extends utils.Adapter {
                     const { adapter: notifAdapter, target, message } = obj.message || {};
                     if (!notifAdapter || !message) return respond({ error: 'adapter und message erforderlich' });
                     try {
-                        if (target) {
-                            await this.sendToAsync(notifAdapter, { text: message, chatId: target });
-                        } else {
-                            await this.sendToAsync(notifAdapter, message);
-                        }
+                        const payload = this._buildNotifyPayload(notifAdapter, target, message, 'LaundryLens Test');
+                        await this.sendToAsync(notifAdapter, payload);
                         respond({ ok: true });
                     } catch (err) {
                         respond({ error: err.message });
@@ -655,7 +666,7 @@ class WashdataAdapter extends utils.Adapter {
                             startkey: 'system.adapter.',
                             endkey:   'system.adapter.\u9999',
                         });
-                        const notifAdapters = ['telegram', 'pushover', 'signal-cbots', 'whatsapp-cmb', 'matrix-org', 'notify-my-android', 'prowl'];
+                        const notifAdapters = ['telegram', 'pushover', 'signal-cbots', 'whatsapp-cmb', 'matrix-org', 'notify-my-android', 'prowl', 'email'];
                         const found = [];
                         for (const item of (objs?.rows || [])) {
                             const id = item.id.replace('system.adapter.', '');
@@ -1019,9 +1030,9 @@ class WashdataAdapter extends utils.Adapter {
             const msg = applyTemplate(template);
 
             if (cfg.target) {
-                await this.sendToAsync(cfg.adapter, { text: msg, chatId: cfg.target });
+                await this.sendToAsync(cfg.adapter, this._buildNotifyPayload(cfg.adapter, cfg.target, msg, `${devName} – Update`));
             } else {
-                await this.sendToAsync(cfg.adapter, msg);
+                await this.sendToAsync(cfg.adapter, this._buildNotifyPayload(cfg.adapter, null, msg, `${devName} – Update`));
             }
             this.log.info(`${devName}: Update-Meldung gesendet (Restzeit: ${Math.round(remainingSec/60)} min)`);
             this.setState(`${deviceId}.lastMessage`, msg, true);
@@ -1081,10 +1092,11 @@ class WashdataAdapter extends utils.Adapter {
             };
             const msg = applyDone(template);
 
+            const notifySubject = `${devName} – ${event === 'done' ? 'Fertig' : 'Start'}`;
             if (cfg.target) {
-                await this.sendToAsync(cfg.adapter, { text: msg, chatId: cfg.target });
+                await this.sendToAsync(cfg.adapter, this._buildNotifyPayload(cfg.adapter, cfg.target, msg, notifySubject));
             } else {
-                await this.sendToAsync(cfg.adapter, msg);
+                await this.sendToAsync(cfg.adapter, this._buildNotifyPayload(cfg.adapter, null, msg, notifySubject));
             }
             this.log.info(`${devName}: Benachrichtigung (${event}) gesendet via ${cfg.adapter}`);
             // Gesendete Nachricht als Datenpunkt speichern (robust)
