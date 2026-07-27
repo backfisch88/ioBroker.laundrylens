@@ -58,6 +58,7 @@
     "readme": "https://github.com/backfisch88/ioBroker.laundrylens/blob/main/README.md",
     "enabled": true,
     "loglevel": "info",
+    "tier": 2,
     "mode": "daemon",
     "type": "general",
     "compact": true,
