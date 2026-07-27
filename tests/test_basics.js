@@ -10,7 +10,7 @@
  * Run: npm test
  */
 
-const assert = require('assert');
+const assert = require('node:assert');
 const { corrcoef, dtwDistance, resample, traceToEnergy } = require('../lib/mathUtils');
 const { CycleDetector, STATES } = require('../lib/cycleDetector');
 
