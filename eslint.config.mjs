@@ -49,7 +49,7 @@ export default [
     // @iobroker/eslint-config doesn't assume any particular test framework,
     // so mocha's globals (describe/it/before/after/etc.) aren't defined by
     // default - they need to be added explicitly for our test files.
-    files: ["tests/**/*.js"],
+    files: ["tests/**/*.js", "test/**/*.js"],
     languageOptions: {
       globals: {
         describe: "readonly",
