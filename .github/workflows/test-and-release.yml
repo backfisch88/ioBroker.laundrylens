@@ -22,7 +22,7 @@ jobs:
           node-version: '22.x'
       - run: npm install
       - name: Check package files
-        uses: ioBroker/testing-action-check@v1
+        uses: ioBroker/testing-action-check@v2
         with:
           node-version: '22.x'
           install-command: "npm install"
