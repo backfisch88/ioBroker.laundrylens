@@ -54,6 +54,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           os: ${{ matrix.os }}
+          install-command: "npm install"
+          package-cache: "false"
 
   release:
     needs: [check-and-lint, unit-tests, adapter-tests]
