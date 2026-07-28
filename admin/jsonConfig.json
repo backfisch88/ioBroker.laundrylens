@@ -159,7 +159,7 @@
       "type": "checkbox",
       "label": "Anti-Knitter ignorieren",
       "default": true,
-      "help": "Zyklus beim Piepton beenden. Anti-Knitter Phase wird nicht aufgezeichnet. Empfohlen für die meisten Trockner.",
+      "help": "AN: Zyklus endet sofort beim Piepton, Anti-Knitter-Phase wird ignoriert (einfach, für die meisten Trockner ausreichend). AUS: Adapter versucht aktiv, über die Anti-Knitter-Phase hinweg zu erkennen, wann der Zyklus wirklich fertig ist (braucht ein gespeichertes Referenzmuster unter 'Programme').",
       "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
     }
   }
