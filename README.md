@@ -115,7 +115,7 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 - Fix: Anti-Knitter checkbox polarity was inverted - "ignorieren" checked/unchecked did the opposite of what it should
 - Fix: dryer cycles were cut off immediately on any power drop even with no Anti-Knitter reference pattern saved
 - New: delete button for the saved Anti-Knitter reference pattern
-- Infrastructure: migrated to the official `@iobroker/eslint-config`, added a real `package-lock.json` and integration test, restructured CI to the current ioBroker workflow template (`check-and-lint`/`adapter-tests`)
+- Infrastructure: migrated to the official `@iobroker/eslint-config`, added a real `package-lock.json` and integration test, restructured CI to the current ioBroker workflow template (`check-and-lint`/`adapter-tests`), and reached full compliance with the shared config (Prettier formatting + complete JSDoc coverage, no rules disabled)
 
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
