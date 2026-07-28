@@ -28,11 +28,6 @@ export default [
       // disabling these matches the same override used in ioBroker's own
       // core-team repos (e.g. ioBroker.admin's eslint.config.mjs) for
       // adapters that haven't (fully) added JSDoc coverage.
-      "jsdoc/require-jsdoc": "off",
-      "jsdoc/require-param": "off",
-      "jsdoc/require-param-description": "off",
-      "jsdoc/require-returns-description": "off",
-      "jsdoc/tag-lines": "off",
     },
   },
   {
