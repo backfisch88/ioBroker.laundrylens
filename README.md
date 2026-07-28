@@ -108,6 +108,15 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.3.0 (2026-07-28)
+- New: proper dishwasher phase detection, both live and in the historical cycle graph
+- New: email notification support via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)
+- Fix: `instance` URL parameter and hash-based deep-linking in the admin tab
+- Fix: Anti-Knitter checkbox polarity was inverted - "ignorieren" checked/unchecked did the opposite of what it should
+- Fix: dryer cycles were cut off immediately on any power drop even with no Anti-Knitter reference pattern saved
+- New: delete button for the saved Anti-Knitter reference pattern
+- Infrastructure: migrated to the official `@iobroker/eslint-config`, added a real `package-lock.json` and integration test, restructured CI to the current ioBroker workflow template (`check-and-lint`/`adapter-tests`)
+
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
 - (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.

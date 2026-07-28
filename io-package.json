@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.2.8",
+    "version": "0.3.0",
     "news": {
+      "0.3.0": {
+        "en": "Beta: proper dishwasher phase detection (live + historical), email notification support (ioBroker.email), fixed instance URL parameter and hash deep-linking, fixed Anti-Knitter checkbox polarity (was inverted - 'ignorieren' checked/unchecked did the opposite of what it should), fixed immediate cycle cutoff when no Anti-Knitter reference exists, added Anti-Knitter reference delete button, migrated to the official @iobroker/eslint-config, added a real package-lock.json and integration test, restructured CI to the current ioBroker workflow template.",
+        "de": "Beta: richtige Spülmaschinen-Phasenerkennung (live + historisch), E-Mail-Benachrichtigungen (ioBroker.email), instance-URL-Parameter und Hash-Deep-Linking gefixt, Anti-Knitter-Checkbox-Polarität gefixt (war invertiert - 'ignorieren' an/aus hat das Gegenteil von dem gemacht, was es sollte), sofortiger Zyklusabbruch ohne Anti-Knitter-Referenzmuster gefixt, Löschen-Button fürs Anti-Knitter-Muster ergänzt, Umstieg auf die offizielle @iobroker/eslint-config, echte package-lock.json und Integrationstest ergänzt, CI auf aktuelles ioBroker-Workflow-Template umgestellt."
+      },
       "0.2.8": {
         "en": "New: proper phase detection for dishwashers, both in the historical cycle graph and the live status display (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen based on ordinal heating-block count, instead of a flat per-reading power threshold that mislabeled every heat spike as 'Aufheizen'). Fix: instance URL param was ignored for initial device pre-selection in the admin tab. Fix attempt: hash-based deep-linking no longer triggers premature data loading before device discovery completes.",
         "de": "Neu: richtige Phasenerkennung für Spülmaschinen, sowohl im historischen Zyklus-Graph als auch in der Live-Anzeige (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen anhand der Anzahl der Heizblöcke, statt einer reinen Momentanwert-Schwelle, die jede Heizspitze als 'Aufheizen' bezeichnet hat). Fix: instance-URL-Parameter wurde bei der Geräte-Vorauswahl im Admin-Tab ignoriert. Fix-Versuch: Hash-basiertes Deep-Linking löst keine verfrühte Datenladung mehr aus, bevor die Geräteerkennung abgeschlossen ist."
@@ -26,10 +30,6 @@
       "0.2.3": {
         "en": "Fix: startEnergyThreshold=0 was silently replaced by the default (falsy-zero bug); fix: restart while device is already running could get stuck in STARTING state instead of resuming RUNNING",
         "de": "Fix: Start-Energie-Gate = 0 wurde durch den Standardwert ersetzt (Falsy-Zero-Bug); Fix: Neustart während das Gerät bereits läuft konnte im Zustand 'Startet' hängen bleiben statt zu 'Läuft' zurückzukehren"
-      },
-      "0.2.2": {
-        "en": "Debug log now shows the best candidate (program + confidence) and current match threshold even when there is no official match yet",
-        "de": "Debug-Log zeigt jetzt den besten Kandidaten (Programm + Konfidenz) und die aktuelle Erkennungsschwelle, auch wenn noch kein offizielles Match vorliegt"
       }
     },
     "titleLang": {
