@@ -432,40 +432,86 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
 // ── Socket-Verbindung wie iobroker.info ───────────
 var socket = io.connect();
 
-// Globale Phasen-Farben
-// Globale Phasen-Farben
+// Global phase colors, keyed by language-neutral phase identifiers
+// (not display text) so the UI can show a translated label per phase.
 var PHASE_LINE_COLORS = {
-    '🔥 Aufheizen':   '#ea4335',
-    '🫧 Wäscht':      '#1a73e8',
-    '💧 Spült':       '#34a853',
-    '🌀 Schleudert':  '#fbbc04',
-    '🪣 Einweichen':  '#9a6dff',
-    '♨️ Trocknet':    '#fa7b17',
-    '❄️ Abkühlen':    '#1a73e8',
-    '👕 Anti-Knitter':'#34a853',
-    '🧹 Spült':       '#1a73e8',
-    '💧 Klarspülen':  '#34a853',
-    '💨 Trocknet':    '#fbbc04',
-    '🚿 Vorspülen':   '#9a6dff',
-    '🔥 Hauptspülgang': '#ea4335',
-    '✨ Klarspülgang': '#34a853',
+    heating:      '#ea4335',
+    washing:      '#1a73e8',
+    rinsing:      '#34a853',
+    spinning:     '#fbbc04',
+    soaking:      '#9a6dff',
+    dryer_drying: '#fa7b17',
+    cooling:      '#1a73e8',
+    anticrease:   '#34a853',
+    prewash:      '#9a6dff',
+    mainwash:     '#ea4335',
+    finalrinse:   '#34a853',
+    dish_drying:  '#fbbc04',
 };
 var PHASE_BG_COLORS = {
-    '🔥 Aufheizen':   'rgba(234,67,53,0.12)',
-    '🫧 Wäscht':      'rgba(26,115,232,0.10)',
-    '💧 Spült':       'rgba(52,168,83,0.10)',
-    '🌀 Schleudert':  'rgba(251,188,4,0.12)',
-    '🪣 Einweichen':  'rgba(154,109,255,0.10)',
-    '♨️ Trocknet':    'rgba(250,123,23,0.10)',
-    '❄️ Abkühlen':    'rgba(26,115,232,0.08)',
-    '👕 Anti-Knitter':'rgba(52,168,83,0.08)',
-    '🧹 Spült':       'rgba(26,115,232,0.10)',
-    '💧 Klarspülen':  'rgba(52,168,83,0.10)',
-    '💨 Trocknet':    'rgba(251,188,4,0.10)',
-    '🚿 Vorspülen':   'rgba(154,109,255,0.10)',
-    '🔥 Hauptspülgang': 'rgba(234,67,53,0.10)',
-    '✨ Klarspülgang': 'rgba(52,168,83,0.10)',
+    heating:      'rgba(234,67,53,0.12)',
+    washing:      'rgba(26,115,232,0.10)',
+    rinsing:      'rgba(52,168,83,0.10)',
+    spinning:     'rgba(251,188,4,0.12)',
+    soaking:      'rgba(154,109,255,0.10)',
+    dryer_drying: 'rgba(250,123,23,0.10)',
+    cooling:      'rgba(26,115,232,0.08)',
+    anticrease:   'rgba(52,168,83,0.08)',
+    prewash:      'rgba(154,109,255,0.10)',
+    mainwash:     'rgba(234,67,53,0.10)',
+    finalrinse:   'rgba(52,168,83,0.10)',
+    dish_drying:  'rgba(251,188,4,0.10)',
 };
+
+// Display label (emoji + translated text) per phase key and language.
+// Falls back to English if the current admin language isn't listed here.
+var PHASE_LABELS = {
+    heating:      { emoji: '🔥', en: 'Heating',      de: 'Aufheizen',       ru: 'Нагрев',            pt: 'Aquecendo',        nl: 'Verwarmen',        fr: 'Chauffe',           it: 'Riscaldamento',    es: 'Calentando',       pl: 'Podgrzewanie',   uk: 'Нагрівання',        'zh-cn': '加热' },
+    washing:      { emoji: '🫧', en: 'Washing',      de: 'Wäscht',          ru: 'Стирка',            pt: 'Lavando',          nl: 'Wast',             fr: 'Lavage',            it: 'Lavaggio',         es: 'Lavando',          pl: 'Pranie',         uk: 'Прання',            'zh-cn': '洗涤' },
+    rinsing:      { emoji: '💧', en: 'Rinsing',      de: 'Spült',           ru: 'Полоскание',        pt: 'Enxaguando',       nl: 'Spoelt',           fr: 'Rinçage',           it: 'Risciacquo',       es: 'Aclarando',        pl: 'Płukanie',       uk: 'Полоскання',        'zh-cn': '漂洗' },
+    spinning:     { emoji: '🌀', en: 'Spinning',     de: 'Schleudert',      ru: 'Отжим',             pt: 'Centrifugando',    nl: 'Centrifugeert',    fr: 'Essorage',          it: 'Centrifuga',       es: 'Centrifugando',    pl: 'Wirowanie',      uk: 'Віджим',            'zh-cn': '脱水' },
+    soaking:      { emoji: '🪣', en: 'Soaking',      de: 'Einweichen',      ru: 'Замачивание',       pt: 'De molho',         nl: 'Weken',            fr: 'Trempage',          it: 'Ammollo',          es: 'En remojo',        pl: 'Namaczanie',     uk: 'Замочування',       'zh-cn': '浸泡' },
+    dryer_drying: { emoji: '♨️', en: 'Drying',       de: 'Trocknet',        ru: 'Сушка',             pt: 'Secando',          nl: 'Droogt',           fr: 'Séchage',           it: 'Asciugatura',      es: 'Secando',          pl: 'Suszenie',       uk: 'Сушіння',           'zh-cn': '烘干' },
+    cooling:      { emoji: '❄️', en: 'Cooling down', de: 'Abkühlen',        ru: 'Охлаждение',        pt: 'Arrefecendo',      nl: 'Afkoelen',         fr: 'Refroidissement',   it: 'Raffreddamento',   es: 'Enfriando',        pl: 'Chłodzenie',     uk: 'Охолодження',       'zh-cn': '冷却' },
+    anticrease:   { emoji: '👕', en: 'Anti-crease',  de: 'Anti-Knitter',    ru: 'Защита от сминания', pt: 'Antiamarrotamento', nl: 'Kreukbescherming', fr: 'Anti-froissage',   it: 'Antipiega',        es: 'Antiarrugas',      pl: 'Zapob. gnieceniu', uk: 'Захист від зминання', 'zh-cn': '防皱' },
+    prewash:      { emoji: '🚿', en: 'Pre-wash',     de: 'Vorspülen',       ru: 'Предварительная мойка', pt: 'Pré-lavagem',  nl: 'Voorspoelen',      fr: 'Prélavage',         it: 'Prelavaggio',      es: 'Prelavado',        pl: 'Wstępne mycie',  uk: 'Попереднє миття',   'zh-cn': '预洗' },
+    mainwash:     { emoji: '🔥', en: 'Main wash',    de: 'Hauptspülgang',   ru: 'Основная мойка',    pt: 'Lavagem principal', nl: 'Hoofdwas',        fr: 'Lavage principal', it: 'Lavaggio principale', es: 'Lavado principal', pl: 'Mycie główne',  uk: 'Основне миття',     'zh-cn': '主洗' },
+    finalrinse:   { emoji: '✨', en: 'Final rinse',  de: 'Klarspülgang',    ru: 'Финальное полоскание', pt: 'Enxágue final', nl: 'Naspoelen',        fr: 'Rinçage final',    it: 'Risciacquo finale', es: 'Aclarado final',   pl: 'Płukanie końcowe', uk: 'Фінальне полоскання', 'zh-cn': '终洗' },
+    dish_drying:  { emoji: '💨', en: 'Drying',       de: 'Trocknet',        ru: 'Сушка',             pt: 'Secando',          nl: 'Droogt',           fr: 'Séchage',           it: 'Asciugatura',      es: 'Secando',          pl: 'Suszenie',       uk: 'Сушіння',           'zh-cn': '烘干' },
+};
+
+var _currentLang = null; // cached, detected once per admin session
+
+/** Detects the current ioBroker Admin UI language via system.config, defaulting to 'en'. */
+function detectLang(callback) {
+    if (_currentLang) { callback(_currentLang); return; }
+    try {
+        socket.emit('getObject', 'system.config', function(err, obj) {
+            _currentLang = (obj && obj.common && obj.common.language) || 'en';
+            callback(_currentLang);
+        });
+    } catch {
+        _currentLang = 'en';
+        callback(_currentLang);
+    }
+}
+
+/**
+ * Returns the translated display label (emoji + text) for a phase key.
+ * Falls back to the neutral key itself if unknown, and to English if the
+ * detected language has no translation.
+ *
+ * @param {string} phaseKey  – neutral phase identifier (e.g. 'washing')
+ * @returns {string} – e.g. "🫧 Washing" or "🫧 Wäscht" depending on language
+ */
+function getPhaseLabel(phaseKey) {
+    var entry = PHASE_LABELS[phaseKey];
+    if (!entry) return phaseKey; // unknown key (e.g. legacy saved data) - show as-is
+    var lang = _currentLang || 'en';
+    var text = entry[lang] || entry.en;
+    return entry.emoji + ' ' + text;
+}
+
 var instance = 0;
 var instanceExplicit = false;
 
@@ -628,6 +674,7 @@ function setActiveDevice(deviceId) {
 
 // ── Init ──────────────────────────────────────────
 function init() {
+    detectLang(function() { /* language cached for getPhaseLabel() */ });
     var allDevices = [];
     var checked = 0;
     var MAX = 5;
@@ -1194,7 +1241,7 @@ function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
         legendEl.innerHTML = unique.map(function(p) {
             var col = (PHASE_LINE_COLORS && PHASE_LINE_COLORS[p]) || '#999';
             return '<span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#444">' +
-                '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+'"></span>'+p+'</span>';
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+'"></span>'+getPhaseLabel(p)+'</span>';
         }).join('');
     } else if (legendEl) { legendEl.style.display='none'; }
 }
@@ -1759,31 +1806,10 @@ function drawGraph() {
         ctx.fillText(m + 'min', xp, H - 4);
     }
 
-    // Phasenwechsel als farbige Hintergrundbereiche
-    var PHASE_COLORS = {
-        '🔥 Aufheizen':   'rgba(234,67,53,0.10)',
-        '🫧 Wäscht':      'rgba(26,115,232,0.10)',
-        '💧 Spült':       'rgba(52,168,83,0.10)',
-        '🌀 Schleudert':  'rgba(251,188,4,0.10)',
-        '🪣 Einweichen':  'rgba(154,109,255,0.10)',
-        '♨️ Trocknet':    'rgba(250,123,23,0.10)',
-        '❄️ Abkühlen':    'rgba(26,115,232,0.10)',
-        '👕 Anti-Knitter':'rgba(52,168,83,0.10)',
-        '🧹 Spült':       'rgba(26,115,232,0.10)',
-        '💧 Klarspülen':  'rgba(52,168,83,0.10)',
-        '💨 Trocknet':    'rgba(251,188,4,0.10)',
-        '🚿 Vorspülen':   'rgba(154,109,255,0.10)',
-        '🔥 Hauptspülgang': 'rgba(234,67,53,0.10)',
-        '✨ Klarspülgang': 'rgba(52,168,83,0.10)',
-        '🫧 Wäscht/Trocknet': 'rgba(26,115,232,0.10)',
-        '♨️ Nachtrocknen': 'rgba(234,67,53,0.08)',
-        '⚡ Hohe Last':    'rgba(234,67,53,0.10)',
-        '🔄 Aktiv':        'rgba(26,115,232,0.10)',
-        '💤 Niedrige Last':'rgba(150,150,150,0.08)',
-        '⏳ Standby':      'rgba(150,150,150,0.05)',
-    };
-    // PHASE_LINE_COLORS: global definiert
-    // Clip auf Graph-Bereich damit Phasen nicht über Y-Achse laufen
+    // Phase changes shown as colored background regions
+    // (uses the globally-defined PHASE_BG_COLORS map)
+    // PHASE_LINE_COLORS: defined globally
+    // Clip to the graph area so phases don't run past the Y axis
     ctx.save();
     ctx.beginPath();
     ctx.rect(PAD.left, PAD.top, gW, gH);
@@ -1802,7 +1828,7 @@ function drawGraph() {
             var xStart = Math.max(tx(phTs), PAD.left);
             var xEnd   = nextTs !== null ? Math.min(tx(nextTs), PAD.left + gW) : PAD.left + gW;
             // Farbiger Hintergrundbereich
-            var bg = PHASE_COLORS[ph.phase] || 'rgba(150,150,150,0.07)';
+            var bg = PHASE_BG_COLORS[ph.phase] || 'rgba(150,150,150,0.07)';
             ctx.fillStyle = bg;
             ctx.fillRect(xStart, PAD.top, xEnd - xStart, gH);
             // Vertikale Linie beim Phasenwechsel
@@ -1830,7 +1856,7 @@ function drawGraph() {
                 var color = PHASE_LINE_COLORS[phase] || '#999';
                 return '<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#444">' +
                     '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + '"></span>' +
-                    phase + '</span>';
+                    getPhaseLabel(phase) + '</span>';
             }).join('');
         } else {
             legendEl.style.display = 'none';
