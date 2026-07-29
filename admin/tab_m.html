@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -110,28 +110,28 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
 <body>
 
 <div class="tabs">
-  <div class="tab active" data-tab="overview">📊 Übersicht</div>
-  <div class="tab" data-tab="programs">🗂 Programme</div>
-  <div class="tab" data-tab="cycles">🕐 Zyklen</div>
-  <div class="tab" data-tab="feedback">✅ Lernkontrolle <span class="badge-tab" id="feedback-badge" style="display:none">0</span></div>
-  <div class="tab" data-tab="notify">🔔 Benachrichtigungen</div>
-  <div class="tab" data-tab="export">💾 Export</div>
+  <div class="tab active" data-tab="overview" data-i18n="📊 Overview">📊 Overview</div>
+  <div class="tab" data-tab="programs" data-i18n="🗂 Programs">🗂 Programs</div>
+  <div class="tab" data-tab="cycles" data-i18n="🕐 Cycles">🕐 Cycles</div>
+  <div class="tab" data-tab="feedback"><span data-i18n="✅ Review">✅ Review</span> <span class="badge-tab" id="feedback-badge" style="display:none">0</span></div>
+  <div class="tab" data-tab="notify" data-i18n="🔔 Notifications">🔔 Notifications</div>
+  <div class="tab" data-tab="export" data-i18n="💾 Export">💾 Export</div>
 </div>
 
-<!-- ÜBERSICHT -->
+<!-- OVERVIEW -->
 <div class="pane active" id="pane-overview">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-overview" onchange="refreshOverview()"></select>
     <button class="btn btn-outline btn-sm" onclick="refreshOverview()">↻</button>
   </div>
   <div class="feedback-card" id="overview-feedback" style="display:none">
-    <h4>⚠️ Lernkontrolle erforderlich</h4>
-    <p class="text-sm">Letzter Zyklus nicht sicher erkannt. Bitte bestätigen oder korrigieren.</p>
-    <button class="btn btn-warn btn-sm mt-8" onclick="switchTab('feedback')">Zur Lernkontrolle →</button>
+    <h4 data-i18n="⚠️ Review needed">⚠️ Review needed</h4>
+    <p class="text-sm" data-i18n="Last cycle not confidently detected. Please confirm or correct.">Last cycle not confidently detected. Please confirm or correct.</p>
+    <button class="btn btn-warn btn-sm mt-8" onclick="switchTab('feedback')" data-i18n="Go to review →">Go to review →</button>
   </div>
   <div class="card">
-    <div class="card-head"><span>Live-Status</span><span class="text-sm text-muted" id="ov-updated"></span></div>
+    <div class="card-head"><span data-i18n="Live status">Live status</span><span class="text-sm text-muted" id="ov-updated"></span></div>
     <div class="card-body">
       <div class="status-row">
         <div class="chip"><div class="dot off" id="ov-dot"></div><span id="ov-state">–</span></div>
@@ -143,108 +143,108 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
       </div>
       <div id="ov-progress" style="display:none">
         <div class="row" style="margin-bottom:4px">
-          <span class="text-sm text-muted">Fortschritt</span>
+          <span class="text-sm text-muted" data-i18n="Progress">Progress</span>
           <span class="text-sm ml-auto" id="ov-pct">0%</span>
         </div>
         <div class="prog-bg"><div class="prog-fill" id="ov-bar" style="width:0%"></div></div>
         <div class="row mt-8">
-          <span class="text-sm text-muted">Restzeit</span>
+          <span class="text-sm text-muted" data-i18n="Time remaining">Time remaining</span>
           <span class="text-sm ml-auto" id="ov-remaining">–</span>
         </div>
         <div class="row mt-8" id="ov-elapsed-row" style="display:none">
-          <span class="text-sm text-muted">Verstrichene Zeit</span>
+          <span class="text-sm text-muted" data-i18n="Elapsed time">Elapsed time</span>
           <span class="text-sm ml-auto" id="ov-elapsed">–</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Live-Steuerung -->
+  <!-- Live control -->
   <div class="card" id="ctrl-card" style="display:none">
-    <div class="card-head">🎮 Live-Steuerung</div>
+    <div class="card-head" data-i18n="🎮 Live control">🎮 Live control</div>
     <div class="card-body">
       <div class="form-row" style="align-items:flex-end">
         <div class="form-group">
-          <label>Programm-Override</label>
+          <label data-i18n="Program override">Program override</label>
           <select id="ctrl-override" onchange="setProgramOverride()">
-            <option value="auto">🤖 Automatik</option>
+            <option value="auto" data-i18n="🤖 Automatic">🤖 Automatic</option>
           </select>
         </div>
         <div class="form-group" style="flex:0">
           <label>&nbsp;</label>
-          <button class="btn btn-danger btn-sm" onclick="forceFinish()" id="btn-force-finish" style="display:none;height:100%;min-height:36px">
-            ⏹ Zyklus beenden
+          <button class="btn btn-danger btn-sm" onclick="forceFinish()" id="btn-force-finish" style="display:none;height:100%;min-height:36px" data-i18n="⏹ End cycle">
+            ⏹ End cycle
           </button>
         </div>
       </div>
     </div>
   </div>
   <div class="card">
-    <div class="card-head">Letzter Zyklus</div>
-    <div class="card-body" id="ov-last"><span class="text-muted text-sm">Noch kein Zyklus aufgezeichnet.</span></div>
+    <div class="card-head" data-i18n="Last cycle">Last cycle</div>
+    <div class="card-body" id="ov-last"><span class="text-muted text-sm" data-i18n="No cycle recorded yet.">No cycle recorded yet.</span></div>
   </div>
   <div class="card">
-    <div class="card-head">Alle Geräte</div>
-    <div id="ov-devices-wrap"><div class="empty"><span class="text-muted text-sm">Lade…</span></div></div>
+    <div class="card-head" data-i18n="All devices">All devices</div>
+    <div id="ov-devices-wrap"><div class="empty"><span class="text-muted text-sm" data-i18n="Loading…">Loading…</span></div></div>
   </div>
 
   <div class="card" id="suggested-card" style="display:none">
     <div class="card-head" style="color:#e37400;border-bottom-color:#ff9800">
-      <span>💡 Empfohlene Einstellungen</span>
-      <button class="btn btn-warn btn-sm" onclick="applySuggested()">Anwenden</button>
+      <span data-i18n="💡 Suggested settings">💡 Suggested settings</span>
+      <button class="btn btn-warn btn-sm" onclick="applySuggested()" data-i18n="Apply">Apply</button>
     </div>
     <div class="card-body" id="suggested-body"></div>
   </div>
 </div>
 
-<!-- PROGRAMME -->
+<!-- PROGRAMS -->
 <div class="pane" id="pane-programs">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-programs" onchange="loadPrograms()"></select>
   </div>
   <div class="card">
-    <div class="card-head">Neues Programm anlegen</div>
+    <div class="card-head" data-i18n="Create new program">Create new program</div>
     <div class="card-body">
       <div class="form-row">
         <div class="form-group">
-          <label>Programmname</label>
-          <input type="text" id="prog-name" placeholder="z.B. Baumwolle 60°">
+          <label data-i18n="Program name">Program name</label>
+          <input type="text" id="prog-name" placeholder="e.g. Cotton 60°" data-i18n-placeholder="e.g. Cotton 60°">
         </div>
         <div class="form-group" style="max-width:130px">
-          <label>Dauer (min)</label>
+          <label data-i18n="Duration (min)">Duration (min)</label>
           <input type="number" id="prog-duration" value="90" min="1" max="480">
         </div>
         <div class="form-group" style="flex:0">
           <label>&nbsp;</label>
-          <button class="btn btn-success" onclick="createProgram()">+ Anlegen</button>
+          <button class="btn btn-success" onclick="createProgram()" data-i18n="+ Create">+ Create</button>
         </div>
       </div>
-      <p class="text-sm text-muted">💡 Der Adapter lernt die echte Dauer nach 2–3 Zyklen automatisch.</p>
+      <p class="text-sm text-muted" data-i18n="💡 The adapter learns the real duration automatically after 2–3 cycles.">💡 The adapter learns the real duration automatically after 2–3 cycles.</p>
     </div>
   </div>
   <div class="card">
-    <div class="card-head"><span>Gespeicherte Programme</span><span class="badge bg-blue" id="prog-count">0</span></div>
-    <div id="prog-list-wrap"><div class="empty"><p>Noch keine Programme angelegt.</p></div></div>
+    <div class="card-head"><span data-i18n="Saved programs">Saved programs</span><span class="badge bg-blue" id="prog-count">0</span></div>
+    <div id="prog-list-wrap"><div class="empty"><p data-i18n="No programs created yet.">No programs created yet.</p></div></div>
   </div>
   <div class="card" id="antiknitter-card" style="display:none">
-    <div class="card-head">🌀 Anti-Knitter Erkennung</div>
+    <div class="card-head" data-i18n="🌀 Anti-crease detection">🌀 Anti-crease detection</div>
     <div class="card-body">
-      <p class="text-sm text-muted" style="margin-bottom:10px">Wähle einen aufgezeichneten Zyklus als Anti-Knitter Referenz. Der Adapter ignoriert danach dieses Muster automatisch nach dem Trocknen.</p>
+      <p class="text-sm text-muted" style="margin-bottom:10px" data-i18n="Choose a recorded cycle as the anti-crease reference. The adapter will then automatically ignore this pattern after drying.">Choose a recorded cycle as the anti-crease reference. The adapter will then automatically ignore this pattern after drying.</p>
       <div class="form-row" style="align-items:flex-end">
         <div class="form-group" style="flex:1">
-          <label>Referenz-Zyklus</label>
+          <label data-i18n="Reference cycle">Reference cycle</label>
           <select id="antiknitter-select">
-            <option value="">– Kein Zyklus gewählt –</option>
+            <option value="" data-i18n="– No cycle selected –">– No cycle selected –</option>
           </select>
         </div>
         <div class="form-group" style="flex:0">
           <label>&nbsp;</label>
-          <button class="btn btn-warn" onclick="saveAntiKnitterFromDropdown()">🌀 Speichern</button>
+          <button class="btn btn-warn" onclick="saveAntiKnitterFromDropdown()" data-i18n="🌀 Save">🌀 Save</button>
         </div>
         <div class="form-group" style="flex:0">
           <label>&nbsp;</label>
-          <button class="btn btn-outline" style="border-color:#ea4335;color:#c5221f" onclick="clearAntiKnitter()">🗑 Löschen</button>
+          <button class="btn btn-outline" style="border-color:#ea4335;color:#c5221f" onclick="clearAntiKnitter()" data-i18n="🗑 Delete">🗑 Delete</button>
         </div>
       </div>
       <div id="antiknitter-status" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
@@ -252,10 +252,10 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
   </div>
 </div>
 
-<!-- ZYKLEN -->
+<!-- CYCLES -->
 <div class="pane" id="pane-cycles">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-cycles" onchange="loadCycles()"></select>
     <button class="btn btn-outline btn-sm" onclick="loadCycles()">↻</button>
   </div>
@@ -481,6 +481,7 @@ var PHASE_LABELS = {
 };
 
 var _currentLang = null; // cached, detected once per admin session
+var _translations = {}; // key → translated string, for the current language
 
 /** Detects the current ioBroker Admin UI language via system.config, defaulting to 'en'. */
 function detectLang(callback) {
@@ -494,6 +495,55 @@ function detectLang(callback) {
         _currentLang = 'en';
         callback(_currentLang);
     }
+}
+
+/**
+ * Loads the UI translation dictionary for the current language (falls back
+ * to English on error, or if a key is simply missing at lookup time).
+ *
+ * @param {Function} callback  – called once translations are loaded
+ */
+function loadTranslations(callback) {
+    detectLang(function(lang) {
+        fetch('i18n/' + lang + '/translations.json')
+            .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
+            .then(function(json) { _translations = json; callback(); })
+            .catch(function() {
+                if (lang === 'en') { callback(); return; }
+                fetch('i18n/en/translations.json')
+                    .then(function(r) { return r.json(); })
+                    .then(function(json) { _translations = json; callback(); })
+                    .catch(function() { callback(); });
+            });
+    });
+}
+
+/**
+ * Translates a UI string by its English source text (used as the lookup
+ * key, per ioBroker i18n convention). Falls back to the key itself if no
+ * translation is found (visibly shows untranslated strings during testing).
+ *
+ * @param {string} key  – English source string
+ * @returns {string} – translated string for the current language, or the key itself
+ */
+function _(key) {
+    return _translations[key] || key;
+}
+
+/** Replaces the text of every element with a data-i18n attribute with its translation. */
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        el.textContent = _(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = _(key);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-title');
+        el.title = _(key);
+    });
 }
 
 /**
@@ -674,7 +724,7 @@ function setActiveDevice(deviceId) {
 
 // ── Init ──────────────────────────────────────────
 function init() {
-    detectLang(function() { /* language cached for getPhaseLabel() */ });
+    loadTranslations(function() { applyTranslations(); });
     var allDevices = [];
     var checked = 0;
     var MAX = 5;
