@@ -601,7 +601,7 @@ function send(cmd, data) {
                             found = true;
                             resolve(res);
                         } else if (tried >= MAX && !found) {
-                            resolve(res); // letztes Ergebnis zurückgeben
+                            resolve(res); // return the last result
                         }
                     });
                 })(i);
@@ -620,17 +620,17 @@ function toast(msg, type) {
 }
 
 // ── Tabs ──────────────────────────────────────────
-// Reihenfolge = Nummerierung fürs Deep-Linking (#1, #2, ...) – bewusst sprachunabhängig,
-// damit Links stabil bleiben, egal ob die Oberfläche später mal auf Englisch läuft.
+// Order = numbering for deep-linking (#1, #2, ...) - deliberately
+// language-independent, so links stay stable regardless of UI language.
 var TAB_ORDER = ['overview', 'programs', 'cycles', 'feedback', 'notify', 'export'];
 
 document.querySelectorAll('.tab').forEach(function(t) {
     t.addEventListener('click', function() { switchTab(t.dataset.tab); });
 });
 
-// Nur visuelles Umschalten (Klassen + Hash) – OHNE Datenladung auszulösen.
-// Wichtig für den sofortigen Hash-Check beim Booten: dort sollen noch keine
-// sendTo()-Anfragen an alle Instanzen rausgehen, solange devices[] noch leer ist.
+// Purely visual switch (classes + hash) - WITHOUT triggering data loading.
+// Important for the immediate hash check at boot time: no sendTo() requests
+// to all instances should go out yet while devices[] is still empty.
 function activateTabUI(name) {
     document.querySelectorAll('.tab, .pane').forEach(function(el) { el.classList.remove('active'); });
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
@@ -649,12 +649,12 @@ function switchTab(name) {
     if (name === 'feedback')  loadFeedback();
     if (name === 'graph')     loadGraphCycles();
     if (name === 'notify') {
-        // Mit Verzögerung laden damit devices sicher befüllt sind
+        // Load with a delay so devices are reliably populated
         setTimeout(function() {
             if (devices.length > 0) {
                 loadNotifAdapters();
             } else {
-                // Nochmal warten
+                // Wait once more
                 setTimeout(function() {
                     if (devices.length > 0) loadNotifAdapters();
                 }, 1000);
@@ -663,13 +663,13 @@ function switchTab(name) {
     }
 }
 
-// Deep-Link per Hash (#1..#6) SOFORT auswerten – bewusst nur visuell und
-// UNABHÄNGIG vom Geräte-Ladevorgang (init()/finish()). Es wird hier bewusst
-// KEINE Datenladung ausgelöst (kein loadFeedback() etc.), damit keine
-// sendTo()-Anfragen mit leerer deviceId an alle Instanzen rausgehen, bevor
-// getDevices() überhaupt einmal durchgelaufen ist. Die eigentliche
-// Datenladung für den so aktivierten Tab passiert erst in finish(), sobald
-// die Geräteliste wirklich da ist.
+// Evaluate the hash deep-link (#1..#6) IMMEDIATELY - deliberately visual-only
+// and INDEPENDENT of the device loading process (init()/finish()). No data
+// loading (no loadFeedback() etc.) is deliberately triggered here, so no
+// sendTo() requests with an empty deviceId go out to all instances before
+// getDevices() has ever completed. The actual data loading for the
+// tab activated this way only happens in finish(), once the device list
+// is really available.
 (function() {
     var hashNum = parseInt((window.location.hash || '').replace('#', ''), 10);
     if (hashNum >= 1 && hashNum <= TAB_ORDER.length) {
@@ -703,7 +703,7 @@ function populateSelectors(devs) {
                     if (tab === 'cycles')    loadCycles();
                     if (tab === 'feedback')  loadFeedback();
                     if (tab === 'notify')    loadNotifAdapters();
-                    if (tab === 'export')    { /* export braucht kein Reload bei Gerätewechsel */ }
+                    if (tab === 'export')    { /* export needs no reload on device change */ }
                 }
             };
         }
@@ -751,17 +751,18 @@ function init() {
         if (allDevices.length > 0) {
             devices = allDevices;
             populateSelectors(devices);
-            // Falls die URL explizit ?instance=X angibt (z.B. wenn Admin diesen
-            // Tab aus der Konfiguration einer bestimmten Instanz heraus öffnet),
-            // das zu dieser Instanz gehörende Gerät vorauswählen statt einfach
-            // das erste gefundene Gerät zu zeigen.
+            // If the URL explicitly specifies ?instance=X (e.g. when Admin
+            // opens this tab from a specific instance's configuration),
+            // pre-select the device belonging to that instance instead of
+            // simply showing the first device found.
             if (instanceExplicit) {
                 var matchingDevice = devices.find(function(d) { return d._instance === instance; });
                 if (matchingDevice) setActiveDevice(matchingDevice.deviceId);
             }
-            // Aktuell aktiven Tab (ggf. schon per Hash beim Booten gesetzt) mit
-            // den jetzt verfügbaren Gerätedaten neu laden – Hash-Auswertung
-            // selbst passiert bereits sofort beim Skriptstart, unabhängig davon.
+            // Reload the currently active tab (possibly already set via hash
+            // at boot time) with the now-available device data - the hash
+            // evaluation itself already happens immediately at script start,
+            // independent of this.
             var activeTab2 = document.querySelector('.tab.active');
             var activeName = activeTab2 ? activeTab2.dataset.tab : 'overview';
             if (activeName === 'overview')  refreshOverview();
@@ -772,7 +773,7 @@ function init() {
             startAutoRefresh();
         } else {
             document.getElementById('ov-devices-wrap').innerHTML =
-                '<div class="empty"><p>Keine Geräte konfiguriert.</p></div>';
+                '<div class="empty"><p>' + _('No devices configured.') + '</p></div>';
         }
     }
 }
@@ -795,13 +796,13 @@ function refreshOverview() {
 
         if (stRes && stRes.ok) {
             var s = stRes.status;
-            var labels = { off:'Aus', starting:'Startet…', running:'Läuft ⚙️', paused:'Pausiert', ending:'Endet…' };
+            var labels = { off:_('Off'), starting:_('Starting…'), running:_('Running ⚙️'), paused:_('Paused'), ending:_('Ending…') };
             document.getElementById('ov-dot').className = 'dot ' + s.state;
             document.getElementById('ov-state').textContent     = labels[s.state] || s.state;
             var progEl = document.getElementById('ov-program');
             var confEl = document.getElementById('ov-confidence');
             if (s.state === 'off') {
-                // Bei off: Pillen leeren
+                // When off: clear the pills
                 progEl.textContent = '–';
                 confEl.textContent = '–';
             } else if (s.program && s.program !== 'detecting...') {
@@ -817,7 +818,7 @@ function refreshOverview() {
             var running = s.state === 'running' || s.state === 'paused';
             var isDetecting = !s.program || s.program === 'detecting...' || s.program === '–';
             document.getElementById('ov-progress').style.display = running ? '' : 'none';
-            // Fortschrittsbalken – ausblenden wenn detecting
+            // Progress bar - hide when detecting
             var bar = document.getElementById('ov-bar');
             var pctEl = document.getElementById('ov-pct');
             if (isDetecting) {
@@ -827,12 +828,12 @@ function refreshOverview() {
                 if (bar) bar.style.width = (s.cycleProgress || 0) + '%';
                 if (pctEl) pctEl.textContent = (s.cycleProgress || 0) + '%';
             }
-            // Restzeit – ausblenden wenn detecting
+            // Time remaining - hide when detecting
             var remEl = document.getElementById('ov-remaining');
             if (remEl) remEl.textContent = (!isDetecting && s.timeRemaining > 0)
                 ? Math.round(s.timeRemaining / 60) + ' min'
                 : '–';
-            // Verstrichene Zeit
+            // Elapsed time
             var elRow = document.getElementById('ov-elapsed-row');
             var elEl  = document.getElementById('ov-elapsed');
             if (running && s.elapsedTime > 0) {
@@ -842,12 +843,12 @@ function refreshOverview() {
                 if (elRow) elRow.style.display = 'none';
             }
 
-            // Phase anzeigen
+            // Show phase
             var phaseRow = document.getElementById('ov-phase-row');
             var phaseEl  = document.getElementById('ov-phase');
             if (running && s.phase) {
                 if (phaseRow) phaseRow.style.display = '';
-                if (phaseEl)  phaseEl.textContent = s.phase;
+                if (phaseEl)  phaseEl.textContent = getPhaseLabel(s.phase);
             } else {
                 if (phaseRow) phaseRow.style.display = 'none';
             }
@@ -859,25 +860,25 @@ function refreshOverview() {
             var kwh = ((c.energyWh || 0) / 1000).toFixed(3);
             var conf = c.confidence ? Math.round(c.confidence * 100) + '%' : '–';
             var confirmed = c.confirmed
-                ? '<span class="badge bg-green">✓ Bestätigt</span>'
-                : '<span class="badge bg-orange">❓ Offen</span>';
+                ? '<span class="badge bg-green">✓ ' + _('Confirmed') + '</span>'
+                : '<span class="badge bg-orange">❓ ' + _('Open') + '</span>';
             document.getElementById('ov-last').innerHTML =
                 '<table class="tbl">' +
-                '<tr><td class="text-muted" style="width:130px">Programm</td><td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong> ' + confirmed + '</td></tr>' +
-                '<tr><td class="text-muted">Start</td><td>' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</td></tr>' +
-                '<tr><td class="text-muted">Dauer</td><td>' + dur + ' min</td></tr>' +
-                '<tr><td class="text-muted">Verbrauch</td><td>' + kwh + ' kWh</td></tr>' +
-                '<tr><td class="text-muted">Konfidenz</td><td>' + conf + '</td></tr>' +
+                '<tr><td class="text-muted" style="width:130px">' + _('Program') + '</td><td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong> ' + confirmed + '</td></tr>' +
+                '<tr><td class="text-muted">' + _('Start') + '</td><td>' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</td></tr>' +
+                '<tr><td class="text-muted">' + _('Duration') + '</td><td>' + dur + ' min</td></tr>' +
+                '<tr><td class="text-muted">' + _('Consumption') + '</td><td>' + kwh + ' kWh</td></tr>' +
+                '<tr><td class="text-muted">' + _('Confidence') + '</td><td>' + conf + '</td></tr>' +
                 '</table>';
         }
 
-        // Alle Geräte
+        // All devices
         var colors = { off:'#ccc', running:'#34a853', starting:'#ff9800', ending:'#ea4335' };
         Promise.all(devices.map(function(d) {
             return send('getStatus', { deviceId: d.deviceId }).then(function(r) { return { d: d, r: r }; });
         })).then(function(allRes) {
             document.getElementById('ov-devices-wrap').innerHTML =
-                '<table class="tbl"><thead><tr><th>Gerät</th><th>Status</th><th>Programm</th></tr></thead><tbody>' +
+                '<table class="tbl"><thead><tr><th>' + _('Device') + '</th><th>' + _('Status') + '</th><th>' + _('Program') + '</th></tr></thead><tbody>' +
                 allRes.map(function(item) {
                     var s = item.r && item.r.ok ? item.r.status : { state:'–', program:'–' };
                     return '<tr><td><strong>' + item.d.name + '</strong></td>' +
@@ -889,14 +890,14 @@ function refreshOverview() {
                 '</tbody></table>';
         });
 
-        document.getElementById('ov-updated').textContent = new Date().toLocaleTimeString('de-DE');
+        document.getElementById('ov-updated').textContent = new Date().toLocaleTimeString(_currentLang || 'en');
 
-        // Control Card aktualisieren
+        // Update control card
         send('getProfiles', {deviceId: deviceId}).then(function(pr) {
             updateControlCard(stRes && stRes.ok ? stRes.status : null, pr && pr.ok ? pr.profiles : []);
         });
 
-        // Suggested Settings laden
+        // Load suggested settings
         if (!_suggestedApplied) {
             send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
                 var card = document.getElementById('suggested-card');
@@ -904,10 +905,10 @@ function refreshOverview() {
                 var s = res.settings;
                 var rows = '';
                 var fields = [
-                    { key:'startEnergyThreshold', label:'Start-Energie-Gate', unit:'Wh',  min:0,    max:50,  dec:1 },
-                    { key:'durationTolerance',    label:'Dauer-Toleranz',     unit:'',    min:0.05, max:0.5, dec:2 },
-                    { key:'offDelayMin',          label:'Ausschaltverzögerung',unit:'min', min:1,    max:60,  dec:0 },
-                    { key:'powerThreshold',       label:'Einschalt-Schwelle', unit:'W',   min:1,    max:500, dec:0 },
+                    { key:'startEnergyThreshold', label:_('Start energy gate'), unit:'Wh',  min:0,    max:50,  dec:1 },
+                    { key:'durationTolerance',    label:_('Duration tolerance'),     unit:'',    min:0.05, max:0.5, dec:2 },
+                    { key:'offDelayMin',          label:_('Off delay'),unit:'min', min:1,    max:60,  dec:0 },
+                    { key:'powerThreshold',       label:_('Power-on threshold'), unit:'W',   min:1,    max:500, dec:0 },
                 ];
                 fields.forEach(function(f) {
                     if (s[f.key] === undefined) return;
@@ -915,7 +916,7 @@ function refreshOverview() {
                     rows += '<tr><td class="text-muted">' + f.label + '</td><td><strong>' + val.toFixed(f.dec) + (f.unit ? ' ' + f.unit : '') + '</strong></td></tr>';
                 });
                 document.getElementById('suggested-body').innerHTML =
-                    '<p class="text-sm text-muted" style="margin-bottom:8px">Basierend auf <strong>' + s.basedOnCycles + ' Zyklen</strong> – nur Felder mit >10% Abweichung:</p>' +
+                    '<p class="text-sm text-muted" style="margin-bottom:8px">' + _('Based on') + ' <strong>' + s.basedOnCycles + ' ' + _('cycles') + '</strong> – ' + _('fields with >10% deviation only:') + '</p>' +
                     '<table class="tbl">' + rows + '</table>';
                 card.style.display = '';
             });
