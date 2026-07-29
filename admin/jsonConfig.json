@@ -1,52 +1,52 @@
 {
-  "i18n": false,
+  "i18n": true,
   "type": "panel",
   "items": {
     "name": {
       "type": "text",
-      "label": "Gerätename",
-      "placeholder": "z.B. Waschmaschine",
-      "default": "Waschmaschine",
-      "help": "Anzeigename im Dashboard"
+      "label": "Device name",
+      "placeholder": "e.g. Washing machine",
+      "default": "Washing machine",
+      "help": "Display name in the dashboard"
     },
     "deviceType": {
       "type": "select",
-      "label": "Gerätetyp",
+      "label": "Device type",
       "default": "washing_machine",
       "options": [
         {
           "value": "washing_machine",
-          "label": "🧺 Waschmaschine"
+          "label": "🧺 Washing machine"
         },
         {
           "value": "dishwasher",
-          "label": "🍽️ Spülmaschine"
+          "label": "🍽️ Dishwasher"
         },
         {
           "value": "dryer",
-          "label": "♨️ Trockner"
+          "label": "♨️ Dryer"
         },
         {
           "value": "washer_dryer",
-          "label": "🔄 Waschtrockner"
+          "label": "🔄 Washer-dryer"
         },
         {
           "value": "other",
-          "label": "⚙️ Sonstiges"
+          "label": "⚙️ Other"
         }
       ]
     },
     "powerId": {
       "type": "objectId",
-      "label": "Leistungs-Sensor (Watt)",
-      "help": "ioBroker-Datenpunkt der aktuellen Leistungsaufnahme in Watt"
+      "label": "Power sensor (watt)",
+      "help": "ioBroker data point providing the current power draw in watts"
     },
     "_sep1": {
       "type": "divider"
     },
     "_hdr1": {
       "type": "staticText",
-      "text": "Erkennungs-Schwellen",
+      "text": "Detection thresholds",
       "style": {
         "fontWeight": "bold",
         "marginTop": "8px"
@@ -54,34 +54,34 @@
     },
     "powerThreshold": {
       "type": "number",
-      "label": "Einschalt-Schwelle (W)",
+      "label": "Power-on threshold (W)",
       "default": 10,
       "min": 1,
       "max": 500,
-      "help": "Ab wann gilt das Gerät als eingeschaltet. Empfehlung: 10W für alle Geräte"
+      "help": "Power level from which the device is considered running. Recommended: 10W for all device types"
     },
     "offDelayMin": {
       "type": "number",
-      "label": "Ausschaltverzögerung (min)",
+      "label": "Off delay (min)",
       "default": 5,
       "min": 1,
       "max": 60,
-      "help": "Wie lange unter der Schwelle bevor Zyklus endet. Empfehlung: Waschmaschine 5 min · Trockner 8 min · Spülmaschine 8 min · Waschtrockner 10 min"
+      "help": "How long power must stay below the threshold before the cycle ends. Recommended: washing machine 5 min · dryer 8 min · dishwasher 8 min · washer-dryer 10 min"
     },
     "startEnergyThreshold": {
       "type": "number",
-      "label": "Start-Energie-Gate (Wh)",
+      "label": "Start energy gate (Wh)",
       "default": 2,
       "min": 0,
       "max": 50,
-      "help": "Mindest-Energie nach Start bevor Zyklus gezählt wird (verhindert Fehlstarts). Empfehlung: Waschmaschine 2 Wh · Trockner 5 Wh · Waschtrockner 5 Wh"
+      "help": "Minimum energy after start before the cycle is counted (prevents false starts). Recommended: washing machine 2 Wh · dryer 5 Wh · washer-dryer 5 Wh"
     },
     "_sep2": {
       "type": "divider"
     },
     "_hdr2": {
       "type": "staticText",
-      "text": "Programm-Erkennung",
+      "text": "Program detection",
       "style": {
         "fontWeight": "bold",
         "marginTop": "8px"
@@ -89,58 +89,58 @@
     },
     "durationTolerance": {
       "type": "number",
-      "label": "Dauer-Toleranz (0.05–0.5)",
+      "label": "Duration tolerance (0.05–0.5)",
       "default": 0.2,
       "min": 0.05,
       "max": 0.5,
       "step": 0.05,
-      "help": "Wie stark die Laufzeit vom Profil abweichen darf. 0.2 = ±20%"
+      "help": "How much the run time may deviate from the profile. 0.2 = ±20%"
     },
     "matchIntervalMin": {
       "type": "number",
-      "label": "Matching-Intervall (min)",
+      "label": "Matching interval (min)",
       "default": 5,
       "min": 1,
       "max": 30,
-      "help": "Wie oft das Programm erkannt wird. Empfehlung: 5 min für alle Geräte"
+      "help": "How often the program is matched. Recommended: 5 min for all device types"
     },
     "matchPersist": {
       "type": "number",
-      "label": "Match-Bestätigung (Anzahl)",
+      "label": "Match confirmations (count)",
       "default": 3,
       "min": 1,
       "max": 5,
-      "help": "Wie oft das gleiche Programm hintereinander erkannt werden muss. 3 = zuverlässig · 2 = schneller"
+      "help": "How many times in a row the same program must be detected. 3 = reliable · 2 = faster"
     },
     "autoConfirmThreshold": {
       "type": "number",
-      "label": "Auto-Bestätigung ab Konfidenz (%)",
+      "label": "Auto-confirm from confidence (%)",
       "default": 85,
       "min": 0,
       "max": 100,
-      "help": "Ab dieser Konfidenz wird der Zyklus automatisch bestätigt. 0 = deaktiviert · 85 = empfohlen"
+      "help": "From this confidence level the cycle is confirmed automatically. 0 = disabled · 85 = recommended"
     },
     "instantConfirmThreshold": {
       "type": "number",
-      "label": "Sofortübernahme ab Konfidenz (%)",
+      "label": "Instant adoption from confidence (%)",
       "default": 92,
       "min": 50,
       "max": 100,
-      "help": "Während des laufenden Zyklus: wenn die Live-Vorschau wiederholt (2x) mindestens diese Konfidenz zeigt, wird das Programm sofort übernommen, statt auf die normale, langsamere Erkennung zu warten."
+      "help": "During a running cycle: if the live preview repeatedly (2x) shows at least this confidence, the program is adopted immediately instead of waiting for the normal, slower detection."
     },
     "matchThreshold": {
       "type": "number",
-      "label": "Programm-Erkennungs-Schwelle (%)",
+      "label": "Program detection threshold (%)",
       "default": 55,
       "min": 30,
       "max": 95,
-      "help": "Ab dieser Konfidenz gilt ein Programm als erkannt (wird angezeigt). Darunter bleibt es 'detecting...'. 55 = empfohlen"
+      "help": "From this confidence a program counts as detected (and is shown). Below it, it stays 'detecting...'. 55 = recommended"
     },
     "notifyOnProbable": {
       "type": "checkbox",
-      "label": "Benachrichtigung auch bei wahrscheinlichem Programm",
+      "label": "Notify also for probable program",
       "default": false,
-      "help": "Telegram-Update senden sobald ein Programm erkannt wird – auch wenn die Konfidenz unter der Auto-Bestätigungs-Schwelle liegt"
+      "help": "Send a Telegram update as soon as a program is detected - even if confidence is below the auto-confirm threshold"
     },
     "_sep3": {
       "type": "divider",
@@ -148,7 +148,7 @@
     },
     "_hdr3": {
       "type": "staticText",
-      "text": "Trockner-Einstellungen",
+      "text": "Dryer settings",
       "style": {
         "fontWeight": "bold",
         "marginTop": "8px"
@@ -157,9 +157,9 @@
     },
     "ignoreAntiKnitter": {
       "type": "checkbox",
-      "label": "Anti-Knitter ignorieren",
+      "label": "Ignore anti-crease phase",
       "default": true,
-      "help": "AN: Zyklus endet sofort beim Piepton, Anti-Knitter-Phase wird ignoriert (einfach, für die meisten Trockner ausreichend). AUS: Adapter versucht aktiv, über die Anti-Knitter-Phase hinweg zu erkennen, wann der Zyklus wirklich fertig ist (braucht ein gespeichertes Referenzmuster unter 'Programme').",
+      "help": "ON: cycle ends immediately at the beep, the anti-crease phase is ignored (simple, sufficient for most dryers). OFF: the adapter actively tries to detect when the cycle is really finished across the anti-crease phase (needs a saved reference pattern under 'Programs').",
       "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
     }
   }
