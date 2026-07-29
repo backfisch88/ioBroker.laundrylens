@@ -931,13 +931,13 @@ function updateFeedbackBadge(cyc) {
     badge.style.display = open > 0 ? '' : 'none';
 }
 
-// Uhr sekündlich aktualisieren
+// Update clock every second
 setInterval(function() {
     var el = document.getElementById('ov-time');
-    if (el) el.textContent = new Date().toLocaleTimeString('de-DE');
+    if (el) el.textContent = new Date().toLocaleTimeString(_currentLang || 'en');
 }, 1000);
 
-setInterval(function(){ var e=document.getElementById("ov-updated"); if(e) e.textContent=new Date().toLocaleTimeString("de-DE"); },1000);
+setInterval(function(){ var e=document.getElementById("ov-updated"); if(e) e.textContent=new Date().toLocaleTimeString(_currentLang || 'en'); },1000);
 function startAutoRefresh() {
     clearInterval(_refreshTimer);
     _refreshTimer = setInterval(function() {
@@ -945,12 +945,12 @@ function startAutoRefresh() {
     }, 15000);
 }
 
-// ── PROGRAMME ─────────────────────────────────────
+// ── PROGRAMS ──────────────────────────────────────
 function loadPrograms() {
     var deviceId = selVal('programs');
     var isDryerDev = isDryer(deviceId);
 
-    // Anti-Knitter Card nur bei Trockner zeigen
+    // Only show the anti-crease card for dryers
     var akCard = document.getElementById('antiknitter-card');
     if (akCard) akCard.style.display = isDryerDev ? '' : 'none';
 
@@ -962,33 +962,33 @@ function loadPrograms() {
         var res   = results[0];
         var cyRes = results[1];
         var akRes = results[2];
-        if (!res || !res.ok) return toast('Fehler beim Laden', 'err');
+        if (!res || !res.ok) return toast(_('Error loading'), 'err');
         programs[deviceId] = res.profiles;
         document.getElementById('prog-count').textContent = res.profiles.length;
         renderPrograms(deviceId);
 
         if (isDryerDev) {
-            // Dropdown mit Zyklen befüllen
+            // Populate the cycle dropdown
             var sel = document.getElementById('antiknitter-select');
-            sel.innerHTML = '<option value="">– Kein Zyklus gewählt –</option>';
+            sel.innerHTML = '<option value="">' + _('– No cycle selected –') + '</option>';
             var cyList = (cyRes && cyRes.ok) ? cyRes.cycles : [];
             cyList.forEach(function(c) {
                 var dur = Math.round((c.durationMs||0)/60000);
-                var dt  = new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                var dt  = new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
                 var opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = dt + ' – ' + dur + ' min (' + ((c.energyWh||0)/1000).toFixed(3) + ' kWh)';
                 sel.appendChild(opt);
             });
-            // Aktuellen Status anzeigen
+            // Show current status
             var statusEl = document.getElementById('antiknitter-status');
             if (akRes && akRes.ok && akRes.antiKnitter) {
                 var ak = akRes.antiKnitter;
-                var learnedDate = new Date(ak.learnedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-                statusEl.innerHTML = '✅ Gelernt am ' + learnedDate + ' · max ' + Math.round(ak.maxWatts) + 'W · ' + Math.round(ak.durationMs/60000) + ' min Sperrzeit';
+                var learnedDate = new Date(ak.learnedAt).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                statusEl.innerHTML = '✅ ' + _('Learned on') + ' ' + learnedDate + ' · max ' + Math.round(ak.maxWatts) + 'W · ' + Math.round(ak.durationMs/60000) + ' ' + _('min lock period');
                 statusEl.style.color = '#1e7e34';
             } else {
-                statusEl.textContent = 'Noch kein Anti-Knitter Muster gespeichert.';
+                statusEl.textContent = _('No anti-crease pattern saved yet.');
                 statusEl.style.color = '';
             }
         }
@@ -998,25 +998,25 @@ function loadPrograms() {
 function saveAntiKnitterFromDropdown() {
     var deviceId = selVal('programs');
     var cycleId  = document.getElementById('antiknitter-select').value;
-    if (!cycleId) return toast('Bitte einen Zyklus auswählen', 'err');
+    if (!cycleId) return toast(_('Please select a cycle'), 'err');
     send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
         if (res && res.ok) {
-            toast('✅ Anti-Knitter gespeichert! ' + Math.round(res.durationMin) + ' min · max ' + Math.round(res.maxWatts) + 'W', 'ok');
-            loadPrograms(); // Status aktualisieren
+            toast('✅ ' + _('Anti-crease pattern saved!') + ' ' + Math.round(res.durationMin) + ' min · max ' + Math.round(res.maxWatts) + 'W', 'ok');
+            loadPrograms(); // Refresh status
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
 
 function clearAntiKnitter() {
     var deviceId = selVal('programs');
-    if (!confirm('Gespeichertes Anti-Knitter-Muster wirklich löschen?')) return;
+    if (!confirm(_('Really delete the saved anti-crease pattern?'))) return;
     send('clearAntiKnitter', { deviceId: deviceId }).then(function(res) {
         if (res && res.ok) {
-            toast('🗑 Anti-Knitter-Muster gelöscht', 'ok');
+            toast('🗑 ' + _('Anti-crease pattern deleted'), 'ok');
             document.getElementById('antiknitter-select').value = '';
-            loadPrograms(); // Status aktualisieren
+            loadPrograms(); // Refresh status
         } else {
             toast((res && res.error) || 'Fehler', 'err');
         }
@@ -1074,21 +1074,21 @@ function confirmRename() {
     if (!name || !_renameId) return;
     send('renameProfile', { deviceId: deviceId, profileId: _renameId, name: name }).then(function(res) {
         closeModal('modal-rename');
-        if (res && res.ok) { toast('Umbenannt', 'ok'); loadPrograms(); }
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) { toast(_('Renamed'), 'ok'); loadPrograms(); }
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
 function deleteProgram(id, name) {
-    if (!confirm('Programm „' + name + '" wirklich löschen?')) return;
+    if (!confirm(_('Really delete program "') + name + '"?')) return;
     var deviceId = selVal('programs');
     send('deleteProfile', { deviceId: deviceId, profileId: id }).then(function(res) {
-        if (res && res.ok) { toast('Gelöscht', 'ok'); loadPrograms(); }
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) { toast(_('Deleted'), 'ok'); loadPrograms(); }
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
-// ── ZYKLEN ────────────────────────────────────────
+// ── CYCLES ─────────────────────────────────────────
 function loadCycles() {
     var deviceId = selVal('cycles');
     Promise.all([
@@ -1109,7 +1109,7 @@ function renderCycles(deviceId) {
     var list = cycles[deviceId] || [];
     var wrap = document.getElementById('cycle-list-wrap');
     if (list.length === 0) {
-        wrap.innerHTML = '<div class="empty"><p>Noch keine Zyklen aufgezeichnet.</p></div>';
+        wrap.innerHTML = '<div class="empty"><p>' + _('No cycles recorded yet.') + '</p></div>';
         return;
     }
     var rows = list.map(function(c, idx) {
@@ -1126,8 +1126,8 @@ function renderCycles(deviceId) {
         var rowStyle = isAK ? 'opacity:0.6;' : '';
         var rowId = 'cycle-detail-' + idx;
         return '<tr class="cycle-row" onclick="toggleCycleDetail(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')" style="cursor:pointer;'+rowStyle+'">' +
-            '<td class="text-sm">' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</td>' +
-            '<td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
+            '<td class="text-sm">' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</td>' +
+            '<td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
             '<td>' + dur + ' min</td>' +
             '<td>' + kwh + '</td>' +
             '<td>' + statusBadge + '</td>' +
@@ -1136,31 +1136,31 @@ function renderCycles(deviceId) {
             '<tr id="' + rowId + '" style="display:none"><td colspan="6" style="padding:0">' +
             '<div class="cycle-detail-wrap" style="padding:12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
-            '<span style="font-weight:600">Leistungskurve</span>' +
+            '<span style="font-weight:600">' + _('Power curve') + '</span>' +
             '<span>' +
-            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();trimInlineGraph(\''+rowId+'\')" style="margin-right:4px">✂️ Trimmen</button>' +
-            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();shareInlineGraph(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ Teilen</button>' +
+            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();trimInlineGraph(\''+rowId+'\')" style="margin-right:4px">✂️ ' + _('Trim') + '</button>' +
+            '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();shareInlineGraph(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ ' + _('Split') + '</button>' +
             '</span></div>' +
             '<canvas id="canvas-'+rowId+'" style="width:100%;height:180px;cursor:crosshair"></canvas>' +
             '<div id="legend-'+rowId+'" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>' +
             '<div id="trim-controls-'+rowId+'" style="display:none;margin-top:8px;display:none">' +
             '<div style="display:flex;gap:8px">' +
-            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyTrimInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">✅ Anwenden</button>' +
+            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();applyTrimInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">✅ ' + _('Apply') + '</button>' +
             '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();cancelTrimInline(\''+rowId+'\')">✖</button>' +
             '</div></div>' +
             '<div id="split-controls-'+rowId+'" style="display:none;margin-top:8px">' +
             '<div style="display:flex;gap:8px">' +
-            '<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();applySplitInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ Teilen</button>' +
+            '<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();applySplitInline(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')">⚡ ' + _('Split') + '</button>' +
             '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();cancelSplitInline(\''+rowId+'\')">✖</button>' +
             '</div></div>' +
             '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveAsProgram(\''+deviceId+'\',\''+c.id+'\')">💾 Als Programm speichern</button>' +
-            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();assignProgram(\''+deviceId+'\',\''+c.id+'\')">🏷 Programm zuweisen</button>' +
+            '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveAsProgram(\''+deviceId+'\',\''+c.id+'\')">💾 ' + _('Save as program') + '</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();assignProgram(\''+deviceId+'\',\''+c.id+'\')">🏷 ' + _('Assign program') + '</button>' +
 
-            '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCycle(\''+deviceId+'\',\''+c.id+'\')">🗑 Löschen</button>' +
+            '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCycle(\''+deviceId+'\',\''+c.id+'\')">🗑 ' + _('Delete') + '</button>' +
             '</div></div></td></tr>';
     }).join('');
-    wrap.innerHTML = '<table class="tbl" style="width:100%"><thead><tr><th>Start</th><th>Programm</th><th>min</th><th>kWh</th><th></th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+    wrap.innerHTML = '<table class="tbl" style="width:100%"><thead><tr><th>' + _('Start') + '</th><th>' + _('Program') + '</th><th>min</th><th>kWh</th><th></th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function toggleCycleDetail(deviceId, cycleId, rowId) {
@@ -1168,7 +1168,7 @@ function toggleCycleDetail(deviceId, cycleId, rowId) {
     var arrow = document.getElementById('arrow-' + rowId);
     if (!row) return;
     var isOpen = row.style.display !== 'none';
-    // Alle schließen
+    // Close all
     document.querySelectorAll('[id^="cycle-detail-"]').forEach(function(r) {
         r.style.display = 'none';
     });
@@ -1178,7 +1178,7 @@ function toggleCycleDetail(deviceId, cycleId, rowId) {
     if (!isOpen) {
         row.style.display = '';
         if (arrow) arrow.textContent = '▼';
-        // Graph laden - setTimeout damit DOM gerendert ist
+        // Load graph - setTimeout so the DOM has rendered
         send('getTrace', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
             if (!res || !res.ok || !res.trace) return;
             var cycleList = cycles[deviceId] || [];
@@ -1187,7 +1187,7 @@ function toggleCycleDetail(deviceId, cycleId, rowId) {
                 var canvas = document.getElementById('canvas-' + rowId);
                 var legendEl = document.getElementById('legend-' + rowId);
                 if (!canvas) return;
-                // Feste Größe setzen
+                // Set a fixed size
                 var wrap = canvas.closest('.cycle-detail-wrap') || canvas.parentElement;
                 var w = (wrap ? wrap.clientWidth : 0) - 24;
                 if (w < 100) w = window.innerWidth - 60;
@@ -1196,7 +1196,7 @@ function toggleCycleDetail(deviceId, cycleId, rowId) {
                 canvas.style.width  = w + 'px';
                 canvas.style.height = '180px';
                 var tracePoints = res.trace.points || res.trace.powerTrace || (Array.isArray(res.trace) ? res.trace : []);
-                // tracePoints für Trim speichern
+                // Store tracePoints for trimming
                 if (!_inlineState[rowId]) _inlineState[rowId] = {};
                 _inlineState[rowId].tracePoints = tracePoints;
                 _inlineState[rowId].phaseHistory = (cyc && cyc.phaseHistory) || [];
@@ -1209,7 +1209,7 @@ function toggleCycleDetail(deviceId, cycleId, rowId) {
 }
 
 function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
-    // Canvas Größe aus Attribut oder Parent
+    // Canvas size from attribute or parent
     var dpr = window.devicePixelRatio || 1;
     var W = canvas.style.width ? parseInt(canvas.style.width) :
             (canvas.parentElement ? canvas.parentElement.clientWidth - 24 : 300);
@@ -1225,7 +1225,7 @@ function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
     ctx.clearRect(0, 0, W, H);
     if (!trace || trace.length < 2) {
         ctx.fillStyle = '#666'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('Keine Trace-Daten', W/2, H/2); return;
+        ctx.fillText(_('No trace data'), W/2, H/2); return;
     }
     var PAD = {top:12, right:8, bottom:20, left:40};
     var gW = W - PAD.left - PAD.right, gH = H - PAD.top - PAD.bottom;
@@ -1234,14 +1234,14 @@ function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
     function tx(ts)    { return PAD.left + (ts - t0) / tRange * gW; }
     function ty(w)     { return PAD.top  + gH - (w / maxW * gH); }
 
-    // Phasen-Hintergründe
+    // Phase backgrounds
     ctx.save();
     ctx.beginPath(); ctx.rect(PAD.left, PAD.top, gW, gH); ctx.clip();
     if (phaseHist && phaseHist.length > 0) {
-        // startTime aus Trace für relative tMs Konvertierung
+        // startTime from the trace, for relative-tMs conversion
         var traceStart = (trace && trace.length > 0) ? trace[0].ts : 0;
         phaseHist.forEach(function(ph, i) {
-            // Unterstütze sowohl absolute ts als auch relative tMs
+            // Support both absolute ts and relative tMs
             var phTs = ph.ts !== undefined ? ph.ts : (traceStart + (ph.tMs || 0));
             var nextPh = phaseHist[i+1];
             var nextTs = nextPh !== undefined
