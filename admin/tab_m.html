@@ -260,101 +260,101 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
     <button class="btn btn-outline btn-sm" onclick="loadCycles()">↻</button>
   </div>
   <div class="card">
-    <div class="card-head"><span>Zyklushistorie</span><span class="badge bg-gray" id="cycle-count">0</span></div>
-    <div id="cycle-list-wrap"><div class="empty"><p>Noch keine Zyklen aufgezeichnet.</p></div></div>
+    <div class="card-head"><span data-i18n="Cycle history">Cycle history</span><span class="badge bg-gray" id="cycle-count">0</span></div>
+    <div id="cycle-list-wrap"><div class="empty"><p data-i18n="No cycles recorded yet.">No cycles recorded yet.</p></div></div>
   </div>
 </div>
 
-<!-- LERNKONTROLLE -->
+<!-- REVIEW -->
 <div class="pane" id="pane-feedback">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-feedback" onchange="loadFeedback()"></select>
     <button class="btn btn-outline btn-sm" onclick="loadFeedback()">↻</button>
   </div>
   <div class="card">
     <div class="card-body">
-      <p class="text-sm text-muted">Zyklen mit ❓ bestätigen oder korrigieren. Verbessert die Erkennung automatisch.</p>
+      <p class="text-sm text-muted" data-i18n="Confirm or correct cycles marked with ❓. This automatically improves detection.">Confirm or correct cycles marked with ❓. This automatically improves detection.</p>
     </div>
   </div>
-  <div id="feedback-list-wrap"><div class="empty"><p>✅ Alle Zyklen bestätigt!</p></div></div>
+  <div id="feedback-list-wrap"><div class="empty"><p data-i18n="✅ All cycles confirmed!">✅ All cycles confirmed!</p></div></div>
 </div>
 
 <!-- EXPORT -->
 <div class="pane" id="pane-export">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-export"></select>
   </div>
   <div class="card">
-    <div class="card-head">Konfiguration sichern</div>
+    <div class="card-head" data-i18n="Back up configuration">Back up configuration</div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-        <button class="btn btn-outline" onclick="doExport()" style="justify-content:center">⬇ Export</button>
-        <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center">⬆ Import<input type="file" accept=".json" style="display:none" onchange="doImport(event)"></label>
-        <button class="btn btn-outline" onclick="clearAllData()" style="justify-content:center;border-color:#ea4335;color:#c5221f">🗑 Löschen</button>
+        <button class="btn btn-outline" onclick="doExport()" style="justify-content:center" data-i18n="⬇ Export">⬇ Export</button>
+        <label class="btn btn-outline" style="cursor:pointer;justify-content:center;text-align:center"><span data-i18n="⬆ Import">⬆ Import</span><input type="file" accept=".json" style="display:none" onchange="doImport(event)"></label>
+        <button class="btn btn-outline" onclick="clearAllData()" style="justify-content:center;border-color:#ea4335;color:#c5221f" data-i18n="🗑 Delete">🗑 Delete</button>
       </div>
-      <textarea id="export-preview" rows="8" readonly placeholder="JSON erscheint hier nach Export…"></textarea>
+      <textarea id="export-preview" rows="8" readonly placeholder="JSON appears here after export…" data-i18n-placeholder="JSON appears here after export…"></textarea>
     </div>
   </div>
 </div>
 
 <div class="pane" id="pane-notify">
   <div class="dev-sel">
-    <label>Gerät:</label>
+    <label data-i18n="Device:">Device:</label>
     <select id="sel-notify"></select>
   </div>
   <div class="card">
-    <div class="card-head">🔔 Benachrichtigungen</div>
+    <div class="card-head" data-i18n="🔔 Notifications">🔔 Notifications</div>
     <div class="card-body">
       <div class="form-row" style="margin-bottom:10px">
         <div class="form-group">
-          <label>Adapter</label>
+          <label data-i18n="Adapter">Adapter</label>
           <select id="notif-adapter" onchange="loadNotifTargets()">
-            <option value="">– Kein Adapter –</option>
+            <option value="" data-i18n="– No adapter –">– No adapter –</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Empfänger</label>
+          <label data-i18n="Recipient">Recipient</label>
           <select id="notif-target">
-            <option value="">Alle (broadcast)</option>
+            <option value="" data-i18n="All (broadcast)">All (broadcast)</option>
           </select>
-          <input type="email" id="notif-target-email" placeholder="z.B. name@example.com (leer = Adapter-Standard)" style="display:none">
+          <input type="email" id="notif-target-email" placeholder="e.g. name@example.com (blank = adapter default)" data-i18n-placeholder="e.g. name@example.com (blank = adapter default)" style="display:none">
         </div>
       </div>
-      <p class="text-sm text-muted" style="margin-bottom:10px">Platzhalter: <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code></p>
+      <p class="text-sm text-muted" style="margin-bottom:10px"><span data-i18n="Placeholders:">Placeholders:</span> <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code></p>
 
       <div class="form-group" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div class="toggle" id="notif-start-enabled-tog" onclick="toggleNotif('start')"></div>
           <input type="hidden" id="notif-start-enabled" value="0">
-          <span class="toggle-label">🟢 Start-Meldung</span>
+          <span class="toggle-label" data-i18n="🟢 Start message">🟢 Start message</span>
         </div>
-        <textarea id="notif-start-msg" rows="3" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} läuft&#10;⏳ Zeit wird ermittelt…"></textarea>
+        <textarea id="notif-start-msg" rows="3" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} running&#10;⏳ Determining time…" data-i18n-placeholder="🧺 {device} running&#10;⏳ Determining time…"></textarea>
       </div>
 
       <div class="form-group" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div class="toggle" id="notif-update-enabled-tog" onclick="toggleNotif('update')"></div>
           <input type="hidden" id="notif-update-enabled" value="0">
-          <span class="toggle-label">🔄 Korrektur-Meldung</span>
+          <span class="toggle-label" data-i18n="🔄 Update message">🔄 Update message</span>
         </div>
-        <textarea id="notif-update-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} Update&#10;✅ Fertig um {endTime} Uhr&#10;📊 Programm: {program}"></textarea>
+        <textarea id="notif-update-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}" data-i18n-placeholder="🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}"></textarea>
         <div class="form-row" style="margin-top:8px;gap:8px">
           <div class="form-group" style="flex:1">
-            <label style="font-size:12px">Min. Abstand (min)</label>
+            <label style="font-size:12px" data-i18n="Min. interval (min)">Min. interval (min)</label>
             <input type="number" id="notif-update-interval" min="5" max="60" value="20" style="width:100%">
           </div>
           <div class="form-group" style="flex:1">
-            <label style="font-size:12px">Fast-fertig ab (%)</label>
+            <label style="font-size:12px" data-i18n="Near-done from (%)">Near-done from (%)</label>
             <input type="number" id="notif-update-nearend-pct" min="50" max="99" value="85" style="width:100%">
           </div>
           <div class="form-group" style="flex:1">
-            <label style="font-size:12px">Fast-fertig Abw. % </label>
+            <label style="font-size:12px" data-i18n="Near-done dev. %">Near-done dev. %</label>
             <input type="number" id="notif-update-nearend-diff-pct" min="10" max="100" value="50" style="width:100%">
           </div>
           <div class="form-group" style="flex:1">
-            <label style="font-size:12px">Fast-fertig Abw. min</label>
+            <label style="font-size:12px" data-i18n="Near-done dev. min">Near-done dev. min</label>
             <input type="number" id="notif-update-nearend-diff-min" min="5" max="30" value="10" style="width:100%">
           </div>
         </div>
@@ -364,14 +364,14 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div class="toggle" id="notif-done-enabled-tog" onclick="toggleNotif('done')"></div>
           <input type="hidden" id="notif-done-enabled" value="0">
-          <span class="toggle-label">✅ Fertig-Meldung</span>
+          <span class="toggle-label" data-i18n="✅ Done message">✅ Done message</span>
         </div>
-        <textarea id="notif-done-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} fertig!&#10;⏱️ Gesamtlaufzeit: {duration} min&#10;📊 Programm: {program}&#10;⚡ Verbrauch: {energy} kWh"></textarea>
+        <textarea id="notif-done-msg" rows="5" style="width:100%;resize:vertical;font-size:12px" placeholder="🧺 {device} done!&#10;⏱️ Total runtime: {duration} min&#10;📊 Program: {program}&#10;⚡ Consumption: {energy} kWh" data-i18n-placeholder="🧺 {device} done!&#10;⏱️ Total runtime: {duration} min&#10;📊 Program: {program}&#10;⚡ Consumption: {energy} kWh"></textarea>
       </div>
 
       <div class="row" style="gap:8px">
-        <button class="btn btn-success btn-sm" onclick="saveNotifConfig()">💾 Speichern</button>
-        <button class="btn btn-outline btn-sm" onclick="testNotif()">🔔 Test</button>
+        <button class="btn btn-success btn-sm" onclick="saveNotifConfig()" data-i18n="💾 Save">💾 Save</button>
+        <button class="btn btn-outline btn-sm" onclick="testNotif()" data-i18n="🔔 Test">🔔 Test</button>
       </div>
     </div>
   </div>
@@ -382,44 +382,44 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
 <!-- MODALS -->
 <div class="overlay" id="modal-rename">
   <div class="modal">
-    <h3>✏️ Programm umbenennen</h3>
+    <h3 data-i18n="✏️ Rename program">✏️ Rename program</h3>
     <div class="form-group">
-      <label>Neuer Name</label>
+      <label data-i18n="New name">New name</label>
       <input type="text" id="rename-input">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-rename')">Abbrechen</button>
-      <button class="btn btn-primary" onclick="confirmRename()">Speichern</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-rename')" data-i18n="Cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRename()" data-i18n="Save">Save</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="modal-correct">
   <div class="modal">
-    <h3>🔄 Programm korrigieren</h3>
-    <p class="text-sm text-muted" style="margin-bottom:12px">Welches Programm war das wirklich?</p>
+    <h3 data-i18n="🔄 Correct program">🔄 Correct program</h3>
+    <p class="text-sm text-muted" style="margin-bottom:12px" data-i18n="Which program was it actually?">Which program was it actually?</p>
     <div class="form-group">
-      <label>Programm</label>
+      <label data-i18n="Program">Program</label>
       <select id="correct-select"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-correct')">Abbrechen</button>
-      <button class="btn btn-warn" onclick="confirmCorrect()">Korrigieren & Lernen</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-correct')" data-i18n="Cancel">Cancel</button>
+      <button class="btn btn-warn" onclick="confirmCorrect()" data-i18n="Correct & learn">Correct & learn</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="modal-assign">
   <div class="modal">
-    <h3>🏷 Programm zuweisen</h3>
-    <p class="text-sm text-muted" style="margin-bottom:12px">Wähle das Programm für diesen Zyklus:</p>
+    <h3 data-i18n="🏷 Assign program">🏷 Assign program</h3>
+    <p class="text-sm text-muted" style="margin-bottom:12px" data-i18n="Choose the program for this cycle:">Choose the program for this cycle:</p>
     <div class="form-group">
-      <label>Programm</label>
+      <label data-i18n="Program">Program</label>
       <select id="assign-select"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal('modal-assign')">Abbrechen</button>
-      <button class="btn btn-success" onclick="confirmAssign()">✓ Zuweisen & Lernen</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-assign')" data-i18n="Cancel">Cancel</button>
+      <button class="btn btn-success" onclick="confirmAssign()" data-i18n="✓ Assign & learn">✓ Assign & learn</button>
     </div>
   </div>
 </div>
@@ -1641,9 +1641,9 @@ function loadNotifAdapters() {
             var um = document.getElementById('notif-update-msg');
             var dm = document.getElementById('notif-done-msg');
             var DEFS = {
-                startMsg:  '🧺 {device} läuft\n⏳ Zeit wird ermittelt…',
-                updateMsg: '🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%',
-                doneMsg:   '🧺 {device} fertig!\n⏱️ Gesamtlaufzeit: {duration} min\n📊 Programm: {program}\n⚡ Verbrauch: {energy} kWh',
+                startMsg:  '🧺 {device} running\n⏳ Determining time…',
+                updateMsg: '🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%',
+                doneMsg:   '🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh',
             };
             setNotifToggle('start', cfg.startEnabled);
             if (sm) sm.value = cfg.startMsg || DEFS.startMsg;
@@ -1696,7 +1696,7 @@ function testNotif() {
     var target   = getNotifTargetValue();
     var msg      = (document.getElementById('notif-done-msg').value ||
                     document.getElementById('notif-start-msg').value || '🔔 Test')
-        .replace(/{device}/g,   'Testgerät')
+        .replace(/{device}/g,   'Test device')
         .replace(/{program}/g,  'Baumwolle 60')
         .replace(/{duration}/g, '92')
         .replace(/{energy}/g,   '0.890')
