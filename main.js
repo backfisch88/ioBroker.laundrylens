@@ -357,9 +357,9 @@ class WashdataAdapter extends utils.Adapter {
       return;
     }
 
-    // Eigene writable States (programOverride, forceFinish)
+    // Our own writable states (programOverride, forceFinish)
     if (!state.ack) {
-      // Welches Gerät?
+      // Which device?
       for (const [deviceId, mgr] of Object.entries(this.managers)) {
         if (id === `${this.namespace}.${deviceId}.programOverride`) {
           this._handleProgramOverride(deviceId, mgr, state.val);
@@ -376,9 +376,9 @@ class WashdataAdapter extends utils.Adapter {
       }
     }
 
-    // Fremde States (Leistungssensor) – ack wird bewusst NICHT geprüft:
-    // viele Nutzer-Skripte (v.a. 0_userdata.0.*) setzen ihre Werte ohne ack:true,
-    // ein solcher Wert wäre sonst komplett unsichtbar für den Adapter.
+    // Foreign states (power sensor) – ack is deliberately NOT checked:
+    // many user scripts (especially 0_userdata.0.*) set their values without
+    // ack:true, such a value would otherwise be completely invisible to the adapter.
     const deviceId = this.sensorToDevice[id];
     if (!deviceId) {
       return;
@@ -400,17 +400,17 @@ class WashdataAdapter extends utils.Adapter {
     const devName = devCfg ? devCfg.name : deviceId;
 
     if (!val || val === "auto" || val === "") {
-      // Automatik – Reset
+      // Automatic – reset
       mgr._overrideActive = false;
       mgr._revertToDetecting();
-      this.log.info(`${devName}: Programm-Override: Automatik`);
-      // notifState zurücksetzen damit nächste Erkennung wieder sendet
+      this.log.info(`${devName}: program override: automatic`);
+      // Reset notifState so the next detection sends again
       if (this._notifState && this._notifState[deviceId]) {
         this._notifState[deviceId].lastFinishTime = null;
         this._notifState[deviceId].lastSentAt = null;
       }
     } else {
-      // Manuelles Programm setzen
+      // Set manual program
       const profile = mgr.profileStore
         .getAllProfiles()
         .find((p) => p.name === val);
@@ -441,11 +441,11 @@ class WashdataAdapter extends utils.Adapter {
           (avgDuration - (Date.now() - mgr.cycleStartTime)) / 60000,
         );
         this.log.info(
-          `${devName}: Programm-Override: "${val}", Ø ${Math.round(avgDuration / 60000)} min, noch ca. ${remainingMin} min`,
+          `${devName}: program override: "${val}", avg ${Math.round(avgDuration / 60000)} min, ~${remainingMin} min remaining`,
         );
 
-        // Update-Meldung sofort senden (Override = User hat manuell gesetzt)
-        // lastFinishTime zurücksetzen damit sofort gesendet wird
+        // Send update message immediately (override = user set it manually)
+        // Reset lastFinishTime so it sends right away
         if (this._notifState && this._notifState[deviceId]) {
           this._notifState[deviceId].lastFinishTime = null;
           this._notifState[deviceId].lastSentAt = null;
