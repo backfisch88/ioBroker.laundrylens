@@ -1183,14 +1183,14 @@ class WashdataAdapter extends utils.Adapter {
         this.setState(`${deviceId}.phase`, phaseText, true);
       }
     }
-    // Update-Meldung nur alle 60s prüfen UND nur wenn Programm wirklich erkannt
+    // Only check update messages every 60s AND only when a program is really recognized
     if (!this._onTimeThrottle) {
       this._onTimeThrottle = {};
     }
     const now = Date.now();
     const lastCheck = this._onTimeThrottle[deviceId] || 0;
     const mgrCheck = this.managers[deviceId];
-    const programRecognized = mgrCheck && mgrCheck.currentProgram; // nur echtes Programm, nicht bestCandidate
+    const programRecognized = mgrCheck && mgrCheck.currentProgram; // only a real program, not bestCandidate
     if (
       remainingSeconds > 15 &&
       progressPct > 0 &&
@@ -1206,21 +1206,21 @@ class WashdataAdapter extends utils.Adapter {
       ).catch(() => {});
     }
     this.setState(`${deviceId}.timeRemaining`, remainingSeconds ?? 0, true);
-    // Verstrichene Zeit aus Manager
+    // Elapsed time from the manager
     const mgr2 = this.managers[deviceId];
     if (mgr2 && mgr2.cycleStartTime) {
       const elapsedMin = Math.round((Date.now() - mgr2.cycleStartTime) / 60000);
       this.setState(`${deviceId}.elapsedTime`, elapsedMin, true);
     }
     this.setState(`${deviceId}.totalDuration`, totalSeconds ?? 0, true);
-    // Fortschritt nur überschreiben wenn > 0 (verhindert Reset wenn Profil kurz nicht matched)
+    // Only overwrite progress if > 0 (prevents a reset if the profile briefly doesn't match)
     if (progressPct > 0) {
       this.setState(`${deviceId}.cycleProgress`, progressPct, true);
     }
   }
 
   async _onCycleFinished(deviceId, cycle) {
-    // Notif-State zurücksetzen
+    // Reset notification state
     if (this._notifState && this._notifState[deviceId]) {
       if (this._notifState[deviceId].msgBlockTimer) {
         clearTimeout(this._notifState[deviceId].msgBlockTimer);
@@ -1251,10 +1251,10 @@ class WashdataAdapter extends utils.Adapter {
     );
     this._onTime(deviceId, 0, 0, 0);
 
-    // Programm-Override zurücksetzen
+    // Reset the program override
     this.setState(`${deviceId}.programOverride`, "auto", true);
 
-    // Benachrichtigung senden
+    // Send notification
     await this._sendNotification(deviceId, cycle);
   }
 
@@ -1357,18 +1357,18 @@ class WashdataAdapter extends utils.Adapter {
           }
         }
 
-        // Fertigzeit muss sich signifikant geändert haben (nur wenn schon mal gesendet)
+        // The finish time must have changed significantly (only if already sent once)
         if (state.lastFinishTime) {
           const diffMin =
             Math.abs(newFinishTime - state.lastFinishTime) / 60000;
           const baseThreshold =
             progressPct >= nearEndPct ? nearEndDiffMin : 15 + progressPct / 10;
-          // Abklingender Schwellenwert: je länger seit dem letzten gesendeten
-          // Update vergangen ist, desto kleiner darf die nötige Abweichung sein
-          // (über die normale Basis-Schwelle hinaus zu warten senkt das Spam-
-          // Risiko automatisch, daher kann die Schwelle dann sinken). Sinkt um
-          // 2 Minuten pro vollen 10 Minuten über den Mindestabstand hinaus,
-          // mit einer Untergrenze von 60% der Basis-Schwelle.
+          // Decaying threshold: the longer it's been since the last sent
+          // update, the smaller the required deviation may be (waiting
+          // beyond the normal base threshold automatically lowers the spam
+          // risk, so the threshold can then decrease). Decreases by
+          // 2 minutes per full 10 minutes beyond the minimum interval,
+          // with a floor of 60% of the base threshold.
           const sinceLastMs = state.lastSentAt ? now2 - state.lastSentAt : 0;
           const overMinMs = Math.max(0, sinceLastMs - MIN_MS);
           const decaySteps = Math.floor(overMinMs / (10 * 60000));
