@@ -234,7 +234,7 @@ class WashdataAdapter extends utils.Adapter {
             manager.detector.state = "running";
             manager.currentState = "running";
             this.log.info(
-              `${deviceCfg.name}: Kein gespeicherter Zyklus, aber Sensor aktiv → direkt running`,
+              `${deviceCfg.name}: no saved cycle, but sensor active → directly running`,
             );
           }
         }
@@ -242,7 +242,7 @@ class WashdataAdapter extends utils.Adapter {
         /* ignore restore errors */
       }
 
-      // Gespeicherten Override wiederherstellen - NUR wenn Maschine gerade läuft
+      // Restore saved override - ONLY if the machine is currently running
       try {
         const overrideState = await this.getStateAsync(
           `${deviceCfg.deviceId}.programOverride`,
@@ -252,14 +252,14 @@ class WashdataAdapter extends utils.Adapter {
           overrideState.val &&
           overrideState.val !== "auto"
         ) {
-          // Aktuellen Sensor-Wert prüfen
+          // Check the current sensor value
           const powerState = await this.getForeignStateAsync(deviceCfg.powerId);
           const currentWatts = powerState ? parseFloat(powerState.val) || 0 : 0;
 
           if (currentWatts >= (deviceCfg.powerThreshold || 10)) {
-            // Maschine läuft → Override wiederherstellen
+            // Machine is running → restore the override
             this.log.info(
-              `${deviceCfg.name}: Override wiederherstellen: "${overrideState.val}" (${currentWatts}W)`,
+              `${deviceCfg.name}: restoring override: "${overrideState.val}" (${currentWatts}W)`,
             );
             this._handleProgramOverride(
               deviceCfg.deviceId,
@@ -314,9 +314,9 @@ class WashdataAdapter extends utils.Adapter {
               }
             }
           } else {
-            // Maschine aus → Override + gespeicherten Zyklus zurücksetzen
+            // Machine is off → reset override + saved cycle
             this.log.info(
-              `${deviceCfg.name}: Override zurückgesetzt (Maschine aus, ${currentWatts}W)`,
+              `${deviceCfg.name}: override reset (machine off, ${currentWatts}W)`,
             );
             await this.setStateAsync(
               `${deviceCfg.deviceId}.programOverride`,
@@ -331,13 +331,13 @@ class WashdataAdapter extends utils.Adapter {
       }
 
       this.log.info(
-        `${deviceCfg.name}: Gestartet – Sensor: ${deviceCfg.powerId}`,
+        `${deviceCfg.name}: started – sensor: ${deviceCfg.powerId}`,
       );
     }
 
     this.setState("info.connection", true, true);
     this.log.info(
-      `LaundryLens bereit – ${Object.keys(this.managers).length} Gerät(e)`,
+      `LaundryLens ready – ${Object.keys(this.managers).length} device(s)`,
     );
   }
 
