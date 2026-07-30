@@ -1588,44 +1588,29 @@ function loadNotifTargets(targetVal) {
 }
 
 
-function loadNotifConfig() {
-    var deviceId = selVal('notify');
-    if (!deviceId) return;
-    var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
-    var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
-    socket.emit('sendTo', 'laundrylens.' + inst, 'getNotifyConfig', {deviceId: deviceId}, function(r) {
-        if (!r || !r.ok || !r.config) return;
-        var cfg = r.config;
-        var sel = document.getElementById('notif-adapter');
-        // Nur setzen wenn Adapter in der Liste vorhanden
-        if (cfg.adapter && sel && sel.querySelector('option[value="'+cfg.adapter+'"]')) sel.value = cfg.adapter;
-        if (cfg.adapter && (cfg.adapter.startsWith('telegram') || cfg.adapter.startsWith('email'))) loadNotifTargets();
-        var se = document.getElementById('notif-start-enabled');
-        var sm = document.getElementById('notif-start-msg');
-        var ue = document.getElementById('notif-update-enabled');
-        var um = document.getElementById('notif-update-msg');
-        var de = document.getElementById('notif-done-enabled');
-        var dm = document.getElementById('notif-done-msg');
-        setNotifToggle('start', cfg.startEnabled);
-        if (sm) sm.value = cfg.startMsg || '';
-        setNotifToggle('update', cfg.updateEnabled);
-        if (um) um.value = cfg.updateMsg || '';
-        setNotifToggle('done', cfg.doneEnabled);
-        if (dm) dm.value = cfg.doneMsg || '';
-        // Update-Intervall Einstellungen
-        var ui = document.getElementById('notif-update-interval');
-        var np = document.getElementById('notif-update-nearend-pct');
-        var nd = document.getElementById('notif-update-nearend-diff-pct');
-        var nm = document.getElementById('notif-update-nearend-diff-min');
-        if (ui) ui.value = cfg.updateIntervalMin  || 20;
-        if (np) np.value = cfg.updateNearEndPct   || 85;
-        if (nd) nd.value = cfg.updateNearEndDiffPct || 50;
-        if (nm) nm.value = cfg.updateNearEndDiffMin || 10;
-        if (cfg.target) setTimeout(function() {
-            setNotifTargetValue(cfg.target);
-        }, 600);
-    });
+// Historical German default texts (this adapter was German-only before
+// multi-language support was added). Many existing installs have these
+// exact strings saved as their "message" - not a real customization, just
+// the old hardcoded default that got saved along with everything else.
+// Treated the same as an empty/unset field, so the current language's
+// translated default is shown instead of stale German text regardless of
+// the admin's configured language.
+var LEGACY_DEFAULT_MSGS = {
+    startMsg:  '🧺 {device} läuft\n⏳ Zeit wird ermittelt…',
+    updateMsg: '🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%',
+    doneMsg:   '🧺 {device} fertig!\n⏱️ Gesamtlaufzeit: {duration} min\n📊 Programm: {program}\n⚡ Verbrauch: {energy} kWh',
+};
+
+/**
+ * @param {string} saved  – message text loaded from saved config
+ * @param {string} key    – 'startMsg'/'updateMsg'/'doneMsg'
+ * @returns {boolean} – true if this is just the old hardcoded German
+ *   default lingering in config, not an intentional customization
+ */
+function isLegacyDefaultMsg(saved, key) {
+    return saved === LEGACY_DEFAULT_MSGS[key];
 }
+
 function loadNotifAdapters() {
     var deviceId = selVal('notify');
     var dev  = devices.find(function(d) { return d.deviceId === deviceId; }) || (devices.length > 0 ? devices[0] : null);
@@ -1657,11 +1642,11 @@ function loadNotifAdapters() {
                 doneMsg:   _('🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh'),
             };
             setNotifToggle('start', cfg.startEnabled);
-            if (sm) sm.value = cfg.startMsg || DEFS.startMsg;
+            if (sm) sm.value = (cfg.startMsg && !isLegacyDefaultMsg(cfg.startMsg, 'startMsg')) ? cfg.startMsg : DEFS.startMsg;
             setNotifToggle('update', cfg.updateEnabled);
-            if (um) um.value = cfg.updateMsg || DEFS.updateMsg;
+            if (um) um.value = (cfg.updateMsg && !isLegacyDefaultMsg(cfg.updateMsg, 'updateMsg')) ? cfg.updateMsg : DEFS.updateMsg;
             setNotifToggle('done', cfg.doneEnabled);
-            if (dm) dm.value = cfg.doneMsg || DEFS.doneMsg;
+            if (dm) dm.value = (cfg.doneMsg && !isLegacyDefaultMsg(cfg.doneMsg, 'doneMsg')) ? cfg.doneMsg : DEFS.doneMsg;
             // Update-Intervall Einstellungen
             var ui2 = document.getElementById('notif-update-interval');
             var np2 = document.getElementById('notif-update-nearend-pct');

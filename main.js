@@ -57,6 +57,29 @@ async function loadNotifTranslations(adapter) {
   return _notifTranslations;
 }
 
+// Historical German default texts (this adapter was German-only before
+// multi-language support was added). Many existing installs have these
+// exact strings saved as their message - not a real customization, just
+// the old hardcoded default that got saved along with the rest of the
+// config. Treated the same as unset, so the translated default for the
+// current system language is used instead of stale German text.
+const LEGACY_DEFAULT_MSGS = {
+  update:
+    "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%",
+  start: "🧺 {device} läuft\n⏳ Zeit wird ermittelt…",
+  done: "🧺 {device} fertig!\n⏱️ Gesamtlaufzeit: {duration} min\n📊 Programm: {program}\n⚡ Verbrauch: {energy} kWh",
+};
+
+/**
+ * @param {string} saved  – message text loaded from saved config
+ * @param {string} eventOrUpdate  – 'start'/'update'/'done'
+ * @returns {boolean} – true if this is just the old hardcoded German
+ *   default lingering in config, not an intentional customization
+ */
+function isLegacyDefaultMsg(saved, eventOrUpdate) {
+  return saved === LEGACY_DEFAULT_MSGS[eventOrUpdate];
+}
+
 class WashdataAdapter extends utils.Adapter {
   constructor(options = {}) {
     super({ ...options, name: "laundrylens" });
@@ -1481,7 +1504,11 @@ class WashdataAdapter extends utils.Adapter {
 
       const programName = activeProgram.name || activeProgram;
       const template =
-        cfg.updateMsg && cfg.updateMsg.trim() ? cfg.updateMsg : defaults.update;
+        cfg.updateMsg &&
+        cfg.updateMsg.trim() &&
+        !isLegacyDefaultMsg(cfg.updateMsg, "update")
+          ? cfg.updateMsg
+          : defaults.update;
       const prevTimeStr = prevEndStr || "";
       // All values as a map, for conditional blocks
       const vars = {
@@ -1618,7 +1645,11 @@ class WashdataAdapter extends utils.Adapter {
         : "";
 
       const template =
-        cfg[msgKey] && cfg[msgKey].trim() ? cfg[msgKey] : defaults[event] || "";
+        cfg[msgKey] &&
+        cfg[msgKey].trim() &&
+        !isLegacyDefaultMsg(cfg[msgKey], event)
+          ? cfg[msgKey]
+          : defaults[event] || "";
       const doneVars = {
         device: devName,
         program: cycle.matchedProfile || "detecting...",

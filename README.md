@@ -113,6 +113,7 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 - New: all code comments translated to English, full compliance with the official `@iobroker/eslint-config` (formatting + JSDoc)
 - Fix: the "All devices" status column and default notification templates weren't going through translation
 - Infrastructure: CI no longer needs a committed `package-lock.json`; real integration test added; git history cleaned up
+- Note: cycles recorded before this update show phases as an uncolored/unrecognized segment in the graph legend (the old German phase names no longer match the new internal phase keys) - purely cosmetic, only affects historical data
 
 ### 0.3.0 (2026-07-28)
 - New: proper dishwasher phase detection, both live and in the historical cycle graph
