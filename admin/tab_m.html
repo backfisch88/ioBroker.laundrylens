@@ -1785,16 +1785,16 @@ function loadGraphCycles() {
         if (!res || !res.ok) return;
         var sel = document.getElementById('graph-cycle-select');
         var withTrace = res.cycles.filter(function(c) { return c.hasTrace; });
-        sel.innerHTML = '<option value="">– Zyklus wählen –</option>' +
+        sel.innerHTML = '<option value="">' + _('– Choose cycle –') + '</option>' +
             withTrace.map(function(c) {
                 var d   = Math.round((c.durationMs||0)/60000);
-                var dt  = new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                var dt  = new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
                 var tag = c.importedFromHA ? ' 🏠' : '';
                 return '<option value="'+c.id+'">'+dt+' – '+(c.matchedProfile||'?')+' ('+d+' min)'+tag+'</option>';
             }).join('');
         document.getElementById('graph-card').style.display = 'none';
         document.getElementById('graph-actions').style.display = 'none';
-        if (withTrace.length === 0) toast('Keine Zyklen mit Kurvendaten verfügbar', 'info');
+        if (withTrace.length === 0) toast(_('No cycles with curve data available'), 'info');
     });
 }
 
@@ -1804,7 +1804,7 @@ function loadGraph() {
     if (!cycleId) return;
     _graphCycleId = cycleId;
     send('getTrace', {deviceId: deviceId, cycleId: cycleId}).then(function(res) {
-        if (!res || !res.ok || !res.trace) return toast('Keine Trace verfügbar', 'err');
+        if (!res || !res.ok || !res.trace) return toast(_('No trace available'), 'err');
         _graphTrace = res.trace;
         _trimStart  = _graphTrace.startTime;
         _trimEnd    = _graphTrace.endTime;
@@ -1948,7 +1948,7 @@ function drawGraph() {
     });
     ctx.stroke();
 
-    // Fläche
+    // Fill area
     ctx.fillStyle = 'rgba(26,115,232,0.10)';
     ctx.beginPath();
     ctx.moveTo(tx(pts[0].ts), PAD.top + gH);
@@ -2062,21 +2062,21 @@ function cancelSplit() {
 }
 
 function applySplit() {
-    if (!_splitTs) return toast('Teilungspunkt im Graph wählen','err');
+    if (!_splitTs) return toast(_('Choose a split point in the graph'),'err');
     var deviceId = selVal('graph');
     send('splitTrace', {deviceId:deviceId, cycleId:_graphCycleId, splitTs:_splitTs}).then(function(res) {
-        if (res&&res.ok) { toast('Geteilt!','ok'); cancelSplit(); loadGraphCycles(); document.getElementById('graph-card').style.display='none'; }
-        else toast((res&&res.error)||'Fehler','err');
+        if (res&&res.ok) { toast(_('Split!'),'ok'); cancelSplit(); loadGraphCycles(); document.getElementById('graph-card').style.display='none'; }
+        else toast((res&&res.error)||_('Error'),'err');
     });
 }
 
 function deleteGraphCycle() {
     if (!_graphCycleId) return;
     var deviceId = selVal('graph');
-    if (!confirm('Diesen Zyklus wirklich löschen?')) return;
+    if (!confirm(_('Really delete this cycle?'))) return;
     send('deleteCycle', {deviceId: deviceId, cycleId: _graphCycleId}).then(function(res) {
         if (res && res.ok) {
-            toast('Zyklus gelöscht', 'ok');
+            toast(_('Cycle deleted'), 'ok');
             document.getElementById('graph-card').style.display = 'none';
             document.getElementById('graph-actions').style.display = 'none';
             _graphCycleId = null;
@@ -2089,7 +2089,7 @@ function deleteGraphCycle() {
 }
 
 
-// Wrapper für inline Graph Aktionen
+// Wrapper for inline graph actions
 
 // Trim/Split State
 var _inlineState = {};
@@ -2229,7 +2229,7 @@ function shareInlineGraph(deviceId, cycleId, rowId) {
     var st = _inlineState[rowId];
     if (!st || !st.tracePoints) {
         send('getTrace', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
-            if (!res || !res.ok || !res.trace) { toast('Trace nicht verfügbar', 'err'); return; }
+            if (!res || !res.ok || !res.trace) { toast(_('No trace available'), 'err'); return; }
             if (!_inlineState[rowId]) _inlineState[rowId] = {};
             var st2 = _inlineState[rowId];
             st2.tracePoints = res.trace.points || res.trace.powerTrace || [];
@@ -2277,7 +2277,7 @@ function _inlineRedraw(rowId) {
     ctx.save();
     if (st.trimMode) {
         var xs = tx(st.trimStart), xe = tx(st.trimEnd);
-        // Abgedunkelte Bereiche außerhalb
+        // Darkened areas outside the selection
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fillRect(PAD.left, PAD.top, xs - PAD.left, H - PAD.top - PAD.bottom);
         ctx.fillRect(xe, PAD.top, PAD.left + gW - xe, H - PAD.top - PAD.bottom);
@@ -2403,7 +2403,7 @@ function assignProgram(deviceId, cycleId) {
         sel.innerHTML = res.profiles.map(function(p) {
             return '<option value="'+p.id+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
         }).join('');
-        // cycleId und deviceId für Bestätigung merken
+        // Remember cycleId and deviceId for confirmation
         document.getElementById('modal-assign').dataset.cycleId = cycleId;
         document.getElementById('modal-assign').dataset.deviceId = deviceId;
         document.getElementById('modal-assign').classList.add('open');
