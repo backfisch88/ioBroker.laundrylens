@@ -37,7 +37,7 @@ class WashdataAdapter extends utils.Adapter {
     if (cfg.deviceId && cfg.powerId) {
       return [
         {
-          name: cfg.name || "Gerät",
+          name: cfg.name || "Device",
           deviceId: cfg.deviceId,
           deviceType: cfg.deviceType || "washing_machine",
           powerId: cfg.powerId,
@@ -80,7 +80,7 @@ class WashdataAdapter extends utils.Adapter {
       return cfg.devices
         .filter((d) => d.deviceId && d.powerId)
         .map((d) => ({
-          name: d.name || "Gerät",
+          name: d.name || "Device",
           deviceId: d.deviceId,
           deviceType: d.deviceType || "washing_machine",
           powerId: d.powerId,
@@ -142,7 +142,7 @@ class WashdataAdapter extends utils.Adapter {
 
     const deviceList = this._getDeviceConfig();
     if (deviceList.length === 0) {
-      this.log.warn("Kein Gerät konfiguriert.");
+      this.log.warn("No device configured.");
       this.setState("info.connection", true, true);
       return;
     }
@@ -486,7 +486,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getProfiles": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           respond({ ok: true, profiles: mgr.getProfiles() });
           break;
@@ -496,7 +496,7 @@ class WashdataAdapter extends utils.Adapter {
           const { name, durationMin } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           if (!name) {
             return respond({ error: "Name fehlt" });
@@ -520,7 +520,7 @@ class WashdataAdapter extends utils.Adapter {
           const { profileId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const ok = mgr.profileStore.deleteProfile(profileId);
           if (ok) {
@@ -535,7 +535,7 @@ class WashdataAdapter extends utils.Adapter {
           const { profileId, name } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const p = mgr.profileStore.getProfile(profileId);
           if (!p) {
@@ -551,7 +551,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getCycleHistory": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           respond({ ok: true, cycles: mgr.getCycleHistory() });
           break;
@@ -561,7 +561,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
@@ -584,7 +584,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId, profileId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
@@ -617,7 +617,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getStatus": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           respond({ ok: true, status: mgr.getStatus() });
           break;
@@ -627,7 +627,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const trace = mgr.getTrace(cycleId);
           if (trace) {
@@ -636,7 +636,7 @@ class WashdataAdapter extends utils.Adapter {
               (cyc && cyc.phaseHistory) || mgr._phaseHistory || [];
           }
           respond(
-            trace ? { ok: true, trace } : { error: "Keine Trace verfügbar" },
+            trace ? { ok: true, trace } : { error: "No trace available" },
           );
           break;
         }
@@ -645,7 +645,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId, newStartTs, newEndTs } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const result = mgr.trimTrace(cycleId, newStartTs, newEndTs);
           if (!result) {
@@ -668,7 +668,7 @@ class WashdataAdapter extends utils.Adapter {
           this.log.info(`splitTrace: cycleId=${cycleId} splitTs=${splitTs}`);
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const result = mgr.splitTrace(cycleId, splitTs);
           if (!result) {
@@ -706,7 +706,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getAntiKnitter": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const ak = mgr.profileStore.getAntiKnitter();
           respond({ ok: true, antiKnitter: ak || null });
@@ -716,7 +716,7 @@ class WashdataAdapter extends utils.Adapter {
         case "clearAntiKnitter": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           await mgr.profileStore.clearAntiKnitter();
           mgr.clearAntiKnitterConfig();
@@ -735,7 +735,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
@@ -743,7 +743,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const trace = mgr.getTrace(cycleId);
           if (!trace) {
-            return respond({ error: "Keine Trace verfügbar" });
+            return respond({ error: "No trace available" });
           }
 
           // Median der Spikes berechnen (robuster als Max gegen Ausreißer)
@@ -783,11 +783,11 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId, name } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const trace = mgr.getTrace(cycleId);
           if (!trace) {
-            return respond({ error: "Keine Trace verfügbar" });
+            return respond({ error: "No trace available" });
           }
           const devCfg = this._getDeviceConfig().find(
             (d) => d.deviceId === (obj.message && obj.message.deviceId),
@@ -810,7 +810,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getSuggestedSettings": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           respond({ ok: true, settings: mgr.getSuggestedSettings() });
           break;
@@ -820,7 +820,7 @@ class WashdataAdapter extends utils.Adapter {
           const { cycleId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           const idx = mgr.cycleHistory.findIndex((c) => c.id === cycleId);
           if (idx === -1) {
@@ -838,7 +838,7 @@ class WashdataAdapter extends utils.Adapter {
         case "clearAllData": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           mgr.profileStore.profiles = {};
           mgr.cycleHistory = [];
@@ -857,10 +857,10 @@ class WashdataAdapter extends utils.Adapter {
           const { data } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           if (!data || !data.profiles) {
-            return respond({ error: "Ungültige Daten" });
+            return respond({ error: "Invalid data" });
           }
 
           for (const p of data.profiles) {
@@ -893,7 +893,7 @@ class WashdataAdapter extends utils.Adapter {
         case "exportConfig": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           respond({
             ok: true,
@@ -1035,7 +1035,7 @@ class WashdataAdapter extends utils.Adapter {
           const { deviceId, program } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           this._handleProgramOverride(deviceId, mgr, program);
           await this.setStateAsync(
@@ -1051,7 +1051,7 @@ class WashdataAdapter extends utils.Adapter {
           const { deviceId } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
-            return respond({ error: "Gerät nicht gefunden" });
+            return respond({ error: "Device not found" });
           }
           this._handleForceFinish(deviceId, mgr);
           respond({ ok: true });
