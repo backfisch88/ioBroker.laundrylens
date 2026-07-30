@@ -539,7 +539,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const p = mgr.profileStore.getProfile(profileId);
           if (!p) {
-            return respond({ error: "Programm nicht gefunden" });
+            return respond({ error: "Program not found" });
           }
           p.name = name;
           await mgr.profileStore.save();
@@ -565,7 +565,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
-            return respond({ error: "Zyklus nicht gefunden" });
+            return respond({ error: "Cycle not found" });
           }
           cycle.confirmed = true;
           if (cycle.profileId) {
@@ -588,17 +588,17 @@ class WashdataAdapter extends utils.Adapter {
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
-            return respond({ error: "Zyklus nicht gefunden" });
+            return respond({ error: "Cycle not found" });
           }
           const profile = mgr.profileStore.getProfile(profileId);
           if (!profile) {
-            return respond({ error: "Programm nicht gefunden" });
+            return respond({ error: "Program not found" });
           }
           cycle.matchedProfile = profile.name;
           cycle.profileId = profileId;
           cycle.confirmed = true;
           cycle.corrected = true;
-          // Trace für Lernen holen falls vorhanden
+          // Get trace for learning, if available
           const traceForLearn = mgr.getTrace(cycleId);
           const tracePoints = traceForLearn
             ? traceForLearn.points.map((p) => ({ ts: p.ts, watts: p.watts }))
@@ -609,7 +609,7 @@ class WashdataAdapter extends utils.Adapter {
             cycle.durationMs,
           );
           await mgr.profileStore.save();
-          await mgr._saveState(); // Zyklus-Änderung persistent speichern
+          await mgr._saveState(); // Persist the cycle change
           respond({ ok: true });
           break;
         }
@@ -726,7 +726,7 @@ class WashdataAdapter extends utils.Adapter {
           const akClearDevName = akClearDevCfg
             ? akClearDevCfg.name
             : obj.message.deviceId;
-          this.log.info(`${akClearDevName}: Anti-Knitter Muster gelöscht`);
+          this.log.info(`${akClearDevName}: anti-crease pattern deleted`);
           respond({ ok: true });
           break;
         }
@@ -739,14 +739,14 @@ class WashdataAdapter extends utils.Adapter {
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (!cycle) {
-            return respond({ error: "Zyklus nicht gefunden" });
+            return respond({ error: "Cycle not found" });
           }
           const trace = mgr.getTrace(cycleId);
           if (!trace) {
             return respond({ error: "No trace available" });
           }
 
-          // Median der Spikes berechnen (robuster als Max gegen Ausreißer)
+          // Compute the median of the spikes (more robust against outliers than max)
           const wattsAbove10 = trace.points
             .map((p) => p.watts)
             .filter((w) => w > 10)
@@ -824,7 +824,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const idx = mgr.cycleHistory.findIndex((c) => c.id === cycleId);
           if (idx === -1) {
-            return respond({ error: "Zyklus nicht gefunden" });
+            return respond({ error: "Cycle not found" });
           }
           mgr.cycleHistory.splice(idx, 1);
           // Trace löschen falls vorhanden
