@@ -69,11 +69,11 @@ describe("sendTo() API – ProfileStore operations", () => {
     adapter = makeAdapter();
     mgr = makeManager(adapter);
     await mgr.start();
-    mgr.profileStore.createManualProfile("Schnellwäsche", 30 * 60_000);
+    mgr.profileStore.createManualProfile("Quick wash", 30 * 60_000);
     mgr.profileStore.createManualProfile("Eco", 180 * 60_000);
     const profiles = mgr.getProfiles();
     assert.strictEqual(profiles.length, 2);
-    assert(profiles.some((p) => p.name === "Schnellwäsche"));
+    assert(profiles.some((p) => p.name === "Quick wash"));
     assert(profiles.some((p) => p.name === "Eco"));
   });
 

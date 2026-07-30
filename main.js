@@ -219,9 +219,7 @@ class WashdataAdapter extends utils.Adapter {
                 `${deviceCfg.name}: trace restored (${savedTrace.length} points)`,
               );
             }
-            this.log.info(
-              `${deviceCfg.name}: cycle restored → running`,
-            );
+            this.log.info(`${deviceCfg.name}: cycle restored → running`);
           } else {
             // No saved cycle but power is flowing → start directly
             // IMPORTANT: don't start via processReading() from OFF, that
@@ -1411,7 +1409,7 @@ class WashdataAdapter extends utils.Adapter {
       const template =
         cfg.updateMsg && cfg.updateMsg.trim() ? cfg.updateMsg : defaults.update;
       const prevTimeStr = prevEndStr || "";
-      // Alle Werte als Map für bedingte Blöcke
+      // All values as a map, for conditional blocks
       const vars = {
         device: devName,
         program: programName,
@@ -1419,10 +1417,10 @@ class WashdataAdapter extends utils.Adapter {
         prevTime: prevTimeStr,
         progress: String(progressPct),
       };
-      // Bedingte Blöcke [text]: wird entfernt wenn ein enthaltener Platzhalter leer/0/"0" ist
+      // Conditional blocks [text]: removed if any contained placeholder is empty/0/"0"
       const applyTemplate = (tpl) => {
         let result = tpl.replace(/\[([^\]]*)\]/g, function (match, inner) {
-          // Alle Platzhalter im Block prüfen
+          // Check all placeholders within the block
           const usedVars = inner.match(/\{(\w+)\}/g) || [];
           const allFilled = usedVars.every(function (v) {
             const key = v.slice(1, -1);
@@ -1431,13 +1429,13 @@ class WashdataAdapter extends utils.Adapter {
           });
           if (!allFilled) {
             return "\uFFFE";
-          } // Marker für leeren Block
-          // Platzhalter ersetzen
+          } // Marker for an empty block
+          // Replace placeholders
           return inner.replace(/\{(\w+)\}/g, function (m, k) {
             return vars[k] !== undefined ? vars[k] : m;
           });
         });
-        // Zeilenumbrüche vor/nach gelöschten Blöcken bereinigen
+        // Clean up line breaks before/after removed blocks
         result = result
           .replace(/\n\uFFFE\n/g, "\n")
           .replace(/\n\uFFFE/g, "")
@@ -1537,10 +1535,10 @@ class WashdataAdapter extends utils.Adapter {
         : "";
 
       const defaults = {
-        start: "🧺 {device} läuft\n⏳ Zeit wird ermittelt…",
+        start: "🧺 {device} running\n⏳ Determining time…",
         update:
-          "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n📊 Programm: {program}",
-        done: "🧺 {device} fertig!\n⏱️ Laufzeit: {duration} min\n📊 {program}\n⚡ {energy} kWh",
+          "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}",
+        done: "🧺 {device} done!\n⏱️ Runtime: {duration} min\n📊 {program}\n⚡ {energy} kWh",
       };
       const template =
         cfg[msgKey] && cfg[msgKey].trim() ? cfg[msgKey] : defaults[event] || "";
@@ -1656,7 +1654,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "running",
-        name: "Läuft",
+        name: "Running",
         type: "boolean",
         role: "indicator.working",
         def: false,
@@ -1753,7 +1751,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "needsFeedback",
-        name: "Feedback benötigt",
+        name: "Feedback needed",
         type: "boolean",
         role: "indicator",
         def: false,
