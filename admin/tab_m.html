@@ -1297,16 +1297,16 @@ function drawInlineGraph(canvas, legendEl, trace, phaseHist) {
     } else if (legendEl) { legendEl.style.display='none'; }
 }
 
-// ── ZYKLUS LÖSCHEN ────────────────────────────────────────────
+// ── DELETE CYCLE ────────────────────────────────────────────
 function deleteCycle(deviceId, cycleId) {
-    if (!confirm('Zyklus wirklich löschen?')) return;
+    if (!confirm(_('Really delete this cycle?'))) return;
     send('deleteCycle', {deviceId: deviceId, cycleId: cycleId}).then(function(res) {
-        if (res && res.ok) { toast('Zyklus gelöscht', 'ok'); loadCycles(); }
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) { toast(_('Cycle deleted'), 'ok'); loadCycles(); }
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
-// ── LERNKONTROLLE ─────────────────────────────────
+// ── REVIEW ─────────────────────────────────────────
 function loadFeedback() {
     var deviceId = selVal('feedback');
     Promise.all([
@@ -1327,7 +1327,7 @@ function renderFeedback(deviceId) {
     var open = (cycles[deviceId] || []).filter(function(c) { return !c.confirmed; });
     var wrap = document.getElementById('feedback-list-wrap');
     if (open.length === 0) {
-        wrap.innerHTML = '<div class="empty"><p>✅ Alle Zyklen bestätigt!</p></div>';
+        wrap.innerHTML = '<div class="empty"><p>✅ ' + _('All cycles confirmed!') + '</p></div>';
         return;
     }
     wrap.innerHTML = open.map(function(c) {
@@ -1336,24 +1336,24 @@ function renderFeedback(deviceId) {
         var conf = c.confidence ? Math.round(c.confidence*100) : 0;
         var confColor = conf >= 80 ? 'bg-green' : conf >= 60 ? 'bg-orange' : 'bg-red';
         return '<div class="card">' +
-            '<div class="card-head">' + new Date(c.startTime).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '<span class="badge ' + confColor + '">' + conf + '% Konfidenz</span></div>' +
+            '<div class="card-head">' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '<span class="badge ' + confColor + '">' + conf + '% ' + _('confidence') + '</span></div>' +
             '<div class="card-body">' +
             '<table class="tbl" style="margin-bottom:12px">' +
-            '<tr><td class="text-muted" style="width:110px">Erkannt als</td><td><strong>' + (c.matchedProfile||'Unbekannt') + '</strong></td></tr>' +
-            '<tr><td class="text-muted">Dauer</td><td>' + dur + ' min</td></tr>' +
-            '<tr><td class="text-muted">Verbrauch</td><td>' + kwh + ' kWh</td></tr>' +
+            '<tr><td class="text-muted" style="width:110px">' + _('Detected as') + '</td><td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong></td></tr>' +
+            '<tr><td class="text-muted">' + _('Duration') + '</td><td>' + dur + ' min</td></tr>' +
+            '<tr><td class="text-muted">' + _('Consumption') + '</td><td>' + kwh + ' kWh</td></tr>' +
             '</table>' +
             '<div class="row" style="gap:8px">' +
-            '<button class="btn btn-success btn-sm" onclick="confirmCycle(\'' + deviceId + '\',\'' + c.id + '\')">✓ Stimmt – bestätigen</button>' +
-            '<button class="btn btn-warn btn-sm" onclick="openCorrect(\'' + deviceId + '\',\'' + c.id + '\')">🔄 Falsches Programm</button>' +
+            '<button class="btn btn-success btn-sm" onclick="confirmCycle(\'' + deviceId + '\',\'' + c.id + '\')">✓ ' + _('Correct – confirm') + '</button>' +
+            '<button class="btn btn-warn btn-sm" onclick="openCorrect(\'' + deviceId + '\',\'' + c.id + '\')">🔄 ' + _('Wrong program') + '</button>' +
             '</div></div></div>';
     }).join('');
 }
 
 function confirmCycle(deviceId, cycleId) {
     send('confirmCycle', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
-        if (res && res.ok) { toast('Bestätigt – Adapter lernt!', 'ok'); loadFeedback(); refreshOverview(); }
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) { toast(_('Confirmed – adapter is learning!'), 'ok'); loadFeedback(); refreshOverview(); }
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
@@ -1370,23 +1370,23 @@ function confirmCorrect() {
     var profileId = document.getElementById('correct-select').value;
     send('correctCycle', { deviceId: _correctCycleId.deviceId, cycleId: _correctCycleId.cycleId, profileId: profileId }).then(function(res) {
         closeModal('modal-correct');
-        if (res && res.ok) { toast('Korrigiert – Adapter lernt!', 'ok'); loadFeedback(); }
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) { toast(_('Corrected – adapter is learning!'), 'ok'); loadFeedback(); }
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
-// ── EXPORT ────────────────────────────────────────
+// ── EXPORT ──────────────────────────────────────────
 function doExport() {
     var deviceId = selVal('export');
     send('exportConfig', { deviceId: deviceId }).then(function(res) {
-        if (!res || !res.ok) return toast('Export fehlgeschlagen', 'err');
+        if (!res || !res.ok) return toast(_('Export failed'), 'err');
         var json = JSON.stringify(res.export, null, 2);
         document.getElementById('export-preview').value = json;
         var a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
         a.download = 'laundrylens_' + deviceId + '_' + new Date().toISOString().slice(0,10) + '.json';
         a.click();
-        toast('Export heruntergeladen', 'ok');
+        toast(_('Export downloaded'), 'ok');
     });
 }
 
@@ -1396,7 +1396,7 @@ function doImport(evt) {
     var reader = new FileReader();
     reader.onload = function(e) {
         var data;
-        try { data = JSON.parse(e.target.result); } catch(ex) { return toast('Ungültige JSON-Datei', 'err'); }
+        try { data = JSON.parse(e.target.result); } catch(ex) { return toast(_('Invalid JSON file'), 'err'); }
         var deviceId = selVal('export');
         send('importConfig', { deviceId: deviceId, data: data }).then(function(res) {
             if (res && res.ok) toast(res.imported + ' Programme, ' + (res.importedCycles||0) + ' Zyklen, ' + (res.importedTraces||0) + ' Graphen importiert', 'ok');
