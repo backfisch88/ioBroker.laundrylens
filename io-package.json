@@ -148,6 +148,7 @@
     "type": "general",
     "compact": true,
     "messagebox": true,
+    "materializeTab": true,
     "adminTab": {
       "singleton": true,
       "name": {

@@ -587,6 +587,7 @@ if (urlParams.get('instance') !== null) {
 var devices  = [];
 var programs = {};
 var cycles   = {};
+var _suggestedApplied = false; // tracks whether "Suggested settings" have already been applied for the current session
 var _renameId = null;
 var _correctCycleId = null;
 var _refreshTimer = null;
