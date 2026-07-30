@@ -181,5 +181,9 @@
   "🧺 {device} running\n⏳ Determining time…": "🧺 {device} em funcionamento\n⏳ Determinando o tempo…",
   "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} atualização\n✅ Concluído às {endTime}\n📊 Programa: {program}",
   "🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%": "🧺 {device} atualização\n✅ Concluído às {endTime}\n[↩️ Antes: {prevTime}]\n📊 Programa: {program}\n📈 Progresso: {progress}%",
-  "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh": "🧺 {device} concluído!\n⏱️ Duração total: {duration} min\n📊 Programa: {program}\n⚡ Consumo: {energy} kWh"
+  "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh": "🧺 {device} concluído!\n⏱️ Duração total: {duration} min\n📊 Programa: {program}\n⚡ Consumo: {energy} kWh",
+  "Apply suggested value?": "Aplicar valor sugerido?",
+  "Ignore": "Ignorar",
+  "Error saving": "Erro ao salvar",
+  "Setting saved! Restarting adapter…": "Configuração salva! Reiniciando o adaptador…"
 }

@@ -191,7 +191,6 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
   <div class="card" id="suggested-card" style="display:none">
     <div class="card-head" style="color:#e37400;border-bottom-color:#ff9800">
       <span data-i18n="💡 Suggested settings">💡 Suggested settings</span>
-      <button class="btn btn-warn btn-sm" onclick="applySuggested()" data-i18n="Apply">Apply</button>
     </div>
     <div class="card-body" id="suggested-body"></div>
   </div>
@@ -587,7 +586,6 @@ if (urlParams.get('instance') !== null) {
 var devices  = [];
 var programs = {};
 var cycles   = {};
-var _suggestedApplied = false; // tracks whether "Suggested settings" have already been applied for the current session
 var _renameId = null;
 var _correctCycleId = null;
 var _refreshTimer = null;
@@ -909,8 +907,7 @@ function refreshOverview() {
         });
 
         // Load suggested settings
-        if (!_suggestedApplied) {
-            send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
+        send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
                 var card = document.getElementById('suggested-card');
                 if (!res || !res.ok || !res.settings) { card.style.display = 'none'; return; }
                 var s = res.settings;
@@ -924,14 +921,20 @@ function refreshOverview() {
                 fields.forEach(function(f) {
                     if (s[f.key] === undefined) return;
                     var val = Math.min(f.max, Math.max(f.min, s[f.key]));
-                    rows += '<tr><td class="text-muted">' + f.label + '</td><td><strong>' + val.toFixed(f.dec) + (f.unit ? ' ' + f.unit : '') + '</strong></td></tr>';
+                    var valStr = val.toFixed(f.dec);
+                    rows += '<tr>' +
+                        '<td class="text-muted">' + f.label + '</td>' +
+                        '<td><strong>' + valStr + (f.unit ? ' ' + f.unit : '') + '</strong></td>' +
+                        '<td style="text-align:right;white-space:nowrap">' +
+                        '<button class="btn btn-success btn-xs" title="' + _('Apply') + '" onclick="applySingleSuggestion(\''+deviceId+'\',\''+f.key+'\','+val+')">✓</button> ' +
+                        '<button class="btn btn-outline btn-xs" title="' + _('Ignore') + '" onclick="dismissSuggestion(\''+deviceId+'\',\''+f.key+'\','+val+')">✕</button>' +
+                        '</td></tr>';
                 });
                 document.getElementById('suggested-body').innerHTML =
                     '<p class="text-sm text-muted" style="margin-bottom:8px">' + _('Based on') + ' <strong>' + s.basedOnCycles + ' ' + _('cycles') + '</strong> – ' + _('fields with >10% deviation only:') + '</p>' +
                     '<table class="tbl">' + rows + '</table>';
                 card.style.display = '';
-            });
-        }
+        });
     });
 }
 
@@ -1708,46 +1711,72 @@ function testNotif() {
 
 
 // ── SUGGESTED SETTINGS ────────────────────────────────────────
-function applySuggested() {
-    var deviceId = selVal('overview');
+var SUGGESTION_FIELD_DEFS = {
+    startEnergyThreshold: { label: _('Start energy gate'), unit: 'Wh' },
+    durationTolerance:    { label: _('Duration tolerance'), unit: '' },
+    offDelayMin:          { label: _('Off delay'), unit: 'min' },
+    powerThreshold:       { label: _('Power-on threshold'), unit: 'W' },
+};
+
+/**
+ * Applies a single suggested-settings field (not the others) and restarts
+ * the adapter instance so the new value takes effect.
+ *
+ * @param {string} deviceId  – device the suggestion belongs to
+ * @param {string} field     – suggestion field key
+ * @param {number} value     – suggested value to apply
+ */
+function applySingleSuggestion(deviceId, field, value) {
     var dev = devices.find(function(d) { return d.deviceId === deviceId; });
     var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
+    var def = SUGGESTION_FIELD_DEFS[field] || { label: field, unit: '' };
 
-    send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
-        if (!res || !res.ok || !res.settings) return toast(_('No suggestions available'), 'err');
-        var s = res.settings;
+    if (!confirm(_('Apply suggested value?') + '\n\n' + def.label + ': ' + value + (def.unit ? ' ' + def.unit : ''))) return;
 
-        var lines = [];
-        var native = {};
-        var fieldDefs = [
-            { key:'startEnergyThreshold', label:_('Start energy gate'), unit:'Wh',  min:0,    max:50  },
-            { key:'durationTolerance',    label:_('Duration tolerance'),     unit:'',    min:0.05, max:0.5 },
-            { key:'offDelayMin',          label:_('Off delay'),unit:'min', min:1,    max:60  },
-            { key:'powerThreshold',       label:_('Power-on threshold'), unit:'W',   min:1,    max:500 },
-        ];
-        fieldDefs.forEach(function(f) {
-            if (s[f.key] === undefined) return;
-            var val = Math.min(f.max, Math.max(f.min, s[f.key]));
-            native[f.key] = val;
-            lines.push(f.label + ': ' + val + (f.unit ? ' ' + f.unit : ''));
-        });
-        if (!confirm('Empfohlene Einstellungen anwenden?\n\n' + lines.join('\n') + '\n\nBasierend auf ' + s.basedOnCycles + ' Zyklen.')) return;
-        socket.emit('extendObject', 'system.adapter.laundrylens.' + inst, {
-            native: native
-        }, function(err) {
-            if (err) {
-                toast('Fehler beim Speichern: ' + err, 'err');
-            } else {
-                toast('Einstellungen gespeichert! Adapter wird neu gestartet…', 'ok');
-                document.getElementById('suggested-card').style.display = 'none';
-                _suggestedApplied = true;
-                // Adapter neu starten damit Werte aktiv werden
-                setTimeout(function() {
-                    socket.emit('sendTo', 'system.adapter.laundrylens.' + inst, 'restart', {}, function() {});
-                }, 1000);
-            }
-        });
+    var native = {};
+    native[field] = value;
+    socket.emit('extendObject', 'system.adapter.laundrylens.' + inst, {
+        native: native
+    }, function(err) {
+        if (err) {
+            toast(_('Error saving') + ': ' + err, 'err');
+            return;
+        }
+        toast(_('Setting saved! Restarting adapter…'), 'ok');
+        removeSuggestionRow(field);
+        setTimeout(function() {
+            socket.emit('sendTo', 'system.adapter.laundrylens.' + inst, 'restart', {}, function() {});
+        }, 1000);
     });
+}
+
+/**
+ * Dismisses a single suggested-settings field so it stops being shown
+ * (until the underlying recommendation changes to a different value) -
+ * without applying it and without affecting any other suggestion.
+ *
+ * @param {string} deviceId  – device the suggestion belongs to
+ * @param {string} field     – suggestion field key
+ * @param {number} value     – the specific suggested value being dismissed
+ */
+function dismissSuggestion(deviceId, field, value) {
+    send('dismissSuggestion', { deviceId: deviceId, field: field, value: value }).then(function(res) {
+        if (!res || !res.ok) return toast((res && res.error) || _('Error'), 'err');
+        removeSuggestionRow(field);
+    });
+}
+
+/** Removes a single suggestion row from the card, hiding the whole card if none remain. */
+function removeSuggestionRow(field) {
+    var body = document.getElementById('suggested-body');
+    if (!body) return;
+    var rows = body.querySelectorAll('tr');
+    rows.forEach(function(row) {
+        if (row.innerHTML.indexOf("'" + field + "'") !== -1) row.remove();
+    });
+    if (body.querySelectorAll('tr').length === 0) {
+        document.getElementById('suggested-card').style.display = 'none';
+    }
 }
 
 // ── CLEAR ALL DATA ──────────────────────────────────────────

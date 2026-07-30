@@ -904,6 +904,20 @@ class WashdataAdapter extends utils.Adapter {
           break;
         }
 
+        case "dismissSuggestion": {
+          const mgr = this._mgr(obj.message);
+          if (!mgr) {
+            return respond({ error: "Device not found" });
+          }
+          const { field, value } = obj.message || {};
+          if (!field || value === undefined) {
+            return respond({ error: "field/value missing" });
+          }
+          await mgr.dismissSuggestion(field, value);
+          respond({ ok: true, settings: mgr.getSuggestedSettings() });
+          break;
+        }
+
         case "deleteCycle": {
           const { cycleId } = obj.message || {};
           const mgr = this._mgr(obj.message);
