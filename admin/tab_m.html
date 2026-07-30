@@ -1652,9 +1652,9 @@ function loadNotifAdapters() {
             var um = document.getElementById('notif-update-msg');
             var dm = document.getElementById('notif-done-msg');
             var DEFS = {
-                startMsg:  '🧺 {device} running\n⏳ Determining time…',
-                updateMsg: '🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%',
-                doneMsg:   '🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh',
+                startMsg:  _('🧺 {device} running\n⏳ Determining time…'),
+                updateMsg: _('🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%'),
+                doneMsg:   _('🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh'),
             };
             setNotifToggle('start', cfg.startEnabled);
             if (sm) sm.value = cfg.startMsg || DEFS.startMsg;

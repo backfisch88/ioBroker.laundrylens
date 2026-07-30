@@ -1,7 +1,61 @@
 "use strict";
 
 const utils = require("@iobroker/adapter-core");
+const fs = require("node:fs");
+const path = require("node:path");
 const { WashDataManager } = require("./lib/washDataManager");
+
+// ── Notification message translations ──────────────────────────
+// Reuses the same admin/i18n/<lang>/translations.json files as the admin
+// UI, so the server-side default message templates stay in sync with what
+// the admin form shows as its placeholder text - both come from one source.
+let _notifTranslations = null;
+let _notifLang = null;
+
+/**
+ * Loads (once, cached) the translation dictionary matching the ioBroker
+ * system's configured language, falling back to English.
+ *
+ * @param {object} adapter  – the adapter instance (for getForeignObjectAsync/logging)
+ * @returns {Promise<object>} – key → translated string
+ */
+async function loadNotifTranslations(adapter) {
+  if (_notifTranslations) {
+    return _notifTranslations;
+  }
+  try {
+    const sysConfig = await adapter.getForeignObjectAsync("system.config");
+    _notifLang =
+      (sysConfig && sysConfig.common && sysConfig.common.language) || "en";
+  } catch {
+    _notifLang = "en";
+  }
+  try {
+    const file = path.join(
+      __dirname,
+      "admin",
+      "i18n",
+      _notifLang,
+      "translations.json",
+    );
+    _notifTranslations = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    // Fall back to English if the detected language has no translation file
+    try {
+      const enFile = path.join(
+        __dirname,
+        "admin",
+        "i18n",
+        "en",
+        "translations.json",
+      );
+      _notifTranslations = JSON.parse(fs.readFileSync(enFile, "utf8"));
+    } catch {
+      _notifTranslations = {};
+    }
+  }
+  return _notifTranslations;
+}
 
 class WashdataAdapter extends utils.Adapter {
   constructor(options = {}) {
@@ -30,6 +84,19 @@ class WashdataAdapter extends utils.Adapter {
       return { text, chatId: target };
     }
     return text;
+  }
+
+  /**
+   * Translates a notification-related string by its English source text,
+   * using the system's configured language. Falls back to the key itself
+   * if no translation is found.
+   *
+   * @param {string} key  – English source string (translation key)
+   * @returns {Promise<string>} – translated string
+   */
+  async _t(key) {
+    const dict = await loadNotifTranslations(this);
+    return dict[key] || key;
   }
 
   _getDeviceConfig() {
@@ -1387,25 +1454,32 @@ class WashdataAdapter extends utils.Adapter {
       state.lastSentAt = now2;
       state.lastFinishTime = newFinishTime;
 
-      // Meldung senden
-      const endTimeStr = new Date(newFinishTime).toLocaleTimeString("de-DE", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      // Send message
+      const defaults = {
+        update: await this._t(
+          "🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%",
+        ),
+      };
+      const endTimeStr = new Date(newFinishTime).toLocaleTimeString(
+        _notifLang || "en",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      );
       const prevEndStr =
         state.lastFinishTime &&
         Math.abs(state.lastFinishTime - newFinishTime) > 60000
-          ? new Date(state.lastFinishTime).toLocaleTimeString("de-DE", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+          ? new Date(state.lastFinishTime).toLocaleTimeString(
+              _notifLang || "en",
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              },
+            )
           : null;
 
       const programName = activeProgram.name || activeProgram;
-      const defaults = {
-        update:
-          "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%",
-      };
       const template =
         cfg.updateMsg && cfg.updateMsg.trim() ? cfg.updateMsg : defaults.update;
       const prevTimeStr = prevEndStr || "";
@@ -1521,25 +1595,28 @@ class WashdataAdapter extends utils.Adapter {
         return;
       }
 
+      const defaults = {
+        start: await this._t("🧺 {device} running\n⏳ Determining time…"),
+        update: await this._t(
+          "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}",
+        ),
+        done: await this._t(
+          "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh",
+        ),
+      };
       const startTime = cycle.startTime
-        ? new Date(cycle.startTime).toLocaleTimeString("de-DE", {
+        ? new Date(cycle.startTime).toLocaleTimeString(_notifLang || "en", {
             hour: "2-digit",
             minute: "2-digit",
           })
         : "";
       const endTime = Date.now()
-        ? new Date().toLocaleTimeString("de-DE", {
+        ? new Date().toLocaleTimeString(_notifLang || "en", {
             hour: "2-digit",
             minute: "2-digit",
           })
         : "";
 
-      const defaults = {
-        start: "🧺 {device} running\n⏳ Determining time…",
-        update:
-          "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}",
-        done: "🧺 {device} done!\n⏱️ Runtime: {duration} min\n📊 {program}\n⚡ {energy} kWh",
-      };
       const template =
         cfg[msgKey] && cfg[msgKey].trim() ? cfg[msgKey] : defaults[event] || "";
       const doneVars = {

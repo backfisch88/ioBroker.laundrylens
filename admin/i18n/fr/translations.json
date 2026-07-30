@@ -177,5 +177,9 @@
   "🤖 Automatic": "🤖 Automatique",
   "🧺 {device} done!&#10;⏱️ Total runtime: {duration} min&#10;📊 Program: {program}&#10;⚡ Consumption: {energy} kWh": "🧺 {device} done!&#10;⏱️ Total runtime: {duration} min&#10;📊 Program: {program}&#10;⚡ Consumption: {energy} kWh",
   "🧺 {device} running&#10;⏳ Determining time…": "🧺 {device} running&#10;⏳ Determining time…",
-  "🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}": "🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}"
+  "🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}": "🧺 {device} update&#10;✅ Done at {endTime}&#10;📊 Program: {program}",
+  "🧺 {device} running\n⏳ Determining time…": "🧺 {device} en marche\n⏳ Détermination du temps…",
+  "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} mise à jour\n✅ Terminé à {endTime}\n📊 Programme : {program}",
+  "🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%": "🧺 {device} mise à jour\n✅ Terminé à {endTime}\n[↩️ Avant : {prevTime}]\n📊 Programme : {program}\n📈 Progression : {progress}%",
+  "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh": "🧺 {device} terminé !\n⏱️ Durée totale : {duration} min\n📊 Programme : {program}\n⚡ Consommation : {energy} kWh"
 }
