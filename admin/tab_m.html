@@ -562,6 +562,17 @@ function getPhaseLabel(phaseKey) {
     return entry.emoji + ' ' + text;
 }
 
+/**
+ * Returns the translated display label for a device state.
+ *
+ * @param {string} state  – state key (off/starting/running/paused/ending)
+ * @returns {string} – translated label, or the raw key if unknown
+ */
+function getStateLabel(state) {
+    var labels = { off:_('Off'), starting:_('Starting…'), running:_('Running ⚙️'), paused:_('Paused'), ending:_('Ending…') };
+    return labels[state] || state;
+}
+
 var instance = 0;
 var instanceExplicit = false;
 
@@ -796,9 +807,8 @@ function refreshOverview() {
 
         if (stRes && stRes.ok) {
             var s = stRes.status;
-            var labels = { off:_('Off'), starting:_('Starting…'), running:_('Running ⚙️'), paused:_('Paused'), ending:_('Ending…') };
             document.getElementById('ov-dot').className = 'dot ' + s.state;
-            document.getElementById('ov-state').textContent     = labels[s.state] || s.state;
+            document.getElementById('ov-state').textContent     = getStateLabel(s.state);
             var progEl = document.getElementById('ov-program');
             var confEl = document.getElementById('ov-confidence');
             if (s.state === 'off') {
@@ -884,7 +894,7 @@ function refreshOverview() {
                     return '<tr><td><strong>' + item.d.name + '</strong></td>' +
                         '<td><span style="display:inline-flex;align-items:center;gap:6px">' +
                         '<span style="width:9px;height:9px;border-radius:50%;background:' + (colors[s.state]||'#ccc') + ';display:inline-block"></span>' +
-                        s.state + '</span></td>' +
+                        getStateLabel(s.state) + '</span></td>' +
                         '<td>' + (s.program||'–') + '</td></tr>';
                 }).join('') +
                 '</tbody></table>';
