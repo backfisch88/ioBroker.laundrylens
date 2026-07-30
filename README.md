@@ -108,6 +108,10 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.4.1 (2026-07-30)
+- Fix: `ReferenceError: _suggestedApplied is not defined` crashing the admin tab in some browsers/modes
+- Fix: some Admin instances (especially the newer React-based rendering) showed a 404 "File tab.html not found" instead of loading the admin tab correctly - caused by an earlier cleanup that removed the `materializeTab` flag, which actually controls which filename (`tab.html` vs. `tab_m.html`) Admin resolves the custom tab to
+
 ### 0.4.0 (2026-07-30)
 - New: full multilingual support - admin UI, notifications, and program phase names now translate automatically into 11 languages (en, de, ru, pt, nl, fr, it, es, pl, uk, zh-cn) based on the ioBroker system language
 - New: all code comments translated to English, full compliance with the official `@iobroker/eslint-config` (formatting + JSDoc)
