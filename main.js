@@ -827,7 +827,7 @@ class WashdataAdapter extends utils.Adapter {
             return respond({ error: "Cycle not found" });
           }
           mgr.cycleHistory.splice(idx, 1);
-          // Trace löschen falls vorhanden
+          // Delete trace if present
           mgr.traceStore.deleteTrace(cycleId);
           await mgr._saveState();
           await mgr.traceStore.save();
@@ -932,7 +932,7 @@ class WashdataAdapter extends utils.Adapter {
         }
 
         case "getNotifAdapters": {
-          // Verfügbare Benachrichtigungs-Adapter finden
+          // Find available notification adapters
           try {
             const objs = await this.getObjectViewAsync("system", "instance", {
               startkey: "system.adapter.",
@@ -992,7 +992,7 @@ class WashdataAdapter extends utils.Adapter {
         }
 
         case "saveNotifyConfig": {
-          // Benachrichtigungseinstellungen pro Gerät speichern
+          // Save notification settings per device
           const { deviceId, config: notifConfig } = obj.message || {};
           if (!deviceId) {
             return respond({ error: "deviceId fehlt" });
@@ -1080,8 +1080,8 @@ class WashdataAdapter extends utils.Adapter {
         }, {}),
       },
     });
-    // Separater, rein lesbarer JSON-Datenpunkt für externe Dropdowns (z.B. VIS)
-    // enthält nur die Programmnamen, ohne 'auto', da das kein echtes Programm ist
+    // Separate, read-only JSON data point for external dropdowns (e.g. VIS)
+    // contains only the program names, without 'auto', since that isn't a real program
     this.setState(
       `${deviceId}.availablePrograms`,
       JSON.stringify(profiles.map((p) => p.name)),
@@ -1118,7 +1118,7 @@ class WashdataAdapter extends utils.Adapter {
     }
 
     // Phase als Datenpunkt schreiben (ohne Emoji)
-    // Phase nur anzeigen wenn Gerät aktiv läuft
+    // Only show phase while the device is actively running
     if (status.phase && status.state === "running") {
       const phaseText = status.phase
         .replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}]\s*/u, "")
@@ -1128,9 +1128,9 @@ class WashdataAdapter extends utils.Adapter {
       this.setState(`${deviceId}.phase`, "", true);
     }
 
-    // Start-Benachrichtigung wenn Übergang zu running
+    // Send start notification on transition to running
     if (status.state === "running" && prevState === "starting") {
-      // Sperre zurücksetzen damit erstes Update gesendet werden kann
+      // Reset the lock so the first update can be sent
       if (this._notifState && this._notifState[deviceId]) {
         this._notifState[deviceId].lastSentAt = 0;
       }
@@ -1147,10 +1147,10 @@ class WashdataAdapter extends utils.Adapter {
     this.setState(`${deviceId}.program`, program, true);
     this.setState(`${deviceId}.confidence`, Math.round(confidence * 100), true);
 
-    // Update-Meldung beim Übergang detecting → Programm:
-    // - Bei notifyOnProbable: ab matchThreshold
-    // - Sonst: ab autoConfirmThreshold
-    // - Wenn vorher schon Update gesendet: nur bei signifikanter Zeitänderung
+    // Update message on transition detecting → program:
+    // - With notifyOnProbable: from matchThreshold
+    // - Otherwise: from autoConfirmThreshold
+    // - If an update was already sent before: only on a significant time change
     const devCfgProg = this._getDeviceConfig().find(
       (d) => d.deviceId === deviceId,
     );
@@ -1506,7 +1506,7 @@ class WashdataAdapter extends utils.Adapter {
         return;
       }
 
-      // Prüfen ob dieses Event aktiviert ist
+      // Check whether this event is enabled
       const enabledKey =
         event === "start"
           ? "startEnabled"
