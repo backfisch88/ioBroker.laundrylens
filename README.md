@@ -108,6 +108,12 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### 0.4.0 (2026-07-30)
+- New: full multilingual support - admin UI, notifications, and program phase names now translate automatically into 11 languages (en, de, ru, pt, nl, fr, it, es, pl, uk, zh-cn) based on the ioBroker system language
+- New: all code comments translated to English, full compliance with the official `@iobroker/eslint-config` (formatting + JSDoc)
+- Fix: the "All devices" status column and default notification templates weren't going through translation
+- Infrastructure: CI no longer needs a committed `package-lock.json`; real integration test added; git history cleaned up
+
 ### 0.3.0 (2026-07-28)
 - New: proper dishwasher phase detection, both live and in the historical cycle graph
 - New: email notification support via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)
