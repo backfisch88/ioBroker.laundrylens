@@ -171,9 +171,9 @@ class WashdataAdapter extends utils.Adapter {
             this._onProgram(deviceCfg.deviceId, program, confidence),
           onTimeUpdate: (remaining, total, pct) => {
             if (remaining === null) {
-              // Kein Programm erkannt – Restzeit und Fortschritt zurücksetzen
+              // No program detected – reset remaining time and progress
               this.setState(`${deviceCfg.deviceId}.timeRemaining`, 0, true);
-              // cycleProgress NICHT zurücksetzen – letzten Wert behalten
+              // Do NOT reset cycleProgress – keep the last value
               return;
             }
             this._onTime(deviceCfg.deviceId, remaining, total, pct);
@@ -188,26 +188,26 @@ class WashdataAdapter extends utils.Adapter {
       this.sensorToDevice[deviceCfg.powerId] = deviceCfg.deviceId;
       await this.subscribeForeignStatesAsync(deviceCfg.powerId);
 
-      // Writable states abonnieren
+      // Subscribe to writable states
       await this.subscribeStatesAsync(`${deviceCfg.deviceId}.programOverride`);
       await this.subscribeStatesAsync(`${deviceCfg.deviceId}.forceFinish`);
 
-      // Ghost-Schutz deaktivieren wenn Sensor gerade Strom zieht
+      // Disable ghost protection if the sensor is currently drawing power
       try {
         const powerNow = await this.getForeignStateAsync(deviceCfg.powerId);
         const wattsNow = powerNow ? parseFloat(powerNow.val) || 0 : 0;
         if (wattsNow >= (deviceCfg.powerThreshold || 10)) {
-          // Maschine läuft gerade → Ghost-Schutz aus
+          // Machine is currently running → disable ghost protection
           manager.detector.lastCycleCompleted = true;
           manager.detector.lastCycleEndTime = null;
           this.log.info(
-            `${deviceCfg.name}: Sensor aktiv (${wattsNow}W) → Ghost-Schutz deaktiviert`,
+            `${deviceCfg.name}: sensor active (${wattsNow}W) → ghost protection disabled`,
           );
-          // Direkt auf running setzen wenn Strom fließt (kein Warten auf Energieakkumulation)
+          // Set state directly to running if power is flowing (don't wait for energy accumulation)
           if (manager._restoredCycle && manager._restoredCycle.startTime) {
             manager.detector.state = "running";
             manager.currentState = "running";
-            // Gespeicherte Trace wiederherstellen
+            // Restore saved trace
             const savedTrace = manager._restoredCycle.trace;
             if (
               savedTrace &&
@@ -216,17 +216,17 @@ class WashdataAdapter extends utils.Adapter {
             ) {
               manager.detector.restoreTrace(savedTrace);
               this.log.info(
-                `${deviceCfg.name}: Trace wiederhergestellt (${savedTrace.length} Punkte)`,
+                `${deviceCfg.name}: trace restored (${savedTrace.length} points)`,
               );
             }
             this.log.info(
-              `${deviceCfg.name}: Zyklus wiederhergestellt → running`,
+              `${deviceCfg.name}: cycle restored → running`,
             );
           } else {
-            // Kein gespeicherter Zyklus aber Strom fließt → direkt starten
-            // WICHTIG: nicht über processReading() aus OFF heraus starten, das
-            // würde _handleOff() durchlaufen und accumulatedEnergy auf 0 zurücksetzen.
-            // Stattdessen State direkt setzen (wie beim "Zyklus wiederhergestellt"-Zweig oben).
+            // No saved cycle but power is flowing → start directly
+            // IMPORTANT: don't start via processReading() from OFF, that
+            // would go through _handleOff() and reset accumulatedEnergy to 0.
+            // Instead set the state directly (like the "cycle restored" branch above).
             manager.detector.cycleStartTime = Date.now();
             manager.detector.accumulatedEnergy =
               manager.detector.cfg.startEnergyThreshold;
