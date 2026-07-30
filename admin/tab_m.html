@@ -1469,11 +1469,11 @@ function updateControlCard(status, profiles) {
     card.style.display = running ? '' : 'none';
     if (btn) btn.style.display = running ? '' : 'none';
 
-    // Override Dropdown füllen
+    // Populate the override dropdown
     var sel = document.getElementById('ctrl-override');
     if (sel && profiles) {
         var current = sel.value;
-        sel.innerHTML = '<option value="auto">🤖 Automatik</option>' +
+        sel.innerHTML = '<option value="auto">🤖 ' + _('Automatic') + '</option>' +
             (profiles || []).map(function(p) {
                 return '<option value="'+p.name+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
             }).join('');
@@ -1567,11 +1567,11 @@ function loadNotifTargets(targetVal) {
         { deviceId: dev ? dev.deviceId : '', instance: adapter },
         function(res) {
             if (!res || !res.ok || !res.users || !res.users.length) return;
-            tSel.innerHTML = '<option value="">Alle (broadcast)</option>' +
+            tSel.innerHTML = '<option value="">' + _('All (broadcast)') + '</option>' +
                 res.users.map(function(u) {
                     return '<option value="' + u.id + '">' + u.name + '</option>';
                 }).join('');
-            // Target setzen NACH dem Befüllen des Dropdowns
+            // Set target AFTER populating the dropdown
             if (targetVal) tSel.value = targetVal;
         }
     );
@@ -1625,14 +1625,14 @@ function loadNotifAdapters() {
         var sel = document.getElementById('notif-adapter');
         if (!sel) return;
         if (!res || !res.ok || !res.adapters || !res.adapters.length) {
-            sel.innerHTML = '<option value="">– Kein Adapter gefunden –</option>';
+            sel.innerHTML = '<option value="">' + _('– No adapter found –') + '</option>';
             return;
         }
-        sel.innerHTML = '<option value="">– Adapter wählen –</option>' +
+        sel.innerHTML = '<option value="">' + _('– Choose adapter –') + '</option>' +
             res.adapters.map(function(a) {
                 return '<option value="'+a.id+'">'+a.name+' ('+a.id+')</option>';
             }).join('');
-        // Gespeicherte Config laden
+        // Load saved config
         socket.emit('sendTo', 'laundrylens.' + inst, 'getNotifyConfig', {deviceId: deviceId}, function(r) {
             if (!r || !r.ok || !r.config) return;
             var cfg = r.config;
@@ -1698,15 +1698,15 @@ function testNotif() {
     var msg      = (document.getElementById('notif-done-msg').value ||
                     document.getElementById('notif-start-msg').value || '🔔 Test')
         .replace(/{device}/g,   'Test device')
-        .replace(/{program}/g,  'Baumwolle 60')
+        .replace(/{program}/g,  'Cotton 60')
         .replace(/{duration}/g, '92')
         .replace(/{energy}/g,   '0.890')
         .replace(/{startTime}/g,'08:00')
         .replace(/{endTime}/g,  '09:32');
-    if (!adapter) return toast('Bitte Adapter wählen', 'err');
+    if (!adapter) return toast(_('Please choose an adapter'), 'err');
     send('sendNotification', {deviceId: deviceId, adapter: adapter, target: target, message: msg}).then(function(res) {
-        if (res && res.ok) toast('Testnachricht gesendet!', 'ok');
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) toast(_('Test message sent!'), 'ok');
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
@@ -1718,16 +1718,16 @@ function applySuggested() {
     var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
 
     send('getSuggestedSettings', {deviceId: deviceId}).then(function(res) {
-        if (!res || !res.ok || !res.settings) return toast('Keine Empfehlungen verfügbar', 'err');
+        if (!res || !res.ok || !res.settings) return toast(_('No suggestions available'), 'err');
         var s = res.settings;
 
         var lines = [];
         var native = {};
         var fieldDefs = [
-            { key:'startEnergyThreshold', label:'Start-Energie-Gate', unit:'Wh',  min:0,    max:50  },
-            { key:'durationTolerance',    label:'Dauer-Toleranz',     unit:'',    min:0.05, max:0.5 },
-            { key:'offDelayMin',          label:'Ausschaltverzögerung',unit:'min', min:1,    max:60  },
-            { key:'powerThreshold',       label:'Einschalt-Schwelle', unit:'W',   min:1,    max:500 },
+            { key:'startEnergyThreshold', label:_('Start energy gate'), unit:'Wh',  min:0,    max:50  },
+            { key:'durationTolerance',    label:_('Duration tolerance'),     unit:'',    min:0.05, max:0.5 },
+            { key:'offDelayMin',          label:_('Off delay'),unit:'min', min:1,    max:60  },
+            { key:'powerThreshold',       label:_('Power-on threshold'), unit:'W',   min:1,    max:500 },
         ];
         fieldDefs.forEach(function(f) {
             if (s[f.key] === undefined) return;
@@ -1757,14 +1757,14 @@ function applySuggested() {
 // ── CLEAR ALL DATA ──────────────────────────────────────────
 function clearAllData() {
     var deviceId = selVal('export');
-    if (!deviceId) return toast('Kein Gerät ausgewählt', 'err');
+    if (!deviceId) return toast(_('No device selected'), 'err');
     var dev = devices.find(function(d) { return d.deviceId === deviceId; });
     var name = dev ? dev.name : deviceId;
-    if (!confirm('Alle Daten für "' + name + '" löschen?\n\nProfile, Zyklen und Traces werden unwiderruflich gelöscht!')) return;
+    if (!confirm(_('Delete all data for "') + name + '"?\n\n' + _('Profiles, cycles, and traces will be permanently deleted!'))) return;
     var inst = (dev && dev._instance !== undefined) ? dev._instance : instance;
     socket.emit('sendTo', 'laundrylens.' + inst, 'clearAllData', {deviceId: deviceId}, function(res) {
-        if (res && res.ok) { toast('Alle Daten gelöscht!', 'ok'); }
-        else { toast('Fehler: ' + ((res && res.error) || 'Unbekannt'), 'err'); }
+        if (res && res.ok) { toast(_('All data deleted!'), 'ok'); }
+        else { toast(_('Error') + ': ' + ((res && res.error) || _('Unknown')), 'err'); }
     });
 }
 
