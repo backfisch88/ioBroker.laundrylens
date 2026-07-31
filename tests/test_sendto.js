@@ -22,6 +22,10 @@ function makeAdapter() {
     readFileAsync: async () => {
       throw new Error("not found");
     },
+    setTimeout: (fn, ms, ...args) => setTimeout(fn, ms, ...args),
+    clearTimeout: (id) => clearTimeout(id),
+    setInterval: (fn, ms, ...args) => setInterval(fn, ms, ...args),
+    clearInterval: (id) => clearInterval(id),
   };
 }
 
