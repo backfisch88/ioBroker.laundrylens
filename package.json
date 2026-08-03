@@ -28,7 +28,7 @@
     "test:integration": "mocha test/integration --exit",
     "lint": "eslint .",
     "translate": "translate-adapter",
-    "test:package": "echo \"No package test configured\" && exit 0"
+    "test:package": "node node_modules/mocha/bin/mocha --exit test/package.js"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.1"
@@ -36,9 +36,10 @@
   "devDependencies": {
     "@iobroker/testing": "^5.3.0",
     "@iobroker/eslint-config": "^2.3.4",
-    "@iobroker/adapter-dev": "^1.4.0",
-    "@types/node": "^22.0.0",
-    "eslint": "^9.10.0"
+    "@iobroker/adapter-dev": "^1.5.0",
+    "@alcalzone/release-script": "^5.2.1",
+    "@tsconfig/node22": "^22.0.5",
+    "@types/node": "^22.0.0"
   },
   "engines": {
     "node": ">=22.0.0"

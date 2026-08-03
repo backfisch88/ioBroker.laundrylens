@@ -43,13 +43,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 
 ## Installation
 
-Install via ioBroker Admin: **Adapters → ⚙ → Install from custom URL**
-
-```
-https://github.com/backfisch88/ioBroker.laundrylens
-```
-
-Then create a separate adapter instance for each device and select the watt data point in the instance configuration.
+Install **LaundryLens** via the ioBroker Admin adapter list (tab "Adapters"), then create a separate adapter instance for each device and select the watt data point in the instance configuration.
 
 ---
 

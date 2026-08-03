@@ -7,7 +7,12 @@
       "label": "Device name",
       "placeholder": "e.g. Washing machine",
       "default": "Washing machine",
-      "help": "Display name in the dashboard"
+      "help": "Display name in the dashboard",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "deviceType": {
       "type": "select",
@@ -34,15 +39,30 @@
           "value": "other",
           "label": "⚙️ Other"
         }
-      ]
+      ],
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "powerId": {
       "type": "objectId",
       "label": "Power sensor (watt)",
-      "help": "ioBroker data point providing the current power draw in watts"
+      "help": "ioBroker data point providing the current power draw in watts",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 6,
+      "xl": 6
     },
     "_sep1": {
-      "type": "divider"
+      "type": "divider",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "_hdr1": {
       "type": "staticText",
@@ -50,7 +70,12 @@
       "style": {
         "fontWeight": "bold",
         "marginTop": "8px"
-      }
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "powerThreshold": {
       "type": "number",
@@ -58,7 +83,12 @@
       "default": 10,
       "min": 1,
       "max": 500,
-      "help": "Power level from which the device is considered running. Recommended: 10W for all device types"
+      "help": "Power level from which the device is considered running. Recommended: 10W for all device types",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "offDelayMin": {
       "type": "number",
@@ -66,7 +96,12 @@
       "default": 5,
       "min": 1,
       "max": 60,
-      "help": "How long power must stay below the threshold before the cycle ends. Recommended: washing machine 5 min · dryer 8 min · dishwasher 8 min · washer-dryer 10 min"
+      "help": "How long power must stay below the threshold before the cycle ends. Recommended: washing machine 5 min · dryer 8 min · dishwasher 8 min · washer-dryer 10 min",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "startEnergyThreshold": {
       "type": "number",
@@ -74,10 +109,20 @@
       "default": 2,
       "min": 0,
       "max": 50,
-      "help": "Minimum energy after start before the cycle is counted (prevents false starts). Recommended: washing machine 2 Wh · dryer 5 Wh · washer-dryer 5 Wh"
+      "help": "Minimum energy after start before the cycle is counted (prevents false starts). Recommended: washing machine 2 Wh · dryer 5 Wh · washer-dryer 5 Wh",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "_sep2": {
-      "type": "divider"
+      "type": "divider",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "_hdr2": {
       "type": "staticText",
@@ -85,7 +130,12 @@
       "style": {
         "fontWeight": "bold",
         "marginTop": "8px"
-      }
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "durationTolerance": {
       "type": "number",
@@ -94,7 +144,12 @@
       "min": 0.05,
       "max": 0.5,
       "step": 0.05,
-      "help": "How much the run time may deviate from the profile. 0.2 = ±20%"
+      "help": "How much the run time may deviate from the profile. 0.2 = ±20%",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "matchIntervalMin": {
       "type": "number",
@@ -102,7 +157,12 @@
       "default": 5,
       "min": 1,
       "max": 30,
-      "help": "How often the program is matched. Recommended: 5 min for all device types"
+      "help": "How often the program is matched. Recommended: 5 min for all device types",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "matchPersist": {
       "type": "number",
@@ -110,7 +170,12 @@
       "default": 3,
       "min": 1,
       "max": 5,
-      "help": "How many times in a row the same program must be detected. 3 = reliable · 2 = faster"
+      "help": "How many times in a row the same program must be detected. 3 = reliable · 2 = faster",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "autoConfirmThreshold": {
       "type": "number",
@@ -118,7 +183,12 @@
       "default": 85,
       "min": 0,
       "max": 100,
-      "help": "From this confidence level the cycle is confirmed automatically. 0 = disabled · 85 = recommended"
+      "help": "From this confidence level the cycle is confirmed automatically. 0 = disabled · 85 = recommended",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "instantConfirmThreshold": {
       "type": "number",
@@ -126,7 +196,12 @@
       "default": 92,
       "min": 50,
       "max": 100,
-      "help": "During a running cycle: if the live preview repeatedly (2x) shows at least this confidence, the program is adopted immediately instead of waiting for the normal, slower detection."
+      "help": "During a running cycle: if the live preview repeatedly (2x) shows at least this confidence, the program is adopted immediately instead of waiting for the normal, slower detection.",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "matchThreshold": {
       "type": "number",
@@ -134,17 +209,32 @@
       "default": 55,
       "min": 30,
       "max": 95,
-      "help": "From this confidence a program counts as detected (and is shown). Below it, it stays 'detecting...'. 55 = recommended"
+      "help": "From this confidence a program counts as detected (and is shown). Below it, it stays 'detecting...'. 55 = recommended",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "notifyOnProbable": {
       "type": "checkbox",
       "label": "Notify also for probable program",
       "default": false,
-      "help": "Send a Telegram update as soon as a program is detected - even if confidence is below the auto-confirm threshold"
+      "help": "Send a Telegram update as soon as a program is detected - even if confidence is below the auto-confirm threshold",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "_sep3": {
       "type": "divider",
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "_hdr3": {
       "type": "staticText",
@@ -153,14 +243,24 @@
         "fontWeight": "bold",
         "marginTop": "8px"
       },
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "ignoreAntiKnitter": {
       "type": "checkbox",
       "label": "Ignore anti-crease phase",
       "default": true,
       "help": "ON: cycle ends immediately at the beep, the anti-crease phase is ignored (simple, sufficient for most dryers). OFF: the adapter actively tries to detect when the cycle is really finished across the anti-crease phase (needs a saved reference pattern under 'Programs').",
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")"
+      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

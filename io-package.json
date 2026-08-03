@@ -148,7 +148,6 @@
     "type": "general",
     "compact": true,
     "messagebox": true,
-    "materializeTab": true,
     "adminTab": {
       "singleton": true,
       "name": {
@@ -158,7 +157,7 @@
     },
     "adminUI": {
       "config": "json",
-      "tab": "html"
+      "tab": "materialize"
     },
     "connectionType": "local",
     "dataSource": "push",

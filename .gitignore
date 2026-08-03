@@ -9,7 +9,8 @@ npm-debug.log*
 # OS / editor
 .DS_Store
 Thumbs.db
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 
 # logs
