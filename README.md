@@ -102,6 +102,15 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ## Changelog
 
+### **WORK IN PROGRESS**
+
+### 0.4.5 (2026-08-08)
+- Fix: a finished cycle could stay stuck showing "running" indefinitely if the power sensor stopped reporting after settling at a flat value (many sensors, incl. Shelly, only report on change) - the state machine is now re-evaluated periodically (heartbeat) so it can still finish on schedule
+- Fix: repository checker findings from issue #39 (real `test:package` validation instead of a no-op stub, corrected `adminUI.tab`/`materializeTab` config, responsive `jsonConfig.json` layout, various CI/tooling fixes)
+- (copilot) Adapter requires node.js >= 22 now
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
+
 ### 0.4.1 (2026-07-30)
 - Fix: `ReferenceError: _suggestedApplied is not defined` crashing the admin tab in some browsers/modes
 - Fix: some Admin instances (especially the newer React-based rendering) showed a 404 "File tab.html not found" instead of loading the admin tab correctly - caused by an earlier cleanup that removed the `materializeTab` flag, which actually controls which filename (`tab.html` vs. `tab_m.html`) Admin resolves the custom tab to
@@ -121,11 +130,6 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 - Fix: dryer cycles were cut off immediately on any power drop even with no Anti-Knitter reference pattern saved
 - New: delete button for the saved Anti-Knitter reference pattern
 - Infrastructure: migrated to the official `@iobroker/eslint-config`, added a real `package-lock.json` and integration test, restructured CI to the current ioBroker workflow template (`check-and-lint`/`adapter-tests`), and reached full compliance with the shared config (Prettier formatting + complete JSDoc coverage, no rules disabled)
-
-### **WORK IN PROGRESS**
-- (copilot) Adapter requires node.js >= 22 now
-- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
-- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
 
 ### 0.2.8 (2026-07-26)
 - New: proper phase detection for dishwashers, both in the historical cycle graph and the live status display (Vorspülen/Hauptspülgang/Klarspülgang/Trocknen based on ordinal heating-block count, instead of a flat per-reading power threshold that mislabeled every heat spike as "Aufheizen")
