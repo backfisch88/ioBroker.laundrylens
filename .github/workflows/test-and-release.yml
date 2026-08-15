@@ -57,7 +57,7 @@ jobs:
           install-command: "npm install"
           package-cache: "false"
 
-  release:
+  deploy:
     needs: [check-and-lint, unit-tests, adapter-tests]
     if: contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest

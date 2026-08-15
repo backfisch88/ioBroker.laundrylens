@@ -157,6 +157,8 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 ### 0.2.2 (2026-07-01)
 - beta release
 
+Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
 ---
 
 ## Contributing
