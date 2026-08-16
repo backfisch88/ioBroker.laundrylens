@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "news": {
+      "0.4.6": {
+        "en": "No functional changes. Switched npm publishing to Trusted Publishing (OIDC) so this release is signed with provenance.",
+        "de": "Keine funktionalen Änderungen. npm-Veröffentlichung auf Trusted Publishing (OIDC) umgestellt, sodass dieses Release mit Provenance signiert ist.",
+        "ru": "Функциональных изменений нет. Публикация в npm переведена на Trusted Publishing (OIDC), поэтому этот релиз подписан с provenance.",
+        "pt": "Sem alterações funcionais. A publicação no npm foi alterada para Trusted Publishing (OIDC), então este lançamento é assinado com provenance.",
+        "nl": "Geen functionele wijzigingen. npm-publicatie omgezet naar Trusted Publishing (OIDC), waardoor deze release is ondertekend met provenance.",
+        "fr": "Aucun changement fonctionnel. La publication npm est passée à Trusted Publishing (OIDC), cette version est donc signée avec provenance.",
+        "it": "Nessuna modifica funzionale. La pubblicazione su npm è passata al Trusted Publishing (OIDC), quindi questa release è firmata con provenance.",
+        "es": "Sin cambios funcionales. La publicación en npm ahora usa Trusted Publishing (OIDC), por lo que esta versión está firmada con provenance.",
+        "pl": "Brak zmian funkcjonalnych. Publikacja w npm została przełączona na Trusted Publishing (OIDC), dzięki czemu to wydanie jest podpisane z provenance.",
+        "uk": "Функціональних змін немає. Публікацію в npm переведено на Trusted Publishing (OIDC), тому цей реліз підписано з provenance.",
+        "zh-cn": "无功能变更。npm 发布已切换为 Trusted Publishing（OIDC），因此本版本带有 provenance 签名。"
+      },
       "0.4.5": {
         "en": "Fix: a finished cycle could stay stuck showing \"running\" indefinitely if the power sensor stopped reporting after settling at a flat value (many sensors, incl. Shelly, only report on change) - the state machine is now re-evaluated periodically (heartbeat) so it can still finish on schedule. Fix: repository checker findings (real package validation test, admin config, responsive UI layout, tooling).",
         "de": "Fix: Ein beendeter Waschgang konnte dauerhaft als „läuft“ hängen bleiben, wenn der Stromsensor nach Erreichen eines stabilen Wertes keine weiteren Meldungen mehr sendete (viele Sensoren, u.a. Shelly, melden nur bei Änderung) - die Zustandsmaschine wird jetzt regelmäßig neu ausgewertet (Heartbeat), sodass der Zyklus trotzdem planmäßig endet. Fix: diverse Repository-Checker-Findings (echter Package-Validierungstest, Admin-Konfiguration, responsives UI-Layout, Tooling).",

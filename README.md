@@ -104,6 +104,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.6 (2026-08-16)
+- No functional changes. Switched npm publishing to Trusted Publishing (OIDC) so releases are signed with provenance (repository checker E2008)
+
 ### 0.4.5 (2026-08-08)
 - Fix: a finished cycle could stay stuck showing "running" indefinitely if the power sensor stopped reporting after settling at a flat value (many sensors, incl. Shelly, only report on change) - the state machine is now re-evaluated periodically (heartbeat) so it can still finish on schedule
 - Fix: repository checker findings from issue #39 (real `test:package` validation instead of a no-op stub, corrected `adminUI.tab`/`materializeTab` config, responsive `jsonConfig.json` layout, various CI/tooling fixes)
