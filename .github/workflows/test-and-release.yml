@@ -57,25 +57,17 @@ jobs:
           install-command: "npm install"
           package-cache: "false"
 
-  # Secrets can't be referenced directly in a job-level "if:" condition,
-  # so we resolve whether NPM_TOKEN is configured here (as a step output,
-  # which *is* allowed) and pass that along via `needs.*.outputs`. Without
-  # this indirection, npm publishing stays a manual step and the "deploy"
-  # job below is skipped cleanly instead of failing on every tag push.
-  check-secrets:
-    if: contains(github.event.head_commit.message, '[skip ci]') == false
-    runs-on: ubuntu-latest
-    outputs:
-      has-npm-token: ${{ steps.check.outputs.has-npm-token }}
-    steps:
-      - id: check
-        run: echo "has-npm-token=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-
   deploy:
-    needs: [check-and-lint, unit-tests, adapter-tests, check-secrets]
+    needs: [check-and-lint, unit-tests, adapter-tests]
+    # Uses npm Trusted Publishing (OIDC) instead of a long-lived NPM_TOKEN -
+    # no npm-token is passed to the deploy action on purpose (E3019: setting
+    # npm-token disables trusted publishing). Gated behind a repo variable
+    # (Settings -> Secrets and variables -> Actions -> Variables ->
+    # NPM_TRUSTED_PUBLISHING = true) so tag pushes stay a deliberate,
+    # opt-in publish rather than happening the moment a tag exists.
     if: |
       contains(github.ref, 'refs/tags/') &&
-      needs.check-secrets.outputs.has-npm-token == 'true'
+      vars.NPM_TRUSTED_PUBLISHING == 'true'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -84,5 +76,4 @@ jobs:
       - uses: ioBroker/testing-action-deploy@v1
         with:
           node-version: "24.x"
-          npm-token: ${{ secrets.NPM_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
