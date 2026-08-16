@@ -25,8 +25,3 @@ coverage/
 
 # release-script metadata file
 .commitinfo
-
-# no lockfile committed - CI uses install-command:'npm install' overrides
-# instead (see .github/workflows/test-and-release.yml) to avoid the size/
-# git-history cost of a full package-lock.json
-package-lock.json

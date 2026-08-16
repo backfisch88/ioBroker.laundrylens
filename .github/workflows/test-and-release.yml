@@ -59,7 +59,11 @@ jobs:
 
   deploy:
     needs: [check-and-lint, unit-tests, adapter-tests]
-    if: contains(github.ref, 'refs/tags/')
+    # Only run on tag pushes, and only once npm publishing is actually
+    # wired up (NPM_TOKEN configured). Until then, npm publish is done
+    # manually - this keeps tag pushes from producing a failed/red CI
+    # run every single release.
+    if: contains(github.ref, 'refs/tags/') && secrets.NPM_TOKEN != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
