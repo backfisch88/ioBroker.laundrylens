@@ -1822,7 +1822,7 @@ class WashdataAdapter extends utils.Adapter {
         id: "cycleProgress",
         name: "Fortschritt",
         type: "number",
-        role: "value.percent",
+        role: "value",
         def: 0,
         write: false,
         unit: "%",

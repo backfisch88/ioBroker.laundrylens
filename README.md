@@ -104,6 +104,10 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.7 (2026-08-16)
+- Fix: on devices going through the generic phase-history branch (currently dryers), recorded phase timestamps could show wildly wrong values (often large negative numbers, e.g. from days-old previous cycles) because the internal phase-history buffer was never cleared between cycles - found via a production object-structure dump during the "add to latest" review
+- Fix: repository checker finding - invalid state role `"value.percent"` on `cycleProgress` (not a valid ioBroker role), corrected to `"value"`
+
 ### 0.4.6 (2026-08-16)
 - No functional changes. Switched npm publishing to Trusted Publishing (OIDC) so releases are signed with provenance (repository checker E2008)
 
