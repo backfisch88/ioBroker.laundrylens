@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "laundrylens",
-    "version": "0.4.7",
+    "version": "0.4.8",
     "news": {
+      "0.4.8": {
+        "en": "No functional changes. Migrated admin/i18n from the old per-language folder structure (i18n/<lang>/translations.json) to the short format (i18n/<lang>.json) - repository checker suggestion S5601.",
+        "de": "Keine funktionalen Änderungen. admin/i18n von der alten Ordnerstruktur pro Sprache (i18n/<lang>/translations.json) auf das Kurzformat (i18n/<lang>.json) umgestellt - Repository-Checker-Vorschlag S5601.",
+        "ru": "Функциональных изменений нет. admin/i18n переведён со старой структуры папок для каждого языка (i18n/<lang>/translations.json) на короткий формат (i18n/<lang>.json) - предложение repository checker S5601.",
+        "pt": "Sem alterações funcionais. admin/i18n migrado da antiga estrutura de pastas por idioma (i18n/<lang>/translations.json) para o formato curto (i18n/<lang>.json) - sugestão do repository checker S5601.",
+        "nl": "Geen functionele wijzigingen. admin/i18n gemigreerd van de oude mapstructuur per taal (i18n/<lang>/translations.json) naar het korte formaat (i18n/<lang>.json) - suggestie van de repository checker S5601.",
+        "fr": "Aucun changement fonctionnel. admin/i18n migré de l'ancienne structure de dossiers par langue (i18n/<lang>/translations.json) vers le format court (i18n/<lang>.json) - suggestion du repository checker S5601.",
+        "it": "Nessuna modifica funzionale. admin/i18n migrato dalla vecchia struttura di cartelle per lingua (i18n/<lang>/translations.json) al formato breve (i18n/<lang>.json) - suggerimento del repository checker S5601.",
+        "es": "Sin cambios funcionales. admin/i18n migrado de la antigua estructura de carpetas por idioma (i18n/<lang>/translations.json) al formato corto (i18n/<lang>.json) - sugerencia del repository checker S5601.",
+        "pl": "Brak zmian funkcjonalnych. admin/i18n przeniesiono ze starej struktury folderów dla każdego języka (i18n/<lang>/translations.json) na format krótki (i18n/<lang>.json) - sugestia repository checkera S5601.",
+        "uk": "Функціональних змін немає. admin/i18n переведено зі старої структури папок для кожної мови (i18n/<lang>/translations.json) на короткий формат (i18n/<lang>.json) - пропозиція repository checker S5601.",
+        "zh-cn": "无功能变更。将 admin/i18n 从旧的按语言分文件夹结构（i18n/<lang>/translations.json）迁移为简短格式（i18n/<lang>.json）——仓库检查器建议 S5601。"
+      },
       "0.4.7": {
         "en": "Fix: on devices going through the generic phase-history branch (currently dryers), recorded phase timestamps could show wildly wrong values (often large negative numbers) because the internal phase-history buffer was never cleared between cycles and kept accumulating entries from every past cycle since adapter start. Fix: repository checker finding (invalid state role \"value.percent\" on cycleProgress, corrected to \"value\").",
         "de": "Fix: Bei Geräten, die über den generischen Phasenverlauf-Zweig laufen (aktuell Trockner), konnten aufgezeichnete Phasen-Zeitstempel völlig falsche Werte zeigen (oft große negative Zahlen), weil der interne Phasenverlauf-Puffer nie zwischen Zyklen geleert wurde und sich Einträge aus jedem früheren Zyklus seit Adapterstart ansammelten. Fix: Repository-Checker-Finding (ungültige State-Rolle „value.percent\" bei cycleProgress, korrigiert auf „value\").",

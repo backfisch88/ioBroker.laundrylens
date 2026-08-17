@@ -6,9 +6,9 @@ const path = require("node:path");
 const { WashDataManager } = require("./lib/washDataManager");
 
 // ── Notification message translations ──────────────────────────
-// Reuses the same admin/i18n/<lang>/translations.json files as the admin
-// UI, so the server-side default message templates stay in sync with what
-// the admin form shows as its placeholder text - both come from one source.
+// Reuses the same admin/i18n/<lang>.json files as the admin UI, so the
+// server-side default message templates stay in sync with what the admin
+// form shows as its placeholder text - both come from one source.
 let _notifTranslations = null;
 let _notifLang = null;
 
@@ -31,24 +31,12 @@ async function loadNotifTranslations(adapter) {
     _notifLang = "en";
   }
   try {
-    const file = path.join(
-      __dirname,
-      "admin",
-      "i18n",
-      _notifLang,
-      "translations.json",
-    );
+    const file = path.join(__dirname, "admin", "i18n", `${_notifLang}.json`);
     _notifTranslations = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     // Fall back to English if the detected language has no translation file
     try {
-      const enFile = path.join(
-        __dirname,
-        "admin",
-        "i18n",
-        "en",
-        "translations.json",
-      );
+      const enFile = path.join(__dirname, "admin", "i18n", "en.json");
       _notifTranslations = JSON.parse(fs.readFileSync(enFile, "utf8"));
     } catch {
       _notifTranslations = {};

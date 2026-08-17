@@ -504,12 +504,12 @@ function detectLang(callback) {
  */
 function loadTranslations(callback) {
     detectLang(function(lang) {
-        fetch('i18n/' + lang + '/translations.json')
+        fetch('i18n/' + lang + '.json')
             .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
             .then(function(json) { _translations = json; callback(); })
             .catch(function() {
                 if (lang === 'en') { callback(); return; }
-                fetch('i18n/en/translations.json')
+                fetch('i18n/en.json')
                     .then(function(r) { return r.json(); })
                     .then(function(json) { _translations = json; callback(); })
                     .catch(function() { callback(); });
