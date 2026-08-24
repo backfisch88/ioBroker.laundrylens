@@ -104,6 +104,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.9 (2026-08-24)
+- Fix: on dryers, anti-crease tumbling after the beep could be mistaken for the start of a new cycle even when a reference pattern had been recorded, because the lock-out protection was tied to the "Ignore saved anti-crease pattern" checkbox rather than to whether a pattern actually exists - clarified the checkbox's label/help text (was easy to read backwards) and added a hint after saving a pattern if that checkbox still needs to be switched off
+
 ### 0.4.8 (2026-08-16)
 - No functional changes. Migrated `admin/i18n` to the short-format file structure (`i18n/<lang>.json` instead of `i18n/<lang>/translations.json`) via `npm run translate convert` - repository checker suggestion S5601
 

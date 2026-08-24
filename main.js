@@ -851,7 +851,18 @@ class WashdataAdapter extends utils.Adapter {
           this.log.info(
             `${akDevName}: Anti-Knitter gelernt: ${durationMin} min, 85P ${Math.round(maxWatts)}W`,
           );
-          respond({ ok: true, maxWatts, durationMin });
+          // The saved pattern's lock-out protection only takes effect once
+          // "ignoreAntiKnitter" is switched off for this device - let the
+          // frontend know so it can nudge the user, since leaving it on
+          // (the default, needed to record a pattern in the first place)
+          // silently means the pattern is not actually used afterward.
+          const stillIgnoring = !akDevCfg || akDevCfg.ignoreAntiKnitter;
+          respond({
+            ok: true,
+            maxWatts,
+            durationMin,
+            stillIgnoring,
+          });
           break;
         }
 

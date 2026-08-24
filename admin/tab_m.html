@@ -1016,6 +1016,11 @@ function saveAntiKnitterFromDropdown() {
     send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
         if (res && res.ok) {
             toast('✅ ' + _('Anti-crease pattern saved!') + ' ' + Math.round(res.durationMin) + ' min · max ' + Math.round(res.maxWatts) + 'W', 'ok');
+            if (res.stillIgnoring) {
+                setTimeout(function() {
+                    toast('⚠️ ' + _('To actually use this pattern, turn off "Ignore saved anti-crease pattern" in the device settings.'), 'err');
+                }, 3500);
+            }
             loadPrograms(); // Refresh status
         } else {
             toast((res && res.error) || _('Error'), 'err');
@@ -2403,7 +2408,14 @@ function isDryer(deviceId) {
 function saveAsAntiKnitter(deviceId, cycleId) {
     if (!confirm('Diesen Zyklus als Anti-Knitter-Muster speichern?\nEr wird verwendet um Anti-Knitter nach dem Trocknen zu erkennen.')) return;
     send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
-        if (res && res.ok) toast('✅ Anti-Knitter gespeichert! Dauer: ' + Math.round(res.durationMin) + ' min, Max: ' + Math.round(res.maxWatts) + 'W', 'ok');
+        if (res && res.ok) {
+            toast('✅ Anti-Knitter gespeichert! Dauer: ' + Math.round(res.durationMin) + ' min, Max: ' + Math.round(res.maxWatts) + 'W', 'ok');
+            if (res.stillIgnoring) {
+                setTimeout(function() {
+                    toast('⚠️ Damit das Muster auch genutzt wird, "Gespeichertes Anti-Knitter-Muster ignorieren" in den Geräte-Einstellungen ausschalten.', 'err');
+                }, 3500);
+            }
+        }
         else toast((res && res.error) || 'Fehler', 'err');
     });
 }

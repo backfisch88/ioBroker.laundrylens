@@ -252,9 +252,9 @@
     },
     "ignoreAntiKnitter": {
       "type": "checkbox",
-      "label": "Ignore anti-crease phase",
+      "label": "Ignore saved anti-crease pattern",
       "default": true,
-      "help": "ON: cycle ends immediately at the beep, the anti-crease phase is ignored (simple, sufficient for most dryers). OFF: the adapter actively tries to detect when the cycle is really finished across the anti-crease phase (needs a saved reference pattern under 'Programs').",
+      "help": "ON (default): the cycle ends immediately at the beep, and a saved anti-crease reference pattern (if any) is not used - simplest option, and required until a pattern has been recorded. OFF: once a reference pattern exists (see 'Programs' tab), the adapter uses it to avoid mistaking anti-crease power spikes for a new cycle after the beep. Turn this off once you have saved a pattern.",
       "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
       "xs": 12,
       "sm": 12,
