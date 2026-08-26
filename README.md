@@ -104,6 +104,11 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.10 (2026-08-26)
+- Fix: found the actual root cause of the anti-crease false-restart bug (0.4.9 only clarified the checkbox wording) - `main.js` built the config object passed into `WashDataManager` field-by-field, and `ignoreAntiKnitter` was missing from that list entirely, so the lock-out protection could never activate regardless of the checkbox or a saved reference pattern
+- Fix: found and fixed two more settings silently broken by the exact same kind of omission, which likewise never took effect no matter what was configured: "Program detection threshold (%)" (`matchThreshold`) and "Instant adoption from confidence (%)" (`instantConfirmThreshold`)
+- Added a regression test (`tests/test_manager_config_wiring.js`) that checks every setting `WashDataManager` reads is actually passed through from `main.js`, to catch this class of bug in the future
+
 ### 0.4.9 (2026-08-24)
 - Fix: on dryers, anti-crease tumbling after the beep could be mistaken for the start of a new cycle even when a reference pattern had been recorded, because the lock-out protection was tied to the "Ignore saved anti-crease pattern" checkbox rather than to whether a pattern actually exists - clarified the checkbox's label/help text (was easy to read backwards) and added a hint after saving a pattern if that checkbox still needs to be switched off
 

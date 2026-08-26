@@ -150,6 +150,18 @@ class WashdataAdapter extends utils.Adapter {
             cfg.autoConfirmThreshold !== null
               ? Number(cfg.autoConfirmThreshold)
               : 85,
+          instantConfirmThreshold:
+            cfg.instantConfirmThreshold !== undefined &&
+            cfg.instantConfirmThreshold !== null &&
+            cfg.instantConfirmThreshold !== ""
+              ? Number(cfg.instantConfirmThreshold)
+              : 92,
+          matchThreshold:
+            cfg.matchThreshold !== undefined &&
+            cfg.matchThreshold !== null &&
+            cfg.matchThreshold !== ""
+              ? Number(cfg.matchThreshold)
+              : 55,
           ignoreAntiKnitter: cfg.ignoreAntiKnitter !== false,
         },
       ];
@@ -193,6 +205,18 @@ class WashdataAdapter extends utils.Adapter {
             d.autoConfirmThreshold !== null
               ? Number(d.autoConfirmThreshold)
               : 85,
+          instantConfirmThreshold:
+            d.instantConfirmThreshold !== undefined &&
+            d.instantConfirmThreshold !== null &&
+            d.instantConfirmThreshold !== ""
+              ? Number(d.instantConfirmThreshold)
+              : 92,
+          matchThreshold:
+            d.matchThreshold !== undefined &&
+            d.matchThreshold !== null &&
+            d.matchThreshold !== ""
+              ? Number(d.matchThreshold)
+              : 55,
           ignoreAntiKnitter: d.ignoreAntiKnitter !== false,
         }));
     }
@@ -241,6 +265,9 @@ class WashdataAdapter extends utils.Adapter {
           matchIntervalMin: deviceCfg.matchIntervalMin || 5,
           matchPersist: deviceCfg.matchPersist || 3,
           autoConfirmThreshold: deviceCfg.autoConfirmThreshold ?? 85,
+          instantConfirmThreshold: deviceCfg.instantConfirmThreshold ?? 92,
+          matchThreshold: deviceCfg.matchThreshold ?? 55,
+          ignoreAntiKnitter: deviceCfg.ignoreAntiKnitter,
         },
         {
           onStateChange: (state, status) =>
