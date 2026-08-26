@@ -104,6 +104,10 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.11 (2026-08-26)
+- Fix: audited every remaining admin UI setting for the same class of bug fixed in 0.4.10 (a field silently never reaching the code that uses it) and found one more - "Notify also for probable program" (`notifyOnProbable`) was read via the device-config lookup but never included in what that lookup actually returns, so the checkbox had no effect
+- Extended `tests/test_manager_config_wiring.js` to also check fields read directly off the device-config lookup (not just fields passed into `WashDataManager`), so this class of bug should be caught automatically going forward
+
 ### 0.4.10 (2026-08-26)
 - Fix: found the actual root cause of the anti-crease false-restart bug (0.4.9 only clarified the checkbox wording) - `main.js` built the config object passed into `WashDataManager` field-by-field, and `ignoreAntiKnitter` was missing from that list entirely, so the lock-out protection could never activate regardless of the checkbox or a saved reference pattern
 - Fix: found and fixed two more settings silently broken by the exact same kind of omission, which likewise never took effect no matter what was configured: "Program detection threshold (%)" (`matchThreshold`) and "Instant adoption from confidence (%)" (`instantConfirmThreshold`)

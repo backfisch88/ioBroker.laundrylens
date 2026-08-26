@@ -162,6 +162,7 @@ class WashdataAdapter extends utils.Adapter {
             cfg.matchThreshold !== ""
               ? Number(cfg.matchThreshold)
               : 55,
+          notifyOnProbable: !!cfg.notifyOnProbable,
           ignoreAntiKnitter: cfg.ignoreAntiKnitter !== false,
         },
       ];
@@ -217,6 +218,7 @@ class WashdataAdapter extends utils.Adapter {
             d.matchThreshold !== ""
               ? Number(d.matchThreshold)
               : 55,
+          notifyOnProbable: !!d.notifyOnProbable,
           ignoreAntiKnitter: d.ignoreAntiKnitter !== false,
         }));
     }

@@ -74,4 +74,81 @@ describe("main.js -> WashDataManager config wiring", () => {
         `the setting(s) will silently be undefined no matter what the user configures.`,
     );
   });
+
+  it("returns every admin UI setting field from _getDeviceConfig() that is read elsewhere in main.js", () => {
+    // Companion bug, same shape, found by auditing every remaining setting
+    // after the ignoreAntiKnitter fix: "notifyOnProbable" is defined in
+    // admin/jsonConfig.json and read via `devCfgProg.notifyOnProbable` in
+    // _onProgram() (devCfgProg comes from _getDeviceConfig().find(...)), but
+    // was never included in _getDeviceConfig()'s own returned object in
+    // either the single-device or multi-device branch - so it was always
+    // `undefined` there too, regardless of the checkbox.
+    //
+    // This test generalizes that check: every `<something>Cfg<something>.field`
+    // or `deviceCfg.field` read anywhere in main.js (i.e. every place code
+    // expects a field on a _getDeviceConfig()-shaped object) must actually be
+    // produced by _getDeviceConfig() itself, in both branches.
+    const mainSrc = fs.readFileSync(
+      path.join(__dirname, "..", "main.js"),
+      "utf8",
+    );
+
+    const getDeviceConfigMatch = mainSrc.match(
+      /_getDeviceConfig\(\)\s*\{([\s\S]*?)\n {2}\}\n/,
+    );
+    assert.ok(
+      getDeviceConfigMatch,
+      "could not locate the _getDeviceConfig() method body in main.js - did its shape change?",
+    );
+    const bodySrc = getDeviceConfigMatch[1];
+
+    // Split into the single-device (`return [{ ... }]`) and multi-device
+    // (`.map((d) => ({ ... }))`) object literals so each is checked on its
+    // own - a field present in only one of the two branches is exactly the
+    // kind of drift this test exists to catch.
+    const singleDeviceMatch = bodySrc.match(
+      /return \[\s*\{([\s\S]*?)\},\s*\];/,
+    );
+    const multiDeviceMatch = bodySrc.match(
+      /\.map\(\(d\) => \(\{([\s\S]*?)\}\)\);/,
+    );
+    assert.ok(
+      singleDeviceMatch && multiDeviceMatch,
+      "could not locate both the single-device and multi-device return objects in _getDeviceConfig() - did its shape change?",
+    );
+
+    // Fields read off a _getDeviceConfig()-derived variable anywhere in
+    // main.js (excluding _getDeviceConfig() itself, which legitimately
+    // reads cfg.*/d.* - the raw adapter config - rather than its own output).
+    const restOfMain =
+      mainSrc.slice(0, getDeviceConfigMatch.index) +
+      mainSrc.slice(
+        getDeviceConfigMatch.index + getDeviceConfigMatch[0].length,
+      );
+    const readFields = new Set(
+      [...restOfMain.matchAll(/\b(?:deviceCfg|devCfg)\w*\.([a-zA-Z_]+)/g)].map(
+        (m) => m[1],
+      ),
+    );
+    assert.ok(
+      readFields.size > 0,
+      "sanity check failed - found no deviceCfg/devCfg field reads outside _getDeviceConfig() in main.js",
+    );
+
+    for (const branchName of ["single-device", "multi-device"]) {
+      const literal = (
+        branchName === "single-device" ? singleDeviceMatch : multiDeviceMatch
+      )[1];
+      const missing = [...readFields].filter(
+        (field) => !new RegExp(`\\b${field}\\s*:`).test(literal),
+      );
+      assert.deepStrictEqual(
+        missing,
+        [],
+        `_getDeviceConfig()'s ${branchName} branch doesn't return ${missing.join(", ")} ` +
+          `even though it's read elsewhere in main.js off a _getDeviceConfig()-derived ` +
+          `object - the setting(s) will silently be undefined no matter what the user configures.`,
+      );
+    }
+  });
 });
