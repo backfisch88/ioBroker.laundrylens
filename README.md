@@ -105,6 +105,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.13 (2026-08-27)
+- Fix: the `running` state's name was still German ("Läuft") on existing installations, even though the code has said "Running" for a long time - it was missing from the state-name migration list added in 0.4.12 (found via a fresh object dump). Extended `tests/test_english_only.js` to check that every state id is covered by the migration, catching this kind of gap automatically going forward
+
 ### 0.4.12 (2026-08-26)
 - Fix: all log messages and state names are now in English (found via the ioBroker.repositories manual review - PR #6459) - several were still German, including `forceFinish`/`programOverride`/`lastMessage` and others
 - Fix: the `forceFinish` button state now correctly has `read: false`, matching the ioBroker role specification for `role: "button"`

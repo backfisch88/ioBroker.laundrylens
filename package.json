@@ -1,6 +1,6 @@
 {
   "name": "iobroker.laundrylens",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "ioBroker adapter that detects washing machine and dryer cycles via smart plug power measurement, matches them against learned programs and estimates remaining time",
   "author": {
     "name": "backfisch88",

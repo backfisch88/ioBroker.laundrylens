@@ -126,3 +126,61 @@ describe("Button-role states must not be readable (repository review E1008-adjac
     );
   });
 });
+
+describe("State-name migration completeness (found via a real object dump)", () => {
+  it("migrates every state id defined in _createDeviceObjects()'s states array, except ones whose name doesn't need translating", () => {
+    // Regression for a real gap found via a production object dump: the
+    // "running" state's common.name was still "Läuft" (German) on an
+    // existing installation, even though the code has said "Running" for
+    // a long time - it was simply missing from _migrateStateNames()'s
+    // migrations list, so setObjectNotExistsAsync (which never touches an
+    // existing object) left the old name in place forever.
+    //
+    // This generalizes the check: every `id: "..."` in the states array
+    // must appear as a key in _migrateStateNames()'s migrations object,
+    // with the exception of ids on this allow-list (names that are
+    // legitimately the same word in English and German, e.g. "Status",
+    // so there's nothing to migrate).
+    const NO_TRANSLATION_NEEDED = new Set(["state"]);
+
+    const mainSrc = fs.readFileSync(
+      path.join(__dirname, "..", "main.js"),
+      "utf8",
+    );
+
+    const stateIds = [...mainSrc.matchAll(/\{\s*id:\s*"([a-zA-Z]+)"/g)].map(
+      (m) => m[1],
+    );
+    assert.ok(
+      stateIds.length > 10,
+      "sanity check failed - found very few state ids in main.js, did " +
+        "_createDeviceObjects()'s states array move or change shape?",
+    );
+
+    const migrationsMatch = mainSrc.match(
+      /_migrateStateNames\([\s\S]*?const migrations = \{([\s\S]*?)\n {4}\};/,
+    );
+    assert.ok(
+      migrationsMatch,
+      "could not locate the migrations object in _migrateStateNames() - did its shape change?",
+    );
+    const migrationsBody = migrationsMatch[1];
+
+    const missing = stateIds.filter(
+      (id) =>
+        !NO_TRANSLATION_NEEDED.has(id) &&
+        !new RegExp(`\\b${id}:\\s*\\{`).test(migrationsBody),
+    );
+    assert.deepStrictEqual(
+      missing,
+      [],
+      `_migrateStateNames() doesn't migrate ${missing.join(", ")} - ` +
+        `existing installations created before these state names were ` +
+        `corrected to English will keep showing the old (German) name ` +
+        `forever, since setObjectNotExistsAsync never updates an ` +
+        `existing object. If the name genuinely doesn't need ` +
+        `translating (e.g. it's the same word in English and German), ` +
+        `add it to NO_TRANSLATION_NEEDED in this test instead.`,
+    );
+  });
+});

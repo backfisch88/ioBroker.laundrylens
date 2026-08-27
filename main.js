@@ -1812,6 +1812,7 @@ class WashdataAdapter extends utils.Adapter {
    */
   async _migrateStateNames(deviceId) {
     const migrations = {
+      running: { name: "Running" },
       program: { name: "Detected program" },
       confidence: { name: "Confidence" },
       timeRemaining: { name: "Remaining time" },
