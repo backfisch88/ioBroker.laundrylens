@@ -110,119 +110,109 @@ class WashdataAdapter extends utils.Adapter {
     return dict[key] || key;
   }
 
+  /**
+   * Normalizes one raw device config object (either the single top-level
+   * device fields, or one entry of the `devices` array) into the shape
+   * WashDataManager/_getDeviceConfig() consumers expect, applying the same
+   * defaults either way. Extracted into one function so the single-device
+   * and multi-device paths can never drift apart from each other again -
+   * previously they were two separately maintained, nearly-identical field
+   * lists (see the 0.4.10/0.4.11 config-wiring fixes).
+   *
+   * @param {object} src  – raw device config (cfg itself, or one cfg.devices[i])
+   * @returns {object}  – normalized device config
+   */
+  _normalizeDeviceConfig(src) {
+    return {
+      name: src.name || "Device",
+      deviceId: src.deviceId,
+      deviceType: src.deviceType || "washing_machine",
+      powerId: src.powerId,
+      powerThreshold:
+        src.powerThreshold !== undefined &&
+        src.powerThreshold !== null &&
+        src.powerThreshold !== ""
+          ? Number(src.powerThreshold)
+          : 10,
+      startEnergyThreshold:
+        src.startEnergyThreshold !== undefined &&
+        src.startEnergyThreshold !== null &&
+        src.startEnergyThreshold !== ""
+          ? Number(src.startEnergyThreshold)
+          : src.deviceType === "dryer" || src.deviceType === "washer_dryer"
+            ? 5
+            : 2,
+      offDelayMin:
+        src.offDelayMin ||
+        (src.deviceType === "dryer"
+          ? 8
+          : src.deviceType === "washer_dryer"
+            ? 10
+            : src.deviceType === "dishwasher"
+              ? 8
+              : 5),
+      durationTolerance: src.durationTolerance || 0.2,
+      matchIntervalMin: src.matchIntervalMin || 5,
+      matchPersist: src.matchPersist || 3,
+      autoConfirmThreshold:
+        src.autoConfirmThreshold !== undefined &&
+        src.autoConfirmThreshold !== null
+          ? Number(src.autoConfirmThreshold)
+          : 85,
+      instantConfirmThreshold:
+        src.instantConfirmThreshold !== undefined &&
+        src.instantConfirmThreshold !== null &&
+        src.instantConfirmThreshold !== ""
+          ? Number(src.instantConfirmThreshold)
+          : 92,
+      matchThreshold:
+        src.matchThreshold !== undefined &&
+        src.matchThreshold !== null &&
+        src.matchThreshold !== ""
+          ? Number(src.matchThreshold)
+          : 55,
+      notifyOnProbable: !!src.notifyOnProbable,
+      ignoreAntiKnitter: src.ignoreAntiKnitter !== false,
+    };
+  }
+
+  /**
+   * Returns the normalized config for every configured device.
+   *
+   * Two sources are combined ADDITIVELY, not as alternatives: the single
+   * top-level device fields (deviceId/powerId directly on the instance
+   * config - the original, simplest setup, one device per adapter
+   * instance) AND the `devices` array (for running multiple devices on one
+   * adapter instance - currently populated by editing the instance's
+   * native config directly; a dedicated admin UI for this is planned but
+   * not yet shipped). This lets existing single-device instances add more
+   * devices later without having to migrate their existing device into
+   * the array first.
+   *
+   * @returns {object[]}  – normalized device configs
+   */
   _getDeviceConfig() {
     const cfg = this.config;
+    const result = [];
     if (cfg.deviceId && cfg.powerId) {
-      return [
-        {
-          name: cfg.name || "Device",
-          deviceId: cfg.deviceId,
-          deviceType: cfg.deviceType || "washing_machine",
-          powerId: cfg.powerId,
-          powerThreshold:
-            cfg.powerThreshold !== undefined &&
-            cfg.powerThreshold !== null &&
-            cfg.powerThreshold !== ""
-              ? Number(cfg.powerThreshold)
-              : 10,
-          startEnergyThreshold:
-            cfg.startEnergyThreshold !== undefined &&
-            cfg.startEnergyThreshold !== null &&
-            cfg.startEnergyThreshold !== ""
-              ? Number(cfg.startEnergyThreshold)
-              : cfg.deviceType === "dryer" || cfg.deviceType === "washer_dryer"
-                ? 5
-                : 2,
-          offDelayMin:
-            cfg.offDelayMin ||
-            (cfg.deviceType === "dryer"
-              ? 8
-              : cfg.deviceType === "washer_dryer"
-                ? 10
-                : cfg.deviceType === "dishwasher"
-                  ? 8
-                  : 5),
-          durationTolerance: cfg.durationTolerance || 0.2,
-          matchIntervalMin: cfg.matchIntervalMin || 5,
-          matchPersist: cfg.matchPersist || 3,
-          autoConfirmThreshold:
-            cfg.autoConfirmThreshold !== undefined &&
-            cfg.autoConfirmThreshold !== null
-              ? Number(cfg.autoConfirmThreshold)
-              : 85,
-          instantConfirmThreshold:
-            cfg.instantConfirmThreshold !== undefined &&
-            cfg.instantConfirmThreshold !== null &&
-            cfg.instantConfirmThreshold !== ""
-              ? Number(cfg.instantConfirmThreshold)
-              : 92,
-          matchThreshold:
-            cfg.matchThreshold !== undefined &&
-            cfg.matchThreshold !== null &&
-            cfg.matchThreshold !== ""
-              ? Number(cfg.matchThreshold)
-              : 55,
-          notifyOnProbable: !!cfg.notifyOnProbable,
-          ignoreAntiKnitter: cfg.ignoreAntiKnitter !== false,
-        },
-      ];
+      result.push(this._normalizeDeviceConfig(cfg));
     }
     if (cfg.devices && cfg.devices.length > 0) {
-      return cfg.devices
-        .filter((d) => d.deviceId && d.powerId)
-        .map((d) => ({
-          name: d.name || "Device",
-          deviceId: d.deviceId,
-          deviceType: d.deviceType || "washing_machine",
-          powerId: d.powerId,
-          powerThreshold:
-            d.powerThreshold !== undefined &&
-            d.powerThreshold !== null &&
-            d.powerThreshold !== ""
-              ? Number(d.powerThreshold)
-              : 10,
-          startEnergyThreshold:
-            d.startEnergyThreshold !== undefined &&
-            d.startEnergyThreshold !== null &&
-            d.startEnergyThreshold !== ""
-              ? Number(d.startEnergyThreshold)
-              : d.deviceType === "dryer" || d.deviceType === "washer_dryer"
-                ? 5
-                : 2,
-          offDelayMin:
-            d.offDelayMin ||
-            (d.deviceType === "dryer"
-              ? 8
-              : d.deviceType === "washer_dryer"
-                ? 10
-                : d.deviceType === "dishwasher"
-                  ? 8
-                  : 5),
-          durationTolerance: d.durationTolerance || 0.2,
-          matchIntervalMin: d.matchIntervalMin || 5,
-          matchPersist: d.matchPersist || 3,
-          autoConfirmThreshold:
-            d.autoConfirmThreshold !== undefined &&
-            d.autoConfirmThreshold !== null
-              ? Number(d.autoConfirmThreshold)
-              : 85,
-          instantConfirmThreshold:
-            d.instantConfirmThreshold !== undefined &&
-            d.instantConfirmThreshold !== null &&
-            d.instantConfirmThreshold !== ""
-              ? Number(d.instantConfirmThreshold)
-              : 92,
-          matchThreshold:
-            d.matchThreshold !== undefined &&
-            d.matchThreshold !== null &&
-            d.matchThreshold !== ""
-              ? Number(d.matchThreshold)
-              : 55,
-          notifyOnProbable: !!d.notifyOnProbable,
-          ignoreAntiKnitter: d.ignoreAntiKnitter !== false,
-        }));
+      result.push(
+        ...cfg.devices
+          .filter(
+            (d) =>
+              d.deviceId &&
+              d.powerId &&
+              // Safety net: a duplicate deviceId (e.g. from a very unlucky
+              // random-suffix collision) would make two managers write to
+              // the same states - keep only the first occurrence.
+              !result.some((existing) => existing.deviceId === d.deviceId),
+          )
+          .map((d) => this._normalizeDeviceConfig(d)),
+      );
     }
-    return [];
+    return result;
   }
 
   async onReady() {
@@ -244,6 +234,32 @@ class WashdataAdapter extends utils.Adapter {
       this.config.deviceId = newId;
     }
 
+    // Same one-time auto-generation for any "devices" array entries -
+    // deviceId isn't meant to be filled in manually, so an entry added
+    // without one (e.g. by editing native config directly, ahead of a
+    // future admin UI for this) won't have one yet.
+    if (Array.isArray(this.config.devices) && this.config.devices.length > 0) {
+      let devicesChanged = false;
+      const updatedDevices = this.config.devices.map((d) => {
+        if (d.deviceId && d.deviceId.trim() !== "") {
+          return d;
+        }
+        const newId = `device_${this.instance}_${Math.random().toString(36).slice(2, 6)}`;
+        this.log.info(
+          `Auto-generated deviceId for additional device "${d.name || "Device"}": ${newId}`,
+        );
+        devicesChanged = true;
+        return { ...d, deviceId: newId };
+      });
+      if (devicesChanged) {
+        await this.extendForeignObjectAsync(
+          `system.adapter.${this.namespace}`,
+          { native: { devices: updatedDevices } },
+        );
+        this.config.devices = updatedDevices;
+      }
+    }
+
     const deviceList = this._getDeviceConfig();
     if (deviceList.length === 0) {
       this.log.warn("No device configured.");
@@ -253,6 +269,7 @@ class WashdataAdapter extends utils.Adapter {
 
     for (const deviceCfg of deviceList) {
       await this._createDeviceObjects(deviceCfg);
+      await this._migrateStateNames(deviceCfg.deviceId);
 
       const manager = new WashDataManager(
         this,
@@ -557,14 +574,14 @@ class WashdataAdapter extends utils.Adapter {
         }
         this._sendUpdateNotification(deviceId, false).catch(() => {});
       } else {
-        this.log.warn(`${devName}: Programm-Override: "${val}" nicht gefunden`);
+        this.log.warn(`${devName}: program override: "${val}" not found`);
       }
     }
   }
 
   _handleForceFinish(deviceId, mgr) {
     const devCfg = this._getDeviceConfig().find((d) => d.deviceId === deviceId);
-    this.log.info(`${devCfg ? devCfg.name : deviceId}: Zyklus-Ende erzwungen`);
+    this.log.info(`${devCfg ? devCfg.name : deviceId}: cycle end forced`);
     // Direkt onCycleFinished aufrufen
     mgr.detector._stopWatchdog();
     mgr._onDetectorState("off", {
@@ -878,7 +895,7 @@ class WashdataAdapter extends utils.Adapter {
           );
           const akDevName = akDevCfg ? akDevCfg.name : obj.message.deviceId;
           this.log.info(
-            `${akDevName}: Anti-Knitter gelernt: ${durationMin} min, 85P ${Math.round(maxWatts)}W`,
+            `${akDevName}: anti-crease pattern learned: ${durationMin} min, 85th percentile ${Math.round(maxWatts)}W`,
           );
           // The saved pattern's lock-out protection only takes effect once
           // "ignoreAntiKnitter" is switched off for this device - let the
@@ -1613,7 +1630,7 @@ class WashdataAdapter extends utils.Adapter {
         );
       }
       this.log.info(
-        `${devName}: Update-Meldung gesendet (Restzeit: ${Math.round(remainingSec / 60)} min)`,
+        `${devName}: update notification sent (remaining: ${Math.round(remainingSec / 60)} min)`,
       );
       this.setState(`${deviceId}.lastMessage`, msg, true);
       // Persistieren (RAM schon oben gesetzt)
@@ -1623,9 +1640,7 @@ class WashdataAdapter extends utils.Adapter {
         true,
       ).catch(() => {});
     } catch (err) {
-      this.log.warn(
-        `${devName}: Update-Benachrichtigung fehlgeschlagen: ${err.message}`,
-      );
+      this.log.warn(`${devName}: update notification failed: ${err.message}`);
     }
   }
 
@@ -1741,14 +1756,14 @@ class WashdataAdapter extends utils.Adapter {
         );
       }
       this.log.info(
-        `${devName}: Benachrichtigung (${event}) gesendet via ${cfg.adapter}`,
+        `${devName}: notification (${event}) sent via ${cfg.adapter}`,
       );
       // Gesendete Nachricht als Datenpunkt speichern (robust)
       try {
         await this.setObjectNotExistsAsync(`${deviceId}.lastMessage`, {
           type: "state",
           common: {
-            name: "Letzte Benachrichtigung",
+            name: "Last notification",
             type: "string",
             role: "text",
             read: true,
@@ -1762,9 +1777,7 @@ class WashdataAdapter extends utils.Adapter {
         /* ignore */
       }
     } catch (err) {
-      this.log.warn(
-        `${devName}: Benachrichtigung fehlgeschlagen: ${err.message}`,
-      );
+      this.log.warn(`${devName}: notification failed: ${err.message}`);
     }
   }
 
@@ -1783,6 +1796,52 @@ class WashdataAdapter extends utils.Adapter {
   }
 
   // ── Objekte anlegen ──────────────────────────────────────────
+  /**
+   * One-time-per-startup migration for existing installations: several
+   * state names used to be German (e.g. "Erkanntes Programm") and are now
+   * English. setObjectNotExistsAsync() (used in _createDeviceObjects())
+   * never touches an object that already exists, so without this,
+   * existing installs would keep showing the old German names forever.
+   * extendObjectAsync() merges rather than replaces, so this only ever
+   * touches common.name/common.read - nothing else on the object.
+   *
+   * Safe to call on every startup: setting the same value again is a
+   * no-op for the user, just a harmless extra object write.
+   *
+   * @param {string} deviceId  – the device's channel/state ID prefix
+   */
+  async _migrateStateNames(deviceId) {
+    const migrations = {
+      program: { name: "Detected program" },
+      confidence: { name: "Confidence" },
+      timeRemaining: { name: "Remaining time" },
+      totalDuration: { name: "Total duration" },
+      cycleProgress: { name: "Progress" },
+      elapsedTime: { name: "Elapsed time" },
+      lastCycle: { name: "Last cycle (JSON)" },
+      lastCycleProgram: { name: "Last program" },
+      lastCycleDuration: { name: "Last duration" },
+      lastCycleEnergy: { name: "Last consumption" },
+      needsFeedback: { name: "Feedback needed" },
+      phase: { name: "Current phase" },
+      lastMessage: { name: "Last notification" },
+      lastUpdateSent: { name: "Last update sent" },
+      availablePrograms: { name: "Saved programs (JSON)" },
+      programOverride: { name: "Program override" },
+      forceFinish: { name: "End cycle", read: false },
+    };
+    for (const [stateId, fix] of Object.entries(migrations)) {
+      try {
+        await this.extendObjectAsync(`${deviceId}.${stateId}`, {
+          common: fix,
+        });
+      } catch (_e) {
+        /* object might not exist yet on a very first run - safe to ignore,
+           _createDeviceObjects() above will have just created it correctly */
+      }
+    }
+  }
+
   async _createDeviceObjects(deviceCfg) {
     const { deviceId, name } = deviceCfg;
 
@@ -1812,7 +1871,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "program",
-        name: "Erkanntes Programm",
+        name: "Detected program",
         type: "string",
         role: "text",
         def: "",
@@ -1820,7 +1879,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "confidence",
-        name: "Konfidenz",
+        name: "Confidence",
         type: "number",
         role: "value",
         def: 0,
@@ -1830,7 +1889,7 @@ class WashdataAdapter extends utils.Adapter {
       // Zeit
       {
         id: "timeRemaining",
-        name: "Restzeit",
+        name: "Remaining time",
         type: "number",
         role: "value",
         def: 0,
@@ -1839,7 +1898,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "totalDuration",
-        name: "Gesamtdauer",
+        name: "Total duration",
         type: "number",
         role: "value",
         def: 0,
@@ -1848,7 +1907,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "cycleProgress",
-        name: "Fortschritt",
+        name: "Progress",
         type: "number",
         role: "value",
         def: 0,
@@ -1857,7 +1916,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "elapsedTime",
-        name: "Verstrichene Zeit",
+        name: "Elapsed time",
         type: "number",
         role: "value.interval",
         def: 0,
@@ -1867,7 +1926,7 @@ class WashdataAdapter extends utils.Adapter {
       // Letzter Zyklus
       {
         id: "lastCycle",
-        name: "Letzter Zyklus (JSON)",
+        name: "Last cycle (JSON)",
         type: "string",
         role: "json",
         def: "{}",
@@ -1875,7 +1934,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "lastCycleProgram",
-        name: "Letztes Programm",
+        name: "Last program",
         type: "string",
         role: "text",
         def: "",
@@ -1883,7 +1942,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "lastCycleDuration",
-        name: "Letzte Dauer",
+        name: "Last duration",
         type: "number",
         role: "value",
         def: 0,
@@ -1892,7 +1951,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "lastCycleEnergy",
-        name: "Letzter Verbrauch",
+        name: "Last consumption",
         type: "number",
         role: "value",
         def: 0,
@@ -1910,7 +1969,7 @@ class WashdataAdapter extends utils.Adapter {
       // Zusatz-Info
       {
         id: "phase",
-        name: "Aktuelle Phase",
+        name: "Current phase",
         type: "string",
         role: "text",
         def: "",
@@ -1918,7 +1977,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "lastMessage",
-        name: "Letzte Benachrichtigung",
+        name: "Last notification",
         type: "string",
         role: "text",
         def: "",
@@ -1926,7 +1985,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "lastUpdateSent",
-        name: "Letztes Update gesendet",
+        name: "Last update sent",
         type: "number",
         role: "value.time",
         def: 0,
@@ -1934,7 +1993,7 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "availablePrograms",
-        name: "Gespeicherte Programme (JSON)",
+        name: "Saved programs (JSON)",
         type: "string",
         role: "json",
         def: "[]",
@@ -1943,7 +2002,7 @@ class WashdataAdapter extends utils.Adapter {
       // Steuerung (writable)
       {
         id: "programOverride",
-        name: "Programm-Override",
+        name: "Program override",
         type: "string",
         role: "text",
         def: "auto",
@@ -1951,11 +2010,12 @@ class WashdataAdapter extends utils.Adapter {
       },
       {
         id: "forceFinish",
-        name: "Zyklus beenden",
+        name: "End cycle",
         type: "boolean",
         role: "button",
         def: false,
         write: true,
+        read: false,
       },
     ];
 
@@ -1966,7 +2026,7 @@ class WashdataAdapter extends utils.Adapter {
           name: s.name,
           type: s.type,
           role: s.role,
-          read: true,
+          read: s.read !== undefined ? s.read : true,
           write: s.write || false,
           def: s.def,
           ...(s.unit ? { unit: s.unit } : {}),

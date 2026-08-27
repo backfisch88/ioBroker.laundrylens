@@ -75,56 +75,45 @@ describe("main.js -> WashDataManager config wiring", () => {
     );
   });
 
-  it("returns every admin UI setting field from _getDeviceConfig() that is read elsewhere in main.js", () => {
+  it("returns every admin UI setting field from _normalizeDeviceConfig() that is read elsewhere in main.js", () => {
     // Companion bug, same shape, found by auditing every remaining setting
     // after the ignoreAntiKnitter fix: "notifyOnProbable" is defined in
     // admin/jsonConfig.json and read via `devCfgProg.notifyOnProbable` in
     // _onProgram() (devCfgProg comes from _getDeviceConfig().find(...)), but
-    // was never included in _getDeviceConfig()'s own returned object in
-    // either the single-device or multi-device branch - so it was always
+    // was never included in the normalized device object - so it was always
     // `undefined` there too, regardless of the checkbox.
     //
-    // This test generalizes that check: every `<something>Cfg<something>.field`
+    // _getDeviceConfig() used to have two separately maintained, nearly
+    // identical object literals (single-device and multi-device branches) -
+    // exactly the kind of duplication that let fields drift apart. Both now
+    // go through one shared _normalizeDeviceConfig() helper, so there is
+    // only one object literal left to check here.
+    //
+    // This test generalizes the original check: every `<something>Cfg<something>.field`
     // or `deviceCfg.field` read anywhere in main.js (i.e. every place code
     // expects a field on a _getDeviceConfig()-shaped object) must actually be
-    // produced by _getDeviceConfig() itself, in both branches.
+    // produced by _normalizeDeviceConfig() itself.
     const mainSrc = fs.readFileSync(
       path.join(__dirname, "..", "main.js"),
       "utf8",
     );
 
-    const getDeviceConfigMatch = mainSrc.match(
-      /_getDeviceConfig\(\)\s*\{([\s\S]*?)\n {2}\}\n/,
+    const normalizeMatch = mainSrc.match(
+      /_normalizeDeviceConfig\(src\)\s*\{\s*return \{([\s\S]*?)\};\s*\n {2}\}/,
     );
     assert.ok(
-      getDeviceConfigMatch,
-      "could not locate the _getDeviceConfig() method body in main.js - did its shape change?",
+      normalizeMatch,
+      "could not locate the _normalizeDeviceConfig(src) { return { ... }; } method in main.js - did its shape change?",
     );
-    const bodySrc = getDeviceConfigMatch[1];
-
-    // Split into the single-device (`return [{ ... }]`) and multi-device
-    // (`.map((d) => ({ ... }))`) object literals so each is checked on its
-    // own - a field present in only one of the two branches is exactly the
-    // kind of drift this test exists to catch.
-    const singleDeviceMatch = bodySrc.match(
-      /return \[\s*\{([\s\S]*?)\},\s*\];/,
-    );
-    const multiDeviceMatch = bodySrc.match(
-      /\.map\(\(d\) => \(\{([\s\S]*?)\}\)\);/,
-    );
-    assert.ok(
-      singleDeviceMatch && multiDeviceMatch,
-      "could not locate both the single-device and multi-device return objects in _getDeviceConfig() - did its shape change?",
-    );
+    const literal = normalizeMatch[1];
 
     // Fields read off a _getDeviceConfig()-derived variable anywhere in
-    // main.js (excluding _getDeviceConfig() itself, which legitimately
-    // reads cfg.*/d.* - the raw adapter config - rather than its own output).
+    // main.js (excluding _normalizeDeviceConfig() itself, which legitimately
+    // reads src.* - the raw, not-yet-normalized device config - rather than
+    // its own output).
     const restOfMain =
-      mainSrc.slice(0, getDeviceConfigMatch.index) +
-      mainSrc.slice(
-        getDeviceConfigMatch.index + getDeviceConfigMatch[0].length,
-      );
+      mainSrc.slice(0, normalizeMatch.index) +
+      mainSrc.slice(normalizeMatch.index + normalizeMatch[0].length);
     const readFields = new Set(
       [...restOfMain.matchAll(/\b(?:deviceCfg|devCfg)\w*\.([a-zA-Z_]+)/g)].map(
         (m) => m[1],
@@ -132,23 +121,18 @@ describe("main.js -> WashDataManager config wiring", () => {
     );
     assert.ok(
       readFields.size > 0,
-      "sanity check failed - found no deviceCfg/devCfg field reads outside _getDeviceConfig() in main.js",
+      "sanity check failed - found no deviceCfg/devCfg field reads outside _normalizeDeviceConfig() in main.js",
     );
 
-    for (const branchName of ["single-device", "multi-device"]) {
-      const literal = (
-        branchName === "single-device" ? singleDeviceMatch : multiDeviceMatch
-      )[1];
-      const missing = [...readFields].filter(
-        (field) => !new RegExp(`\\b${field}\\s*:`).test(literal),
-      );
-      assert.deepStrictEqual(
-        missing,
-        [],
-        `_getDeviceConfig()'s ${branchName} branch doesn't return ${missing.join(", ")} ` +
-          `even though it's read elsewhere in main.js off a _getDeviceConfig()-derived ` +
-          `object - the setting(s) will silently be undefined no matter what the user configures.`,
-      );
-    }
+    const missing = [...readFields].filter(
+      (field) => !new RegExp(`\\b${field}\\s*:`).test(literal),
+    );
+    assert.deepStrictEqual(
+      missing,
+      [],
+      `_normalizeDeviceConfig() doesn't return ${missing.join(", ")} ` +
+        `even though it's read elsewhere in main.js off a _getDeviceConfig()-derived ` +
+        `object - the setting(s) will silently be undefined no matter what the user configures.`,
+    );
   });
 });

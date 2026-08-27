@@ -27,6 +27,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Override lock: manually selected programs are not overwritten by background matching
 - Adaptive remaining time estimation combining time-based and energy-rate signals
 - Admin UI with expandable cycle list, inline power graph (canvas), phase legend, trim and split per touch/drag
+  - This is why the adapter ships a custom admin tab (`admin/tab_m.html`) rather than relying on jsonConfig or the standard Device Manager component: neither supports rendering an interactive per-cycle power curve, editing phase boundaries by touch/drag, or splitting/trimming a recorded trace - all of which are core to how LaundryLens is used day to day (reviewing what a cycle actually did, correcting mismatches, building new program profiles from a trace).
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`) and conditional text blocks
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
@@ -35,9 +36,9 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 
 ## Requirements
 
-- ioBroker with js-controller ≥ 5.0.0
-- Node.js ≥ 18
-- A smart plug or power meter adapter providing a watt data point per device (e.g. Shelly EM)
+- ioBroker with js-controller ≥ 6.0.11
+- Node.js ≥ 22
+- A smart plug or power meter adapter providing a watt data point per device (e.g. [Shelly EM](https://www.shelly.com/en/products/shop/shelly-em))
 
 ---
 
@@ -103,6 +104,13 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 ## Changelog
 
 ### **WORK IN PROGRESS**
+
+### 0.4.12 (2026-08-26)
+- Fix: all log messages and state names are now in English (found via the ioBroker.repositories manual review - PR #6459) - several were still German, including `forceFinish`/`programOverride`/`lastMessage` and others
+- Fix: the `forceFinish` button state now correctly has `read: false`, matching the ioBroker role specification for `role: "button"`
+- Fix: existing installations are automatically migrated to the corrected English state names on next start (`setObjectNotExistsAsync` never updates an already-existing object, so a one-time migration step was needed)
+- Fix: running multiple devices on one adapter instance via native config's `devices` array was effectively impossible - the single configured device and the array were treated as mutually exclusive rather than combined. A dedicated admin UI for adding devices this way is still being worked on separately; for now, entries can be added by editing the instance's native config directly
+- Docs: corrected the Requirements section (Node.js ≥ 22, js-controller ≥ 6.0.11 - it previously listed older, no-longer-enforced minimums), documented why the adapter ships a custom admin tab, and linked the recommended Shelly EM hardware
 
 ### 0.4.11 (2026-08-26)
 - Fix: audited every remaining admin UI setting for the same class of bug fixed in 0.4.10 (a field silently never reaching the code that uses it) and found one more - "Notify also for probable program" (`notifyOnProbable`) was read via the device-config lookup but never included in what that lookup actually returns, so the checkbox had no effect
