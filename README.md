@@ -105,6 +105,9 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.14 (2026-08-30)
+- Replaced the low-resolution 128x128 adapter icon with a new, sharper 256x256 version
+
 ### 0.4.13 (2026-08-27)
 - Fix: the `running` state's name was still German ("Läuft") on existing installations, even though the code has said "Running" for a long time - it was missing from the state-name migration list added in 0.4.12 (found via a fresh object dump). Extended `tests/test_english_only.js` to check that every state id is covered by the migration, catching this kind of gap automatically going forward
 
