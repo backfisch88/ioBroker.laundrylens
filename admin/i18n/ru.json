@@ -1,4 +1,5 @@
 {
+    "(any ioBroker data point)": "(любая точка данных ioBroker)",
     "+ Create": "+ Создать",
     "Adapter": "Адаптер",
     "All (broadcast)": "Все (рассылка)",

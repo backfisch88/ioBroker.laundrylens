@@ -4,6 +4,7 @@ const utils = require("@iobroker/adapter-core");
 const fs = require("node:fs");
 const path = require("node:path");
 const { WashDataManager } = require("./lib/washDataManager");
+const { resolveStatePlaceholders } = require("./lib/notifyTemplate");
 
 // ── Notification message translations ──────────────────────────
 // Reuses the same admin/i18n/<lang>.json files as the admin UI, so the
@@ -85,9 +86,9 @@ class WashdataAdapter extends utils.Adapter {
     this.on("unload", this.onUnload.bind(this));
   }
 
-  // ── Benachrichtigungs-Payload passend zum Ziel-Adapter bauen ──
-  // E-Mail (ioBroker.email) erwartet {to, subject, text} statt {text, chatId}
-  // wie Telegram/Pushover/Signal/WhatsApp/Matrix/notify-my-android/Prowl.
+  // ── Build the notification payload matching the target adapter ──
+  // Email (ioBroker.email) expects {to, subject, text} instead of {text, chatId}
+  // like Telegram/Pushover/Signal/WhatsApp/Matrix/notify-my-android/Prowl.
   _buildNotifyPayload(adapterName, target, text, subject) {
     const isEmail = (adapterName || "").startsWith("email");
     if (isEmail) {
@@ -430,7 +431,7 @@ class WashdataAdapter extends utils.Adapter {
               overrideState.val,
             );
 
-            // Fortschritt + Restzeit wiederherstellen
+            // Restore progress + remaining time
             const rc = manager._restoredCycle;
             if (rc && rc.startTime) {
               const profile = manager.profileStore.getProfile(
@@ -673,7 +674,7 @@ class WashdataAdapter extends utils.Adapter {
             devCfg ? devCfg.deviceType : "washing_machine",
           );
           await mgr.profileStore.save();
-          // programOverride Dropdown aktualisieren
+          // Update the programOverride dropdown
           await this._updateOverrideStates(obj.message.deviceId, mgr);
           respond({ ok: true, profileId: pid });
           break;
@@ -924,9 +925,9 @@ class WashdataAdapter extends utils.Adapter {
           const durationMin = Math.round(durationMs / 60000);
           // Als __antiKnitter__ im ProfileStore speichern
           await mgr.profileStore.setAntiKnitter({ maxWatts, durationMs });
-          // Adapter-interne Konfiguration aktualisieren
+          // Update the adapter-internal configuration
           mgr.setAntiKnitterConfig({ maxWatts, durationMs });
-          // Zyklus als Anti-Knitter taggen
+          // Tag cycle as anti-crease
           cycle.isAntiKnitter = true;
           cycle.matchedProfile = "🌀 Anti-Knitter";
           cycle.confirmed = true;
@@ -1156,7 +1157,7 @@ class WashdataAdapter extends utils.Adapter {
             return respond({ ok: true, users: [] });
           }
           try {
-            // Users sind ein State (JSON-String), nicht ein Object
+            // Users are a state (JSON string), not an object
             const userState = await this.getForeignStateAsync(
               `${tgInstance}.communicate.users`,
             );
@@ -1218,7 +1219,7 @@ class WashdataAdapter extends utils.Adapter {
           break;
         }
 
-        // ── Programm-Override ─────────────────────────────
+        // ── Program override ─────────────────────────────
         case "setProgramOverride": {
           const { deviceId, program } = obj.message || {};
           const mgr = this._mgr(obj.message);
@@ -1255,11 +1256,11 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
-  // ── Override Datenpunkt aktualisieren ────────────────────────
+  // ── Update override data point ────────────────────────
   async _updateOverrideStates(deviceId, mgr) {
     const profiles = mgr.getProfiles();
     const states = ["auto", ...profiles.map((p) => p.name)];
-    // Objekt mit States aktualisieren
+    // Update object with states
     await this.extendObjectAsync(`${deviceId}.programOverride`, {
       common: {
         states: states.reduce((o, s) => {
@@ -1286,7 +1287,7 @@ class WashdataAdapter extends utils.Adapter {
     this.setState(`${deviceId}.state`, status.state, true);
     this.setState(`${deviceId}.running`, status.running, true);
 
-    // Confidence + program Datenpunkt immer aktuell halten
+    // Keep confidence + program data point always up to date
     if (status.bestCandidate) {
       this.setState(
         `${deviceId}.confidence`,
@@ -1299,13 +1300,13 @@ class WashdataAdapter extends utils.Adapter {
         true,
       );
     } else if (status.program && status.program !== "detecting...") {
-      // Wird schon durch _onProgram gesetzt, aber zur Sicherheit
+      // Already set by _onProgram, but kept as a safety net
     } else if (status.state === "off") {
       this.setState(`${deviceId}.program`, "", true);
       this.setState(`${deviceId}.confidence`, 0, true);
     }
 
-    // Phase als Datenpunkt schreiben (ohne Emoji)
+    // Write phase as data point (without emoji)
     // Only show phase while the device is actively running
     if (status.phase && status.state === "running") {
       const phaseText = status.phase
@@ -1353,8 +1354,8 @@ class WashdataAdapter extends utils.Adapter {
       prevProgram === "detecting..." &&
       confidence * 100 >= notifyThresh
     ) {
-      // Immer mit Zeitdifferenz-Check – verhindert Spam bei schwankender Konfidenz
-      // Beim allerersten Update (lastFinishTime=null) greift nur der 60s _onTimeThrottle
+      // Always with a time-difference check - prevents spam from fluctuating confidence
+      // On the very first update (lastFinishTime=null) only the 60s _onTimeThrottle applies
       this._sendUpdateNotification(deviceId, true).catch(() => {});
     }
   }
@@ -1412,7 +1413,7 @@ class WashdataAdapter extends utils.Adapter {
     if (this._notifState && this._notifState[deviceId]) {
       this._notifState[deviceId] = {};
     }
-    // phaseHistory im Zyklus speichern – nur wenn Post-hoc keine Phasen berechnet hat
+    // Store phaseHistory on the cycle - only if post-hoc didn't compute any phases
     const mgrPh = this.managers[deviceId];
     if (
       mgrPh &&
@@ -1485,7 +1486,7 @@ class WashdataAdapter extends utils.Adapter {
       const state = this._notifState[deviceId] || {};
       this._notifState[deviceId] = state;
 
-      // Kein Update wenn Programm noch nicht erkannt
+      // No update while the program hasn't been detected yet
       const programName2 = activeProgram.name || activeProgram;
       if (!programName2 || programName2 === "detecting...") {
         return;
@@ -1518,8 +1519,8 @@ class WashdataAdapter extends utils.Adapter {
       }
 
       // ── Throttle-Logik ────────────────────────────────────────────
-      // checkThreshold=false → kommt von _onProgram (erster Programm-Trigger) → immer senden
-      // checkThreshold=true  → kommt von _onTime (jede Minute) → streng throttlen
+      // checkThreshold=false -> comes from _onProgram (first program trigger) -> always send
+      // checkThreshold=true  -> comes from _onTime (every minute) -> strictly throttled
       if (checkThreshold) {
         // Einstellbare Schwellen aus Notify-Config
         const MIN_MS = (cfg.updateIntervalMin || 20) * 60 * 1000;
@@ -1528,7 +1529,7 @@ class WashdataAdapter extends utils.Adapter {
         const nearEndDiffMin = cfg.updateNearEndDiffMin || 10;
 
         if (state.lastSentAt && now2 - state.lastSentAt < MIN_MS) {
-          // Ausnahme: Fast-fertig + Abweichung ≥X% UND ≥Y min
+          // Exception: near-done + deviation ≥X% AND ≥Y min
           if (progressPct >= nearEndPct && state.lastFinishTime) {
             const diffMin =
               Math.abs(newFinishTime - state.lastFinishTime) / 60000;
@@ -1615,6 +1616,11 @@ class WashdataAdapter extends utils.Adapter {
         prevTime: prevTimeStr,
         progress: String(progressPct),
       };
+      const resolvedTemplate = await resolveStatePlaceholders(
+        this,
+        template,
+        vars,
+      );
       // Conditional blocks [text]: removed if any contained placeholder is empty/0/"0"
       const applyTemplate = (tpl) => {
         let result = tpl.replace(/\[([^\]]*)\]/g, function (match, inner) {
@@ -1644,7 +1650,7 @@ class WashdataAdapter extends utils.Adapter {
           return vars[k] !== undefined ? vars[k] : m;
         });
       };
-      const msg = applyTemplate(template);
+      const msg = applyTemplate(resolvedTemplate);
 
       if (cfg.target) {
         await this.sendToAsync(
@@ -1671,7 +1677,7 @@ class WashdataAdapter extends utils.Adapter {
         `${devName}: update notification sent (remaining: ${Math.round(remainingSec / 60)} min)`,
       );
       this.setState(`${deviceId}.lastMessage`, msg, true);
-      // Persistieren (RAM schon oben gesetzt)
+      // Persist (RAM already set above)
       this.setStateAsync(
         `${deviceId}.lastUpdateSent`,
         state.lastSentAt,
@@ -1758,6 +1764,11 @@ class WashdataAdapter extends utils.Adapter {
         progress: "",
         prevTime: "",
       };
+      const resolvedDoneTemplate = await resolveStatePlaceholders(
+        this,
+        template,
+        doneVars,
+      );
       const applyDone = (tpl) => {
         let result = tpl.replace(/\[([^\]]*)\]/g, function (match, inner) {
           const usedVars = inner.match(/\{(\w+)\}/g) || [];
@@ -1782,9 +1793,9 @@ class WashdataAdapter extends utils.Adapter {
           return doneVars[k] !== undefined ? doneVars[k] : m;
         });
       };
-      const msg = applyDone(template);
+      const msg = applyDone(resolvedDoneTemplate);
 
-      const notifySubject = `${devName} – ${event === "done" ? "Fertig" : "Start"}`;
+      const notifySubject = `${devName} – ${event === "done" ? "Done" : "Start"}`;
       if (cfg.target) {
         await this.sendToAsync(
           cfg.adapter,
@@ -1799,7 +1810,7 @@ class WashdataAdapter extends utils.Adapter {
       this.log.info(
         `${devName}: notification (${event}) sent via ${cfg.adapter}`,
       );
-      // Gesendete Nachricht als Datenpunkt speichern (robust)
+      // Store the sent message as a data point (robust)
       try {
         await this.setObjectNotExistsAsync(`${deviceId}.lastMessage`, {
           type: "state",
@@ -1836,7 +1847,7 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
-  // ── Objekte anlegen ──────────────────────────────────────────
+  // ── Create objects ──────────────────────────────────────────
   /**
    * One-time-per-startup migration for existing installations: several
    * state names used to be German (e.g. "Erkanntes Programm") and are now
@@ -1965,7 +1976,7 @@ class WashdataAdapter extends utils.Adapter {
         write: false,
         unit: "min",
       },
-      // Letzter Zyklus
+      // Last cycle
       {
         id: "lastCycle",
         name: "Last cycle (JSON)",

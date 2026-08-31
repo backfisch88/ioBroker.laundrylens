@@ -321,7 +321,7 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
           <input type="email" id="notif-target-email" placeholder="e.g. name@example.com (blank = adapter default)" data-i18n-placeholder="e.g. name@example.com (blank = adapter default)" style="display:none">
         </div>
       </div>
-      <p class="text-sm text-muted" style="margin-bottom:10px"><span data-i18n="Placeholders:">Placeholders:</span> <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code></p>
+      <p class="text-sm text-muted" style="margin-bottom:10px"><span data-i18n="Placeholders:">Placeholders:</span> <code>{device}</code> <code>{program}</code> <code>{duration}</code> <code>{energy}</code> <code>{startTime}</code> <code>{endTime}</code> <code>{progress}</code> <code>{prevTime}</code> <code>{state:objectId}</code> <span data-i18n="(any ioBroker data point)">(any ioBroker data point)</span></p>
 
       <div class="form-group" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
@@ -599,7 +599,7 @@ function send(cmd, data) {
             var inst = (dev._instance !== undefined) ? dev._instance : instance;
             socket.emit('sendTo', 'laundrylens.' + inst, cmd, data || {}, resolve);
         } else {
-            // deviceId nicht in devices – alle bekannten Instanzen probieren
+            // deviceId not in devices - try all known instances
             var tried = 0;
             var MAX = 5;
             var found = false;
@@ -704,7 +704,7 @@ function populateSelectors(devs) {
                     var s = document.getElementById('sel-' + sid);
                     if (s && s !== el) s.value = val;
                 });
-                // Aktiven Tab neu laden
+                // Reload active tab
                 var activeTab = document.querySelector('.tab.active');
                 if (activeTab) {
                     var tab = activeTab.dataset.tab;
@@ -1518,7 +1518,7 @@ function forceFinish() {
     send('forceFinish', {deviceId: deviceId}).then(function(res) {
         if (res && res.ok) {
             toast('Zyklus wird beendet…', 'ok');
-            // Auto-Refresh nach 1.5s
+            // Auto-refresh after 1.5s
             setTimeout(refreshOverview, 1500);
         } else {
             toast((res && res.error) || 'Fehler', 'err');
@@ -1656,7 +1656,7 @@ function loadNotifAdapters() {
             if (um) um.value = (cfg.updateMsg && !isLegacyDefaultMsg(cfg.updateMsg, 'updateMsg')) ? cfg.updateMsg : DEFS.updateMsg;
             setNotifToggle('done', cfg.doneEnabled);
             if (dm) dm.value = (cfg.doneMsg && !isLegacyDefaultMsg(cfg.doneMsg, 'doneMsg')) ? cfg.doneMsg : DEFS.doneMsg;
-            // Update-Intervall Einstellungen
+            // Update-interval settings
             var ui2 = document.getElementById('notif-update-interval');
             var np2 = document.getElementById('notif-update-nearend-pct');
             var nd2 = document.getElementById('notif-update-nearend-diff-pct');
@@ -1912,18 +1912,18 @@ function drawGraph() {
             var bg = PHASE_BG_COLORS[ph.phase] || 'rgba(150,150,150,0.07)';
             ctx.fillStyle = bg;
             ctx.fillRect(xStart, PAD.top, xEnd - xStart, gH);
-            // Vertikale Linie beim Phasenwechsel
+            // Vertical line at phase change
             if (i > 0) {
                 var lc = PHASE_LINE_COLORS[ph.phase] || '#999';
                 ctx.strokeStyle = lc; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
                 ctx.beginPath(); ctx.moveTo(xStart, PAD.top); ctx.lineTo(xStart, PAD.top + gH); ctx.stroke();
                 ctx.setLineDash([]);
             }
-            // Kein Label mehr im Canvas – wird unten als Legende angezeigt
+            // No more label in the canvas - shown below as a legend
         });
     }
 
-    // Legende unter dem Graph
+    // Legend below the graph
     var legendEl = document.getElementById('phase-legend');
     if (legendEl) {
         if (phaseHist.length > 0) {
@@ -2425,7 +2425,7 @@ function saveAsProgram(deviceId, cycleId) {
     if (!name) return;
     send('createProfileFromTrace', {deviceId: deviceId, cycleId: cycleId, name: name}).then(function(res) {
         if (!res || !res.ok) return toast((res && res.error) || 'Fehler', 'err');
-        // Direkt dem Zyklus zuweisen
+        // Assign directly to the cycle
         send('correctCycle', {deviceId: deviceId, cycleId: cycleId, profileId: res.profileId}).then(function(res2) {
             if (res2 && res2.ok) { toast('Programm gespeichert & zugewiesen!', 'ok'); loadCycles(); }
             else toast((res2 && res2.error) || 'Fehler beim Zuweisen', 'err');
@@ -2492,7 +2492,7 @@ socket.on('connect', function() {
     init();
 });
 
-// Falls bereits verbunden
+// If already connected
 if (socket.connected) {
     init();
 }

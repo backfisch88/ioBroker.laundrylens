@@ -1,4 +1,5 @@
 {
+    "(any ioBroker data point)": "(elk ioBroker-datapunt)",
     "+ Create": "+ Aanmaken",
     "Adapter": "Adapter",
     "All (broadcast)": "Alle (broadcast)",
