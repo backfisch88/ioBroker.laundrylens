@@ -105,6 +105,12 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ### **WORK IN PROGRESS**
 
+### 0.4.15 (2026-08-31)
+- Fix: notification-language cache was module-level state (compact-mode leak risk between instances sharing a process) - moved to an instance field, same fix class already applied to ProfileStore's MIN_CONFIDENCE
+- Fix: two devices accidentally sharing the same power sensor now log a warning instead of one silently losing updates
+- Fix: `durationTolerance`/`matchIntervalMin`/`matchPersist`/`offDelayMin` normalization used a bare `||` default (same falsy-zero bug class fixed for other fields in 0.2.3) - aligned to the strict check
+- Removed unused dead code (`msgBlockTimer`, never assigned anywhere)
+
 ### 0.4.14 (2026-08-30)
 - Replaced the low-resolution 128x128 adapter icon with a new, sharper 256x256 version
 

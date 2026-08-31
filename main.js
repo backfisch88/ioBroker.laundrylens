@@ -9,40 +9,46 @@ const { WashDataManager } = require("./lib/washDataManager");
 // Reuses the same admin/i18n/<lang>.json files as the admin UI, so the
 // server-side default message templates stay in sync with what the admin
 // form shows as its placeholder text - both come from one source.
-let _notifTranslations = null;
-let _notifLang = null;
+//
+// Cached on the adapter INSTANCE (adapter._notifTranslations/_notifLang),
+// not module-level: io-package.json declares "compact": true, and under
+// compact mode two instances of this same adapter (e.g. one per device)
+// can share one Node.js process/require() cache. A module-level `let`
+// here would leak one instance's language into another's - same bug
+// class already found and fixed for ProfileStore's MIN_CONFIDENCE.
 
 /**
- * Loads (once, cached) the translation dictionary matching the ioBroker
- * system's configured language, falling back to English.
+ * Loads (once per instance, cached) the translation dictionary matching
+ * the ioBroker system's configured language, falling back to English.
  *
- * @param {object} adapter  – the adapter instance (for getForeignObjectAsync/logging)
+ * @param {object} adapter  – the adapter instance (for getForeignObjectAsync/logging/caching)
  * @returns {Promise<object>} – key → translated string
  */
 async function loadNotifTranslations(adapter) {
-  if (_notifTranslations) {
-    return _notifTranslations;
+  if (adapter._notifTranslations) {
+    return adapter._notifTranslations;
   }
+  let lang;
   try {
     const sysConfig = await adapter.getForeignObjectAsync("system.config");
-    _notifLang =
-      (sysConfig && sysConfig.common && sysConfig.common.language) || "en";
+    lang = (sysConfig && sysConfig.common && sysConfig.common.language) || "en";
   } catch {
-    _notifLang = "en";
+    lang = "en";
   }
+  adapter._notifLang = lang;
   try {
-    const file = path.join(__dirname, "admin", "i18n", `${_notifLang}.json`);
-    _notifTranslations = JSON.parse(fs.readFileSync(file, "utf8"));
+    const file = path.join(__dirname, "admin", "i18n", `${lang}.json`);
+    adapter._notifTranslations = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
     // Fall back to English if the detected language has no translation file
     try {
       const enFile = path.join(__dirname, "admin", "i18n", "en.json");
-      _notifTranslations = JSON.parse(fs.readFileSync(enFile, "utf8"));
+      adapter._notifTranslations = JSON.parse(fs.readFileSync(enFile, "utf8"));
     } catch {
-      _notifTranslations = {};
+      adapter._notifTranslations = {};
     }
   }
-  return _notifTranslations;
+  return adapter._notifTranslations;
 }
 
 // Historical German default texts (this adapter was German-only before
@@ -143,17 +149,35 @@ class WashdataAdapter extends utils.Adapter {
             ? 5
             : 2,
       offDelayMin:
-        src.offDelayMin ||
-        (src.deviceType === "dryer"
-          ? 8
-          : src.deviceType === "washer_dryer"
-            ? 10
-            : src.deviceType === "dishwasher"
-              ? 8
-              : 5),
-      durationTolerance: src.durationTolerance || 0.2,
-      matchIntervalMin: src.matchIntervalMin || 5,
-      matchPersist: src.matchPersist || 3,
+        src.offDelayMin !== undefined &&
+        src.offDelayMin !== null &&
+        src.offDelayMin !== ""
+          ? Number(src.offDelayMin)
+          : src.deviceType === "dryer"
+            ? 8
+            : src.deviceType === "washer_dryer"
+              ? 10
+              : src.deviceType === "dishwasher"
+                ? 8
+                : 5,
+      durationTolerance:
+        src.durationTolerance !== undefined &&
+        src.durationTolerance !== null &&
+        src.durationTolerance !== ""
+          ? Number(src.durationTolerance)
+          : 0.2,
+      matchIntervalMin:
+        src.matchIntervalMin !== undefined &&
+        src.matchIntervalMin !== null &&
+        src.matchIntervalMin !== ""
+          ? Number(src.matchIntervalMin)
+          : 5,
+      matchPersist:
+        src.matchPersist !== undefined &&
+        src.matchPersist !== null &&
+        src.matchPersist !== ""
+          ? Number(src.matchPersist)
+          : 3,
       autoConfirmThreshold:
         src.autoConfirmThreshold !== undefined &&
         src.autoConfirmThreshold !== null
@@ -263,6 +287,13 @@ class WashdataAdapter extends utils.Adapter {
     const deviceList = this._getDeviceConfig();
     if (deviceList.length === 0) {
       this.log.warn("No device configured.");
+      // info.connection here does not represent an external/cloud
+      // connection (there is none - connectionType is "local" and this
+      // adapter only subscribes to already-existing ioBroker states). It
+      // reflects "the adapter instance started up without errors", which
+      // is true even with zero devices configured (a normal, valid state
+      // e.g. right after a fresh install) - not an error/disconnected
+      // condition, so this intentionally stays true rather than false.
       this.setState("info.connection", true, true);
       return;
     }
@@ -309,6 +340,16 @@ class WashdataAdapter extends utils.Adapter {
 
       await manager.start();
       this.managers[deviceCfg.deviceId] = manager;
+      if (
+        this.sensorToDevice[deviceCfg.powerId] &&
+        this.sensorToDevice[deviceCfg.powerId] !== deviceCfg.deviceId
+      ) {
+        this.log.warn(
+          `${deviceCfg.name}: power sensor ${deviceCfg.powerId} is already used by ` +
+            `"${this.sensorToDevice[deviceCfg.powerId]}" - only one device can react to a given ` +
+            `sensor, the previous device will stop receiving updates from it`,
+        );
+      }
       this.sensorToDevice[deviceCfg.powerId] = deviceCfg.deviceId;
       await this.subscribeForeignStatesAsync(deviceCfg.powerId);
 
@@ -1369,9 +1410,6 @@ class WashdataAdapter extends utils.Adapter {
   async _onCycleFinished(deviceId, cycle) {
     // Reset notification state
     if (this._notifState && this._notifState[deviceId]) {
-      if (this._notifState[deviceId].msgBlockTimer) {
-        clearTimeout(this._notifState[deviceId].msgBlockTimer);
-      }
       this._notifState[deviceId] = {};
     }
     // phaseHistory im Zyklus speichern – nur wenn Post-hoc keine Phasen berechnet hat
@@ -1543,7 +1581,7 @@ class WashdataAdapter extends utils.Adapter {
         ),
       };
       const endTimeStr = new Date(newFinishTime).toLocaleTimeString(
-        _notifLang || "en",
+        this._notifLang || "en",
         {
           hour: "2-digit",
           minute: "2-digit",
@@ -1553,7 +1591,7 @@ class WashdataAdapter extends utils.Adapter {
         state.lastFinishTime &&
         Math.abs(state.lastFinishTime - newFinishTime) > 60000
           ? new Date(state.lastFinishTime).toLocaleTimeString(
-              _notifLang || "en",
+              this._notifLang || "en",
               {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -1689,13 +1727,16 @@ class WashdataAdapter extends utils.Adapter {
         ),
       };
       const startTime = cycle.startTime
-        ? new Date(cycle.startTime).toLocaleTimeString(_notifLang || "en", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+        ? new Date(cycle.startTime).toLocaleTimeString(
+            this._notifLang || "en",
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+            },
+          )
         : "";
       const endTime = Date.now()
-        ? new Date().toLocaleTimeString(_notifLang || "en", {
+        ? new Date().toLocaleTimeString(this._notifLang || "en", {
             hour: "2-digit",
             minute: "2-digit",
           })
