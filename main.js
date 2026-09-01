@@ -5,6 +5,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { WashDataManager } = require("./lib/washDataManager");
 const { resolveStatePlaceholders } = require("./lib/notifyTemplate");
+const {
+  getPhaseText,
+  getStateText,
+  getProgramText,
+} = require("./lib/displayLabels");
 
 // ── Notification message translations ──────────────────────────
 // Reuses the same admin/i18n/<lang>.json files as the admin UI, so the
@@ -198,6 +203,9 @@ class WashdataAdapter extends utils.Adapter {
           : 55,
       notifyOnProbable: !!src.notifyOnProbable,
       ignoreAntiKnitter: src.ignoreAntiKnitter !== false,
+      // "" (the default) means "use the ioBroker system language" -
+      // resolved once at startup, see onReady()'s _deviceLangCache setup.
+      displayLanguage: src.displayLanguage || "",
     };
   }
 
@@ -242,6 +250,11 @@ class WashdataAdapter extends utils.Adapter {
 
   async onReady() {
     this.setState("info.connection", false, true);
+
+    // Resolve and cache the system language early (not just lazily on the
+    // first notification) - the phaseText/stateText/programText data
+    // points need it available as soon as the first status update comes in.
+    await loadNotifTranslations(this);
 
     await this.setObjectNotExistsAsync("files", {
       type: "meta",
@@ -299,9 +312,14 @@ class WashdataAdapter extends utils.Adapter {
       return;
     }
 
+    this._deviceLangCache = {};
     for (const deviceCfg of deviceList) {
       await this._createDeviceObjects(deviceCfg);
       await this._migrateStateNames(deviceCfg.deviceId);
+      // Resolved once here (not on every status update) since it can't
+      // change without an instance restart anyway.
+      this._deviceLangCache[deviceCfg.deviceId] =
+        deviceCfg.displayLanguage || this._notifLang || "en";
 
       const manager = new WashDataManager(
         this,
@@ -444,10 +462,15 @@ class WashdataAdapter extends utils.Adapter {
                   100,
                   Math.round((elapsed / profile.durationMs) * 100),
                 );
-                // Datenpunkte direkt setzen
+                // Set data points directly
                 await this.setStateAsync(
                   `${deviceCfg.deviceId}.state`,
                   "running",
+                  true,
+                );
+                await this.setStateAsync(
+                  `${deviceCfg.deviceId}.stateText`,
+                  getStateText("running", this._notifTranslations),
                   true,
                 );
                 await this.setStateAsync(
@@ -458,6 +481,14 @@ class WashdataAdapter extends utils.Adapter {
                 await this.setStateAsync(
                   `${deviceCfg.deviceId}.program`,
                   manager.currentProgram.name,
+                  true,
+                );
+                await this.setStateAsync(
+                  `${deviceCfg.deviceId}.programText`,
+                  getProgramText(
+                    manager.currentProgram.name,
+                    this._notifTranslations,
+                  ),
                   true,
                 );
                 await this.setStateAsync(
@@ -1283,8 +1314,15 @@ class WashdataAdapter extends utils.Adapter {
     const prevState = this._lastState && this._lastState[deviceId];
     this._lastState = this._lastState || {};
     this._lastState[deviceId] = status.state;
+    const lang =
+      (this._deviceLangCache && this._deviceLangCache[deviceId]) || "en";
 
     this.setState(`${deviceId}.state`, status.state, true);
+    this.setState(
+      `${deviceId}.stateText`,
+      getStateText(status.state, this._notifTranslations),
+      true,
+    );
     this.setState(`${deviceId}.running`, status.running, true);
 
     // Keep confidence + program data point always up to date
@@ -1294,27 +1332,36 @@ class WashdataAdapter extends utils.Adapter {
         status.bestCandidate.confidence,
         true,
       );
+      const bestCandidateProgram = `≈ ${status.bestCandidate.name}`;
+      this.setState(`${deviceId}.program`, bestCandidateProgram, true);
       this.setState(
-        `${deviceId}.program`,
-        `≈ ${status.bestCandidate.name}`,
+        `${deviceId}.programText`,
+        getProgramText(bestCandidateProgram, this._notifTranslations),
         true,
       );
     } else if (status.program && status.program !== "detecting...") {
       // Already set by _onProgram, but kept as a safety net
     } else if (status.state === "off") {
       this.setState(`${deviceId}.program`, "", true);
+      this.setState(`${deviceId}.programText`, "", true);
       this.setState(`${deviceId}.confidence`, 0, true);
     }
 
     // Write phase as data point (without emoji)
     // Only show phase while the device is actively running
     if (status.phase && status.state === "running") {
-      const phaseText = status.phase
+      const phaseKey = status.phase
         .replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}]\s*/u, "")
         .trim();
-      this.setState(`${deviceId}.phase`, phaseText, true);
+      this.setState(`${deviceId}.phase`, phaseKey, true);
+      this.setState(
+        `${deviceId}.phaseText`,
+        getPhaseText(phaseKey, lang),
+        true,
+      );
     } else if (status.state === "off" || status.state === "ending") {
       this.setState(`${deviceId}.phase`, "", true);
+      this.setState(`${deviceId}.phaseText`, "", true);
     }
 
     // Send start notification on transition to running
@@ -1334,6 +1381,11 @@ class WashdataAdapter extends utils.Adapter {
     this._lastProgram[deviceId] = program;
 
     this.setState(`${deviceId}.program`, program, true);
+    this.setState(
+      `${deviceId}.programText`,
+      getProgramText(program, this._notifTranslations),
+      true,
+    );
     this.setState(`${deviceId}.confidence`, Math.round(confidence * 100), true);
 
     // Update message on transition detecting → program:
@@ -2023,6 +2075,30 @@ class WashdataAdapter extends utils.Adapter {
       {
         id: "phase",
         name: "Current phase",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "phaseText",
+        name: "Current phase (localized)",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "stateText",
+        name: "Status (localized)",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "programText",
+        name: "Detected program (localized)",
         type: "string",
         role: "text",
         def: "",

@@ -31,6 +31,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`, `{state:objectId}` for any ioBroker data point) and conditional text blocks
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
+- Localized, ready-to-display text data points (`phaseText`, `stateText`, `programText`) alongside the language-neutral internal ones, for dropping straight into a VIS dashboard
 
 ---
 
@@ -77,18 +78,23 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 | Data point | Type | Description |
 |---|---|---|
-| `state` | string | off / starting / running / paused / ending |
+| `state` | string | off / starting / running / paused / ending (language-neutral internal key, meant for automations) |
+| `stateText` | string | Same as `state`, but as ready-to-display, localized text (e.g. "Running ⚙️" / "Läuft ⚙️") - see [`displayLanguage`](#configuration) |
 | `running` | boolean | Simple on/off indicator |
 | `program` | string | Detected program name |
+| `programText` | string | Same as `program`, but with the `detecting...` placeholder localized (a confirmed program is your own saved name, passed through unchanged) |
 | `confidence` | number | Match confidence in % |
 | `timeRemaining` | number | Estimated remaining time in seconds |
 | `totalDuration` | number | Estimated total cycle duration in seconds |
 | `cycleProgress` | number | Cycle progress 0–100 % |
-| `phase` | string | Current cycle phase |
+| `phase` | string | Current cycle phase (language-neutral internal key, e.g. `washing`, `dryer_drying`) |
+| `phaseText` | string | Same as `phase`, but as ready-to-display, localized text with an emoji (e.g. "🫧 Washing" / "🫧 Wäscht") |
 | `lastCycleProgram` | string | Program of the last completed cycle |
 | `lastCycleDuration` | number | Duration of the last cycle in minutes |
 | `lastCycleEnergy` | number | Energy consumed in the last cycle in Wh |
 | `availablePrograms` | string (JSON) | Array of all saved program names, e.g. for external dropdowns |
+
+`phase`/`state`/`program` are meant for automations/scripts and use fixed, language-neutral values that never change with your ioBroker language - use the matching `*Text` data point instead if you want to show status directly in a VIS dashboard without building your own translation table. The language for `phaseText`/`stateText`/`programText` defaults to the ioBroker system language, and can be overridden per device with the "Display language" setting.
 
 ---
 
@@ -125,6 +131,13 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+
+### 0.4.17 (2026-08-31)
+- New: `phaseText`, `stateText`, `programText` data points - localized, ready-to-display versions of the existing language-neutral `phase`/`state`/`program`, useful for a VIS dashboard without building your own translation table
+- New: "Display language" setting per device (defaults to the ioBroker system language)
+- Internal: the phase-translation table (previously only in the admin tab, for the cycle graph legend) is now one shared file (`admin/phaseLabels.json`) used by both the admin UI and the new server-side data points, instead of two separately maintained copies
+- Translated remaining German code comments to English (not a review/checker requirement - developer-only comments in German are explicitly permitted - done on request)
+- Reorganized the README changelog: the current 0.4.x series stays here in full, the pre-0.4.0 beta history (0.2.2–0.3.0) moved entirely to CHANGELOG_OLD.md (previously one version, 0.2.5, existed with near-duplicate text in both places)
 
 ### 0.4.16 (2026-08-31)
 - New: notification templates support a `{state:objectId}` placeholder that resolves any ioBroker data point's current value at send time (e.g. outside temperature, electricity price), in addition to the existing built-in placeholders. Works inside conditional `[...]` blocks too - a block hides itself if the referenced data point is empty

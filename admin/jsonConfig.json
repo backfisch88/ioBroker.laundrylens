@@ -261,6 +261,52 @@
       "md": 6,
       "lg": 4,
       "xl": 4
+    },
+    "_sep4": {
+      "type": "divider",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "_hdr4": {
+      "type": "staticText",
+      "text": "Display language",
+      "style": {
+        "fontWeight": "bold",
+        "marginTop": "8px"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "displayLanguage": {
+      "type": "select",
+      "label": "Language for phaseText/stateText/programText",
+      "options": [
+        { "label": "System default", "value": "" },
+        { "label": "English", "value": "en" },
+        { "label": "Deutsch", "value": "de" },
+        { "label": "Русский", "value": "ru" },
+        { "label": "Português", "value": "pt" },
+        { "label": "Nederlands", "value": "nl" },
+        { "label": "Français", "value": "fr" },
+        { "label": "Italiano", "value": "it" },
+        { "label": "Español", "value": "es" },
+        { "label": "Polski", "value": "pl" },
+        { "label": "Українська", "value": "uk" },
+        { "label": "中文 (简体)", "value": "zh-cn" }
+      ],
+      "default": "",
+      "help": "The phase/state/program data points (e.g. 'washing', 'off') are language-neutral internal keys, meant for automations. This controls the language of the extra *Text data points (e.g. 'phaseText') that hold a ready-to-display translation - useful for showing status directly in a VIS dashboard without translating it yourself. Defaults to the ioBroker system language.",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

@@ -138,10 +138,16 @@ describe("State-name migration completeness (found via a real object dump)", () 
     //
     // This generalizes the check: every `id: "..."` in the states array
     // must appear as a key in _migrateStateNames()'s migrations object,
-    // with the exception of ids on this allow-list (names that are
-    // legitimately the same word in English and German, e.g. "Status",
-    // so there's nothing to migrate).
-    const NO_TRANSLATION_NEEDED = new Set(["state"]);
+    // with the exception of ids on this allow-list - either names that
+    // are legitimately the same word in English and German (e.g.
+    // "Status", nothing to migrate), or states added new from the start
+    // (never existed with a wrong/legacy name, so nothing to migrate).
+    const NO_TRANSLATION_NEEDED = new Set([
+      "state",
+      "phaseText",
+      "stateText",
+      "programText",
+    ]);
 
     const mainSrc = fs.readFileSync(
       path.join(__dirname, "..", "main.js"),
