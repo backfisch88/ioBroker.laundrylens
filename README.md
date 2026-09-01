@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.18 (2026-09-02)
+- Fix: the dryer anti-crease lock period (learned duration + a fixed 10-minute buffer) could expire while the dryer was still genuinely doing its anti-crease tumbling - real anti-crease duration varies cycle to cycle, so a fixed length occasionally ran out mid-tumble, letting the tail end trigger a false new-cycle detection. The lock now extends when a genuine tumble spike occurs near its expiry, capped at 90 minutes total from the beep
+
 ### 0.4.17 (2026-08-31)
 - New: `phaseText`, `stateText`, `programText` data points - localized, ready-to-display versions of the existing language-neutral `phase`/`state`/`program`, useful for a VIS dashboard without building your own translation table
 - New: "Display language" setting per device (defaults to the ioBroker system language)
