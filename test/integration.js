@@ -1,6 +1,6 @@
 "use strict";
 
-const path = require("path");
+const path = require("node:path");
 const { tests } = require("@iobroker/testing");
 
 // Minimal integration test: starts the adapter against a real js-controller

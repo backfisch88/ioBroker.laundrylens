@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.19 (2026-09-05)
+- Fix: use `node:`-prefixed built-in module imports (`node:fs`, `node:path`) consistently everywhere (`lib/displayLabels.js`, `test/integration.js`, `test/package.js`), not just in `main.js`
+- Fix: updated `@iobroker/adapter-core` to the currently required minimum version (3.4.3)
+- Fix: three incomplete Dutch/Polish/Ukrainian changelog translations for 0.4.12 that were noticeably shorter than the English original
+
 ### 0.4.18 (2026-09-02)
 - Fix: the dryer anti-crease lock period (learned duration + a fixed 10-minute buffer) could expire while the dryer was still genuinely doing its anti-crease tumbling - real anti-crease duration varies cycle to cycle, so a fixed length occasionally ran out mid-tumble, letting the tail end trigger a false new-cycle detection. The lock now extends when a genuine tumble spike occurs near its expiry, capped at 90 minutes total from the beep
 
