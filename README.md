@@ -132,6 +132,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.20 (2026-09-08)
+- Fix: added Node.js 26 to the CI test matrix (`unit-tests` and `adapter-tests`)
+- Fix: updated the `@iobroker/testing` devDependency to 6.1.0 - checked both 6.0.0's and 6.1.0's breaking changes against this adapter (no `prepare` script, no `encryptedNative` properties, no `changeAdapterConfig()` usage in the integration test - none apply); full test suite, `test:package`, and `test:integration` all still pass
+
 ### 0.4.19 (2026-09-05)
 - Fix: use `node:`-prefixed built-in module imports (`node:fs`, `node:path`) consistently everywhere (`lib/displayLabels.js`, `test/integration.js`, `test/package.js`), not just in `main.js`
 - Fix: updated `@iobroker/adapter-core` to the currently required minimum version (3.4.3)
