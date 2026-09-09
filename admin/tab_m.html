@@ -565,6 +565,21 @@ function getPhaseLabel(phaseKey) {
 }
 
 /**
+ * Returns the display text for a cycle's matched program name. "Anti-crease"
+ * is a plain, language-neutral marker stored server-side for cycles tagged
+ * via the anti-crease reference pattern (never displayed as-is) - translated
+ * here at display time, the same way phase/state keys are. Any other value
+ * is the user's own saved profile name, passed through unchanged.
+ *
+ * @param {string} matchedProfile  – raw c.matchedProfile value (may be empty)
+ * @returns {string}
+ */
+function getProfileDisplayName(matchedProfile) {
+    if (matchedProfile === 'Anti-crease') return '🌀 ' + _('Anti-crease');
+    return matchedProfile || _('Unknown');
+}
+
+/**
  * Returns the translated display label for a device state.
  *
  * @param {string} state  – state key (off/starting/running/paused/ending)
@@ -877,7 +892,7 @@ function refreshOverview() {
                 : '<span class="badge bg-orange">❓ ' + _('Open') + '</span>';
             document.getElementById('ov-last').innerHTML =
                 '<table class="tbl">' +
-                '<tr><td class="text-muted" style="width:130px">' + _('Program') + '</td><td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong> ' + confirmed + '</td></tr>' +
+                '<tr><td class="text-muted" style="width:130px">' + _('Program') + '</td><td><strong>' + getProfileDisplayName(c.matchedProfile) + '</strong> ' + confirmed + '</td></tr>' +
                 '<tr><td class="text-muted">' + _('Start') + '</td><td>' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</td></tr>' +
                 '<tr><td class="text-muted">' + _('Duration') + '</td><td>' + dur + ' min</td></tr>' +
                 '<tr><td class="text-muted">' + _('Consumption') + '</td><td>' + kwh + ' kWh</td></tr>' +
@@ -1041,7 +1056,7 @@ function clearAntiKnitter() {
             document.getElementById('antiknitter-select').value = '';
             loadPrograms(); // Refresh status
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
@@ -1050,16 +1065,16 @@ function renderPrograms(deviceId) {
     var list = programs[deviceId] || [];
     var wrap = document.getElementById('prog-list-wrap');
     if (list.length === 0) {
-        wrap.innerHTML = '<div class="empty"><p>Noch keine Programme angelegt.</p></div>';
+        wrap.innerHTML = '<div class="empty"><p>' + _('No programs created yet.') + '</p></div>';
         return;
     }
-    wrap.innerHTML = '<table class="tbl"><thead><tr><th>Name</th><th>Dauer (Ø)</th><th>Zyklen</th><th>Angelegt</th><th></th></tr></thead><tbody>' +
+    wrap.innerHTML = '<table class="tbl"><thead><tr><th>' + _('Name') + '</th><th>' + _('Duration (avg)') + '</th><th>' + _('Cycles') + '</th><th>' + _('Created') + '</th><th></th></tr></thead><tbody>' +
         list.map(function(p) {
             return '<tr>' +
-                '<td><strong>' + p.name + '</strong>' + (p.isManual ? ' <span class="badge bg-gray">manuell</span>' : ' <span class="badge bg-green">gelernt</span>') + '</td>' +
+                '<td><strong>' + p.name + '</strong>' + (p.isManual ? ' <span class="badge bg-gray">' + _('manual') + '</span>' : ' <span class="badge bg-green">' + _('learned') + '</span>') + '</td>' +
                 '<td>' + (p.durationMs ? Math.round(p.durationMs/60000)+' min' : '–') + '</td>' +
                 '<td>' + (p.cycleCount||0) + '</td>' +
-                '<td class="text-sm text-muted">' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–') + '</td>' +
+                '<td class="text-sm text-muted">' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString(_currentLang || 'en',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–') + '</td>' +
                 '<td><div class="row" style="gap:4px">' +
                 '<button class="btn btn-outline btn-xs" onclick="openRename(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">✏️</button>' +
                 '<button class="btn btn-danger btn-xs" onclick="deleteProgram(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">🗑</button>' +
@@ -1072,14 +1087,14 @@ function createProgram() {
     var deviceId    = selVal('programs');
     var name        = document.getElementById('prog-name').value.trim();
     var durationMin = parseInt(document.getElementById('prog-duration').value) || 90;
-    if (!name) return toast('Bitte einen Namen eingeben', 'err');
+    if (!name) return toast(_('Please enter a name'), 'err');
     send('createProfile', { deviceId: deviceId, name: name, durationMin: durationMin }).then(function(res) {
         if (res && res.ok) {
-            toast('Programm „' + name + '" angelegt', 'ok');
+            toast(_('Program "{0}" created').replace('{0}', name), 'ok');
             document.getElementById('prog-name').value = '';
             loadPrograms();
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
@@ -1140,7 +1155,7 @@ function renderCycles(deviceId) {
         var kwh  = ((c.energyWh||0)/1000).toFixed(3);
         var conf = c.confidence ? Math.round(c.confidence*100)+'%'
             : (c.bestCandidate && c.bestCandidate.confidence ? '~' + c.bestCandidate.confidence + '%' : '–');
-        var isAK = c.isAntiKnitter || c.matchedProfile === '🌀 Anti-Knitter';
+        var isAK = c.isAntiKnitter || c.matchedProfile === 'Anti-crease';
         var statusBadge = isAK
             ? '<span class="badge" style="background:#34a853;color:#fff">🌀</span>'
             : (c.confirmed
@@ -1150,7 +1165,7 @@ function renderCycles(deviceId) {
         var rowId = 'cycle-detail-' + idx;
         return '<tr class="cycle-row" onclick="toggleCycleDetail(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')" style="cursor:pointer;'+rowStyle+'">' +
             '<td class="text-sm">' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</td>' +
-            '<td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
+            '<td><strong>' + getProfileDisplayName(c.matchedProfile) + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
             '<td>' + dur + ' min</td>' +
             '<td>' + kwh + '</td>' +
             '<td>' + statusBadge + '</td>' +
@@ -1362,7 +1377,7 @@ function renderFeedback(deviceId) {
             '<div class="card-head">' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '<span class="badge ' + confColor + '">' + conf + '% ' + _('confidence') + '</span></div>' +
             '<div class="card-body">' +
             '<table class="tbl" style="margin-bottom:12px">' +
-            '<tr><td class="text-muted" style="width:110px">' + _('Detected as') + '</td><td><strong>' + (c.matchedProfile||_('Unknown')) + '</strong></td></tr>' +
+            '<tr><td class="text-muted" style="width:110px">' + _('Detected as') + '</td><td><strong>' + getProfileDisplayName(c.matchedProfile) + '</strong></td></tr>' +
             '<tr><td class="text-muted">' + _('Duration') + '</td><td>' + dur + ' min</td></tr>' +
             '<tr><td class="text-muted">' + _('Consumption') + '</td><td>' + kwh + ' kWh</td></tr>' +
             '</table>' +
@@ -1422,8 +1437,8 @@ function doImport(evt) {
         try { data = JSON.parse(e.target.result); } catch(ex) { return toast(_('Invalid JSON file'), 'err'); }
         var deviceId = selVal('export');
         send('importConfig', { deviceId: deviceId, data: data }).then(function(res) {
-            if (res && res.ok) toast(res.imported + ' Programme, ' + (res.importedCycles||0) + ' Zyklen, ' + (res.importedTraces||0) + ' Graphen importiert', 'ok');
-            else toast((res && res.error) || 'Fehler', 'err');
+            if (res && res.ok) toast(_('Imported') + ': ' + res.imported + ' ' + _('programs') + ', ' + (res.importedCycles||0) + ' ' + _('cycles') + ', ' + (res.importedTraces||0) + ' ' + _('graphs'), 'ok');
+            else toast((res && res.error) || _('Error'), 'err');
         });
     };
     reader.readAsText(file);
@@ -1509,23 +1524,23 @@ function setProgramOverride() {
     var program  = document.getElementById('ctrl-override').value;
     send('setProgramOverride', {deviceId: deviceId, program: program}).then(function(res) {
         if (res && res.ok) {
-            toast(program === 'auto' ? 'Automatik aktiv' : 'Programm "'+program+'" gesetzt', 'ok');
+            toast(program === 'auto' ? _('Automatic active') : _('Program set to "{0}"').replace('{0}', program), 'ok');
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
 
 function forceFinish() {
     var deviceId = selVal('overview');
-    if (!confirm('Zyklus wirklich beenden?')) return;
+    if (!confirm(_('Really end cycle?'))) return;
     send('forceFinish', {deviceId: deviceId}).then(function(res) {
         if (res && res.ok) {
-            toast('Zyklus wird beendet…', 'ok');
+            toast(_('Ending cycle…'), 'ok');
             // Auto-refresh after 1.5s
             setTimeout(refreshOverview, 1500);
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
@@ -1694,8 +1709,8 @@ function saveNotifConfig() {
     };
     // Kein Adapter = alles deaktiviert, trotzdem speichern
     send('saveNotifyConfig', {deviceId: deviceId, config: cfg}).then(function(res) {
-        if (res && res.ok) toast('Benachrichtigung gespeichert!', 'ok');
-        else toast((res && res.error) || 'Fehler', 'err');
+        if (res && res.ok) toast(_('Notification saved!'), 'ok');
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
@@ -1824,7 +1839,7 @@ function loadGraphCycles() {
                 var d   = Math.round((c.durationMs||0)/60000);
                 var dt  = new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
                 var tag = c.importedFromHA ? ' 🏠' : '';
-                return '<option value="'+c.id+'">'+dt+' – '+(c.matchedProfile||'?')+' ('+d+' min)'+tag+'</option>';
+                return '<option value="'+c.id+'">'+dt+' – '+getProfileDisplayName(c.matchedProfile)+' ('+d+' min)'+tag+'</option>';
             }).join('');
         document.getElementById('graph-card').style.display = 'none';
         document.getElementById('graph-actions').style.display = 'none';
@@ -1996,7 +2011,7 @@ function drawGraph() {
     document.getElementById('graph-info-right').textContent = durMin+' min';
 }
 
-function fmt(ts) { return new Date(ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function fmt(ts) { return new Date(ts).toLocaleTimeString(_currentLang || 'en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
 
 // Canvas Touch/Click Events
 document.addEventListener('DOMContentLoaded', function() {
@@ -2074,7 +2089,7 @@ function applyTrim() {
     var deviceId = selVal('graph');
     send('trimTrace', {deviceId:deviceId, cycleId:_graphCycleId, newStartTs:_trimStart, newEndTs:_trimEnd}).then(function(res) {
         if (res&&res.ok) { toast('Trimmen angewendet!','ok'); _graphTrace=res.trace; cancelTrim(); loadGraphCycles(); }
-        else toast((res&&res.error)||'Fehler','err');
+        else toast((res&&res.error)||_('Error'),'err');
     });
 }
 
@@ -2117,7 +2132,7 @@ function deleteGraphCycle() {
             _graphTrace   = null;
             loadGraphCycles();
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }
@@ -2198,7 +2213,7 @@ function applyTrimInline(deviceId, cycleId, rowId) {
             st.trimMode = false;
             document.getElementById('trim-controls-' + rowId).style.display = 'none';
             reloadInlineGraph(deviceId, cycleId, rowId);
-        } else toast((res && res.error) || 'Fehler', 'err');
+        } else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
@@ -2214,7 +2229,7 @@ function applySplitInline(deviceId, cycleId, rowId) {
             var sd = document.getElementById('split-controls-' + rowId);
             if (sd) sd.style.display = 'none';
             loadCycles();
-        } else toast((res && res.error) || 'Fehler beim Teilen', 'err');
+        } else toast((res && res.error) || _('Error splitting'), 'err');
     });
 }
 
@@ -2410,17 +2425,17 @@ function isDryer(deviceId) {
 }
 
 function saveAsAntiKnitter(deviceId, cycleId) {
-    if (!confirm('Diesen Zyklus als Anti-Knitter-Muster speichern?\nEr wird verwendet um Anti-Knitter nach dem Trocknen zu erkennen.')) return;
+    if (!confirm(_('Save this cycle as the anti-crease pattern?\nIt will be used to detect anti-crease after drying.'))) return;
     send('setAntiKnitter', { deviceId: deviceId, cycleId: cycleId }).then(function(res) {
         if (res && res.ok) {
-            toast('✅ Anti-Knitter gespeichert! Dauer: ' + Math.round(res.durationMin) + ' min, Max: ' + Math.round(res.maxWatts) + 'W', 'ok');
+            toast('✅ ' + _('Anti-crease pattern saved!') + ' ' + _('Duration') + ': ' + Math.round(res.durationMin) + ' min, Max: ' + Math.round(res.maxWatts) + 'W', 'ok');
             if (res.stillIgnoring) {
                 setTimeout(function() {
-                    toast('⚠️ Damit das Muster auch genutzt wird, "Gespeichertes Anti-Knitter-Muster ignorieren" in den Geräte-Einstellungen ausschalten.', 'err');
+                    toast('⚠️ ' + _('To actually use this pattern, turn off "Ignore saved anti-crease pattern" in the device settings.'), 'err');
                 }, 3500);
             }
         }
-        else toast((res && res.error) || 'Fehler', 'err');
+        else toast((res && res.error) || _('Error'), 'err');
     });
 }
 
@@ -2428,18 +2443,18 @@ function saveAsProgram(deviceId, cycleId) {
     var name = prompt('Programmname:');
     if (!name) return;
     send('createProfileFromTrace', {deviceId: deviceId, cycleId: cycleId, name: name}).then(function(res) {
-        if (!res || !res.ok) return toast((res && res.error) || 'Fehler', 'err');
+        if (!res || !res.ok) return toast((res && res.error) || _('Error'), 'err');
         // Assign directly to the cycle
         send('correctCycle', {deviceId: deviceId, cycleId: cycleId, profileId: res.profileId}).then(function(res2) {
-            if (res2 && res2.ok) { toast('Programm gespeichert & zugewiesen!', 'ok'); loadCycles(); }
-            else toast((res2 && res2.error) || 'Fehler beim Zuweisen', 'err');
+            if (res2 && res2.ok) { toast(_('Program saved & assigned!'), 'ok'); loadCycles(); }
+            else toast((res2 && res2.error) || _('Error assigning'), 'err');
         });
     });
 }
 
 function assignProgram(deviceId, cycleId) {
     send('getProfiles', {deviceId: deviceId}).then(function(res) {
-        if (!res || !res.ok || !res.profiles.length) return toast('Keine Programme vorhanden', 'err');
+        if (!res || !res.ok || !res.profiles.length) return toast(_('No programs available'), 'err');
         var sel = document.getElementById('assign-select');
         sel.innerHTML = res.profiles.map(function(p) {
             return '<option value="'+p.id+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
@@ -2455,15 +2470,15 @@ function createProfileFromGraph() {
     var name = prompt('Programmname:');
     if (!name) return;
     send('createProfileFromTrace', {deviceId:selVal('graph'), cycleId:_graphCycleId, name:name}).then(function(res) {
-        if (res&&res.ok) toast('Programm gespeichert!','ok');
-        else toast((res&&res.error)||'Fehler','err');
+        if (res&&res.ok) toast(_('Program saved!'),'ok');
+        else toast((res&&res.error)||_('Error'),'err');
     });
 }
 
 function assignGraphCycle() {
     var deviceId = selVal('graph');
     send('getProfiles', {deviceId: deviceId}).then(function(res) {
-        if (!res || !res.ok || !res.profiles.length) return toast('Keine Programme vorhanden', 'err');
+        if (!res || !res.ok || !res.profiles.length) return toast(_('No programs available'), 'err');
         var sel = document.getElementById('assign-select');
         sel.innerHTML = res.profiles.map(function(p) {
             return '<option value="'+p.id+'">'+p.name+' ('+Math.round((p.durationMs||0)/60000)+' min)</option>';
@@ -2483,10 +2498,10 @@ function confirmAssign() {
         modal.dataset.deviceId = '';
         modal.dataset.cycleId  = '';
         if (res && res.ok) {
-            toast('Zugewiesen & gelernt!', 'ok');
+            toast(_('Assigned & learned!'), 'ok');
             loadCycles();
         } else {
-            toast((res && res.error) || 'Fehler', 'err');
+            toast((res && res.error) || _('Error'), 'err');
         }
     });
 }

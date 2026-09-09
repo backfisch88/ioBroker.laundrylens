@@ -127,6 +127,118 @@ describe("Button-role states must not be readable (repository review E1008-adjac
   });
 });
 
+describe("Admin tab (admin/tab_m.html) user-visible strings must be English or translated", () => {
+  // Found via manual review: this suite previously only checked main.js and
+  // lib/*.js, so ~35 hardcoded German strings in the admin tab (toasts,
+  // table headers, confirm() dialogs) went unnoticed for several releases.
+  // This closes that gap with the same kind of high-precision marker list
+  // already used above for log messages, applied to tab_m.html's JS.
+  const GERMAN_UI_MARKERS = [
+    "Noch keine Programme",
+    "Dauer (Ø)",
+    "Zyklen<",
+    "Angelegt<",
+    "manuell<",
+    "gelernt<",
+    "Bitte einen Namen",
+    "angelegt'",
+    "Fehler'",
+    'Fehler"',
+    "Fehler,",
+    "Programme,",
+    "Graphen importiert",
+    "Automatik aktiv",
+    "wirklich beenden",
+    "wird beendet",
+    "Benachrichtigung gespeichert",
+    "Anti-Knitter-Muster speichern",
+    "Anti-Knitter gespeichert",
+    "Muster auch genutzt",
+    "gespeichert & zugewiesen",
+    "Keine Programme vorhanden",
+    "Zugewiesen & gelernt",
+    "beim Teilen",
+    "beim Zuweisen",
+    "🌀 Anti-Knitter",
+  ];
+
+  it("does not contain any of the specific German strings previously found in the admin tab", () => {
+    const fullSrc = fs.readFileSync(
+      path.join(__dirname, "..", "admin", "tab_m.html"),
+      "utf8",
+    );
+    // LEGACY_DEFAULT_MSGS is a deliberate exception: it holds the exact old
+    // German default message texts for backward-compat detection (see the
+    // comment above its declaration) and is a plain data comparison table,
+    // never rendered to a user - excluded by content, not a line number, so
+    // this doesn't silently stop checking if the file is edited later.
+    const legacyBlockMatch = fullSrc.match(
+      /var LEGACY_DEFAULT_MSGS = \{[\s\S]*?\n\};/,
+    );
+    assert.ok(
+      legacyBlockMatch,
+      "could not locate the LEGACY_DEFAULT_MSGS block in tab_m.html - did it move or get renamed?",
+    );
+    const src = fullSrc.replace(legacyBlockMatch[0], "");
+
+    for (const marker of GERMAN_UI_MARKERS) {
+      assert.ok(
+        !src.includes(marker),
+        `admin/tab_m.html still contains German UI text ("${marker}") - ` +
+          `all text shown to users must be in English or wrapped in _() ` +
+          `with translations in admin/i18n/*.json`,
+      );
+    }
+  });
+
+  it("does not hardcode a specific locale (e.g. 'de-DE') for date/time formatting", () => {
+    const src = fs.readFileSync(
+      path.join(__dirname, "..", "admin", "tab_m.html"),
+      "utf8",
+    );
+    assert.ok(
+      !/toLocale(Date|Time)?String\(\s*['"][a-z]{2}-[A-Z]{2}['"]/.test(src),
+      "found a hardcoded locale (e.g. 'de-DE') passed to a toLocale*String() " +
+        "call in tab_m.html - use _currentLang || 'en' instead, matching " +
+        "every other date/time formatting call in this file",
+    );
+  });
+
+  it("does not use any _() key that has no corresponding entry in admin/i18n/en.json", () => {
+    const src = fs.readFileSync(
+      path.join(__dirname, "..", "admin", "tab_m.html"),
+      "utf8",
+    );
+    const rawKeys = [
+      ...src.matchAll(/_\('((?:[^'\\]|\\.)*)'\)/g),
+      ...src.matchAll(/_\("((?:[^"\\]|\\.)*)"\)/g),
+    ].map((m) => m[1]);
+    const unescape = (s) =>
+      s.replace(/\\'/g, "'").replace(/\\n/g, "\n").replace(/\\"/g, '"');
+    const usedKeys = new Set(rawKeys.map(unescape));
+    assert.ok(
+      usedKeys.size > 50,
+      "sanity check failed - found very few _() calls in tab_m.html, did " +
+        "the translation function get renamed?",
+    );
+
+    const en = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, "..", "admin", "i18n", "en.json"),
+        "utf8",
+      ),
+    );
+    const missing = [...usedKeys].filter((k) => !(k in en));
+    assert.deepStrictEqual(
+      missing,
+      [],
+      `admin/tab_m.html calls _() with ${missing.length} key(s) that don't ` +
+        `exist in admin/i18n/en.json: ${JSON.stringify(missing)} - every ` +
+        `_() key needs a matching entry in all 11 language files`,
+    );
+  });
+});
+
 describe("State-name migration completeness (found via a real object dump)", () => {
   it("migrates every state id defined in _createDeviceObjects()'s states array, except ones whose name doesn't need translating", () => {
     // Regression for a real gap found via a production object dump: the

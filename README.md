@@ -132,6 +132,13 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.21 (2026-09-08)
+- Fix: translated all remaining German user-visible strings in the admin tab (toasts, table headers, confirm dialogs - about 35 instances, more than initially found by review) into the existing i18n system
+- Fix: a cycle's `matchedProfile` could be stored server-side as literal German text ("Anti-Knitter") for anti-crease-tagged cycles, showing up untranslated in the `lastCycleProgram` data point and cycle history regardless of system language - now stored as a language-neutral marker and translated at display time
+- Fix: two remaining hardcoded German date/time locales in the admin tab now use the configured language like everywhere else
+- Fix: added the full MIT license text to README.md (previously only the header/copyright line)
+- Extended the English-only regression test to also cover the admin tab, closing the gap that let these issues go unnoticed for several releases
+
 ### 0.4.20 (2026-09-08)
 - Fix: added Node.js 26 to the CI test matrix (`unit-tests` and `adapter-tests`)
 - Fix: updated the `@iobroker/testing` devDependency to 6.1.0 - checked both 6.0.0's and 6.1.0's breaking changes against this adapter (no `prepare` script, no `encryptedNative` properties, no `changeAdapterConfig()` usage in the integration test - none apply); full test suite, `test:package`, and `test:integration` all still pass
@@ -229,3 +236,21 @@ Issues and pull requests are welcome: [Issues](https://github.com/backfisch88/io
 MIT License
 
 Copyright (c) 2026 backfisch88
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -960,7 +960,10 @@ class WashdataAdapter extends utils.Adapter {
           mgr.setAntiKnitterConfig({ maxWatts, durationMs });
           // Tag cycle as anti-crease
           cycle.isAntiKnitter = true;
-          cycle.matchedProfile = "🌀 Anti-Knitter";
+          // Stored as a plain, language-neutral marker (never displayed
+          // directly) - the admin tab translates it at display time via
+          // the "Anti-crease" i18n key, the same way "Unknown" is handled.
+          cycle.matchedProfile = "Anti-crease";
           cycle.confirmed = true;
           await mgr._saveState();
           const akDevCfg = this._getDeviceConfig().find(
