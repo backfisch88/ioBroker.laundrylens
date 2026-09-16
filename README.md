@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.22 (2026-09-16)
+- Fix: the per-device "Off delay" setting (`offDelayMin`) was silently ignored - `CycleDetector`'s config merge never translated it into the field the detector actually uses (`offDelay`, in seconds), so every device always used a hardcoded 5-minute default regardless of what was configured. Found via a real trace where a cycle stayed stuck as "running" long after power had genuinely dropped to ~0W. Note: this alone doesn't fully explain very long stalls (well over an hour) - if a cycle still gets stuck after this fix, please share the adapter log from around that time
+
 ### 0.4.21 (2026-09-08)
 - Fix: translated all remaining German user-visible strings in the admin tab (toasts, table headers, confirm dialogs - about 35 instances, more than initially found by review) into the existing i18n system
 - Fix: a cycle's `matchedProfile` could be stored server-side as literal German text ("Anti-Knitter") for anti-crease-tagged cycles, showing up untranslated in the `lastCycleProgram` data point and cycle history regardless of system language - now stored as a language-neutral marker and translated at display time
