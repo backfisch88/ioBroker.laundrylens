@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.23 (2026-09-16)
+- Fix: a cycle interrupted by an ioBroker restart while the device's power had already returned to idle was silently orphaned - the on-startup restore logic only handled the case where power was still high at restart, so the manager just reinitialized to "off" without ever properly finishing the interrupted cycle, leaving it stuck showing "running" with stale pre-restart values forever. Combined with the `offDelayMin` fix in 0.4.22, this should resolve "cycle never ends" reports after a mid/post-cycle adapter restart
+
 ### 0.4.22 (2026-09-16)
 - Fix: the per-device "Off delay" setting (`offDelayMin`) was silently ignored - `CycleDetector`'s config merge never translated it into the field the detector actually uses (`offDelay`, in seconds), so every device always used a hardcoded 5-minute default regardless of what was configured. Found via a real trace where a cycle stayed stuck as "running" long after power had genuinely dropped to ~0W. Note: this alone doesn't fully explain very long stalls (well over an hour) - if a cycle still gets stuck after this fix, please share the adapter log from around that time
 

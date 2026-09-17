@@ -419,6 +419,61 @@ class WashdataAdapter extends utils.Adapter {
               `${deviceCfg.name}: no saved cycle, but sensor active → directly running`,
             );
           }
+        } else if (manager._restoredCycle && manager._restoredCycle.startTime) {
+          // The device was mid-cycle when the adapter went down (or was
+          // restarted), but power has since dropped back to idle - the
+          // appliance actually finished while the adapter was offline.
+          // Without this branch, the in-memory manager/detector would
+          // just silently sit at their constructor defaults (state: "off",
+          // no cycleStartTime) and this interrupted cycle would never be
+          // properly closed out: the last-written state/program/etc data
+          // points would stay frozen at whatever they showed before the
+          // restart, and the cycle history entry would stay open forever
+          // with no end ever recorded, since nothing would ever call
+          // _onCycleFinished() for it - a real "kein Ende erkannt" case
+          // found via a production trace.
+          //
+          // Fix: restore the trace and resume the state machine as
+          // "running", then feed the current (already-low) reading
+          // through it so it proceeds through the normal
+          // PAUSED -> ENDING -> OFF path (using the real offDelayMin, now
+          // that it's correctly wired - see the offDelayMin fix) and
+          // finishes the cycle properly instead of orphaning it.
+          manager.detector.state = "running";
+          manager.currentState = "running";
+          manager.detector.cycleStartTime = manager._restoredCycle.startTime;
+          const savedTrace = manager._restoredCycle.trace;
+          if (
+            savedTrace &&
+            savedTrace.length > 0 &&
+            manager.detector.restoreTrace
+          ) {
+            manager.detector.restoreTrace(savedTrace);
+            manager.detector._maxWattsObserved = Math.max(
+              ...savedTrace.map((p) => p.watts),
+              0,
+            );
+            // The ENDING->OFF transition needs lastAboveThreshold to compute
+            // how long power has been low - without seeding it here it
+            // stays null forever (only ever set inside processPowerReading's
+            // normal per-reading gate), and the resumed cycle would get
+            // stuck in "ending" indefinitely instead of actually finishing.
+            // Use the last trace point that was actually above threshold as
+            // a reasonable estimate of when the device was last truly on;
+            // cycleStartTime is a safe fallback if none is found (e.g. a
+            // very short/sparse trace).
+            const lastHighPoint = [...savedTrace]
+              .reverse()
+              .find((p) => p.watts >= (deviceCfg.powerThreshold || 10));
+            manager.detector.lastAboveThreshold = lastHighPoint
+              ? lastHighPoint.ts
+              : manager._restoredCycle.startTime;
+          }
+          this.log.info(
+            `${deviceCfg.name}: cycle was running before restart but sensor is now idle ` +
+              `(${wattsNow}W) - resuming to finish it properly instead of leaving it stuck`,
+          );
+          manager.processPowerReading(wattsNow, Date.now());
         }
       } catch (_e) {
         /* ignore restore errors */
