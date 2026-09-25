@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.26 (2026-09-25)
+- Fix: a program correctly detected early in a cycle (confirmed via score accumulation, which can land as low as 60% confidence) could later revert to "detecting..." near the end if it was never boosted by locking - the protection against this (locking a confirmed program so a later run of unmatched readings can't wipe it) used to only activate if some individual reading also happened to reach 75% confidence on its own. Now it activates immediately on every confirmation, regardless of the confirming confidence. Confirmed against a real log: a wash cycle's program was correctly detected at 68.4% at 07:31, then a ~90-minute stretch of "no match" readings (bestCandidate still consistently the same program, just below the 55% match threshold) would have reverted it before this fix. A high-confidence, persistent override to a genuinely different program remains possible and unaffected
+
 ### 0.4.25 (2026-09-23)
 - New: full per-phase duration learning model for remaining-time estimation. Each program now learns not just its overall duration, but how long each individual phase (heating, washing, spinning, dryer_drying, cooling, ...) typically takes, and in what order. Once at least 3 confirmed cycles have data for the current phase, remaining time is estimated as "time left in the current phase, plus the typical duration of every phase that historically follows it" - far more accurate near the end of a cycle than a single whole-cycle average, especially for a phase (like a dryer's main drying phase) whose position relative to total cycle length varies a lot between runs. Automatically falls back to the 0.4.24 time/energy blend until enough phase data exists
 
