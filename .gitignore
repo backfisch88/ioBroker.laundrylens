@@ -25,3 +25,6 @@ coverage/
 
 # release-script metadata file
 .commitinfo
+
+# local assistant reference doc, not for the repo
+CLAUDE.md
