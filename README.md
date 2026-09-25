@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.25 (2026-09-23)
+- New: full per-phase duration learning model for remaining-time estimation. Each program now learns not just its overall duration, but how long each individual phase (heating, washing, spinning, dryer_drying, cooling, ...) typically takes, and in what order. Once at least 3 confirmed cycles have data for the current phase, remaining time is estimated as "time left in the current phase, plus the typical duration of every phase that historically follows it" - far more accurate near the end of a cycle than a single whole-cycle average, especially for a phase (like a dryer's main drying phase) whose position relative to total cycle length varies a lot between runs. Automatically falls back to the 0.4.24 time/energy blend until enough phase data exists
+
 ### 0.4.24 (2026-09-23)
 - Improved remaining-time/progress accuracy, especially for the dryer: each program now also learns its historical duration variance (`durationCV`) - a dryer's drying time depends heavily on load size/dampness, so it naturally varies far more than a fixed-temperature wash. The remaining-time estimate now leans more on the live energy-consumption pace for programs known to vary a lot, and more on the historical time average for consistent ones
 - Fix: the reported progress percentage is now derived from the same blended remaining-time estimate instead of a separate pure elapsed-time ratio, so "Fortschritt" and the predicted finish time can no longer disagree with each other
