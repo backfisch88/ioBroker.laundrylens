@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.24 (2026-09-23)
+- Improved remaining-time/progress accuracy, especially for the dryer: each program now also learns its historical duration variance (`durationCV`) - a dryer's drying time depends heavily on load size/dampness, so it naturally varies far more than a fixed-temperature wash. The remaining-time estimate now leans more on the live energy-consumption pace for programs known to vary a lot, and more on the historical time average for consistent ones
+- Fix: the reported progress percentage is now derived from the same blended remaining-time estimate instead of a separate pure elapsed-time ratio, so "Fortschritt" and the predicted finish time can no longer disagree with each other
+- Added a remaining-time cap for the dryer's short "cooling" phase, matching the washer's existing "spinning" cap
+
 ### 0.4.23 (2026-09-16)
 - Fix: a cycle interrupted by an ioBroker restart while the device's power had already returned to idle was silently orphaned - the on-startup restore logic only handled the case where power was still high at restart, so the manager just reinitialized to "off" without ever properly finishing the interrupted cycle, leaving it stuck showing "running" with stale pre-restart values forever. Combined with the `offDelayMin` fix in 0.4.22, this should resolve "cycle never ends" reports after a mid/post-cycle adapter restart
 
