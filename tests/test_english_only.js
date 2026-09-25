@@ -160,6 +160,14 @@ describe("Admin tab (admin/tab_m.html) user-visible strings must be English or t
     "beim Teilen",
     "beim Zuweisen",
     "🌀 Anti-Knitter",
+    // Found via manual review (0.4.27): the notification-target dropdown's
+    // placeholder option was set to literal German text. For Telegram
+    // targets this got overwritten a moment later by the translated
+    // version once getTelegramUsers() responded, but for every other
+    // non-email notification adapter (Pushover, Signal, WhatsApp, Matrix,
+    // notify-my-android, Prowl) the function returned right after setting
+    // it, so it was never replaced.
+    "Alle (broadcast)",
   ];
 
   it("does not contain any of the specific German strings previously found in the admin tab", () => {
@@ -201,6 +209,40 @@ describe("Admin tab (admin/tab_m.html) user-visible strings must be English or t
       "found a hardcoded locale (e.g. 'de-DE') passed to a toLocale*String() " +
         "call in tab_m.html - use _currentLang || 'en' instead, matching " +
         "every other date/time formatting call in this file",
+    );
+  });
+
+  it("escapes Telegram user id/name before writing them into innerHTML (found via manual review, 0.4.27)", () => {
+    // getTelegramUsers() returns display names taken from ioBroker.telegram's
+    // communicate.users state, i.e. whatever any Telegram user who has
+    // messaged the configured bot has set as their own first/user name -
+    // attacker-influenceable data. Building <option> markup from it via
+    // plain string concatenation (without escaping) is a stored-XSS-style
+    // risk in the admin UI. This pins the fix: both u.id and u.name must go
+    // through escapeHtml() wherever they're interpolated into HTML.
+    const src = fs.readFileSync(
+      path.join(__dirname, "..", "admin", "tab_m.html"),
+      "utf8",
+    );
+    assert.ok(
+      /function escapeHtml\(/.test(src),
+      "expected an escapeHtml() helper to exist in tab_m.html",
+    );
+    const renderMatch = src.match(
+      /res\.users\.map\(function\(u\) \{[\s\S]*?\}\)\.join\(''\)/,
+    );
+    assert.ok(
+      renderMatch,
+      "could not locate the res.users.map(...) rendering call - did " +
+        "getTelegramUsers()'s response handling change shape?",
+    );
+    assert.ok(
+      /escapeHtml\(u\.id\)/.test(renderMatch[0]) &&
+        /escapeHtml\(u\.name\)/.test(renderMatch[0]),
+      "u.id/u.name are interpolated into <option> HTML without escapeHtml() - " +
+        "this data comes from ioBroker.telegram's communicate.users state " +
+        "(any Telegram user's own display name) and must be escaped before " +
+        "being written into innerHTML",
     );
   });
 

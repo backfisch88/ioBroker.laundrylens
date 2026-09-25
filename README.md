@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.27 (2026-09-25)
+- Fix: the notification-target dropdown in the admin tab showed a hardcoded German placeholder ("Alle (broadcast)") for every notification adapter except Telegram/email, regardless of the configured system language - for Telegram this got overwritten a moment later once the user list loaded, but for Pushover/Signal/WhatsApp/Matrix/notify-my-android/Prowl it was never replaced. Now uses the existing translation everywhere
+- Fix: a Telegram user's display name (settable by anyone who messages the configured bot) was written into the admin tab's dropdown options via unescaped string concatenation - a stored-XSS-style risk in the admin UI. Now HTML-escaped before insertion
+- Found via a repository-quality review of the admin tab; both are covered by new regression tests
+
 ### 0.4.26 (2026-09-25)
 - Fix: a program correctly detected early in a cycle (confirmed via score accumulation, which can land as low as 60% confidence) could later revert to "detecting..." near the end if it was never boosted by locking - the protection against this (locking a confirmed program so a later run of unmatched readings can't wipe it) used to only activate if some individual reading also happened to reach 75% confidence on its own. Now it activates immediately on every confirmation, regardless of the confirming confidence. Confirmed against a real log: a wash cycle's program was correctly detected at 68.4% at 07:31, then a ~90-minute stretch of "no match" readings (bestCandidate still consistently the same program, just below the 55% match threshold) would have reverted it before this fix. A high-confidence, persistent override to a genuinely different program remains possible and unaffected
 

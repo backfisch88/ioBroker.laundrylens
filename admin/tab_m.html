@@ -532,6 +532,22 @@ function _(key) {
     return _translations[key] || key;
 }
 
+/**
+ * Escapes text for safe interpolation into innerHTML markup. Needed for any
+ * value that did not originate from this adapter's own translations/internal
+ * data - e.g. a Telegram user's display name (communicate.users), which is
+ * ultimately attacker-influenceable (any Telegram user can set their own
+ * name) and must not be inserted into the DOM unescaped.
+ *
+ * @param {string} text  – untrusted text
+ * @returns {string} – text with &<>"' replaced by their HTML entities
+ */
+function escapeHtml(text) {
+    return String(text == null ? '' : text).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
 /** Replaces the text of every element with a data-i18n attribute with its translation. */
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
@@ -1597,7 +1613,7 @@ function loadNotifTargets(targetVal) {
         if (tEmail && targetVal) tEmail.value = targetVal;
         return;
     }
-    tSel.innerHTML = '<option value="">Alle (broadcast)</option>';
+    tSel.innerHTML = '<option value="">' + _('All (broadcast)') + '</option>';
     if (!adapter || !adapter.startsWith('telegram')) return;
     var dev  = devices.length > 0 ? devices[0] : null;
     var inst = (dev && dev._instance !== undefined) ? dev._instance : 0;
@@ -1607,7 +1623,7 @@ function loadNotifTargets(targetVal) {
             if (!res || !res.ok || !res.users || !res.users.length) return;
             tSel.innerHTML = '<option value="">' + _('All (broadcast)') + '</option>' +
                 res.users.map(function(u) {
-                    return '<option value="' + u.id + '">' + u.name + '</option>';
+                    return '<option value="' + escapeHtml(u.id) + '">' + escapeHtml(u.name) + '</option>';
                 }).join('');
             // Set target AFTER populating the dropdown
             if (targetVal) tSel.value = targetVal;
