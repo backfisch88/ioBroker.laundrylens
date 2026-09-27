@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.31 (2026-09-27)
+- Fix: reported live - the admin tab showed the dryer as off while the `state` data point still read "Running". Root cause: the dryer's anti-crease "power drop" quick-finish path (`WashDataManager.processPowerReading()` - force-ends a cycle 45s after a sudden power drop, to react faster than waiting for the full off-delay) set the in-memory state to `off` directly and called the internal `_onCycleFinished()`, but - unlike the normal `_onDetectorState()` OFF transition - never invoked the `onStateChange` callback afterwards. That callback is what `main.js`'s `_onManagerState()` uses to write the `state`/`stateText`/`running`/`program`/`programText`/`phase`/`phaseText` data points, so they stayed frozen on their last value from before the drop even though the live status the admin tab reads (`WashDataManager._buildStatus()` via `getStatus`) was already correct. `lastCycle`/`lastCycleProgram`/etc. were unaffected (a separate callback), which is why cycle history looked fine while only the live status data points were stuck
+- Fixed by firing `onStateChange` after the quick-finish, exactly as the normal end-of-cycle transition already does. Covered by a new regression test (`tests/test_dryer_drop_finish_state_callback.js`)
+- If you're seeing the stuck-state symptom right now: restarting the adapter clears it immediately without waiting for the next cycle to start
+
 ### 0.4.30 (2026-09-27)
 - Fix: removed the `sinon` devDependency again - it's already provided transitively via `@iobroker/testing`, so listing it directly was flagged as redundant by the review checker (E0063)
 - Fix: `tests/test_elapsed_time_unit.js`'s fake-adapter object (added in 0.4.29) made the same bare-global-timer mistake `test_restart_resume_low_power.js` had in 0.4.28 - reworked to use this suite's established native-setTimeout/setInterval alias pattern (E5004/E5005)
