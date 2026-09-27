@@ -583,6 +583,24 @@ class WashdataAdapter extends utils.Adapter {
       this.log.info(
         `${deviceCfg.name}: started – sensor: ${deviceCfg.powerId}`,
       );
+
+      // Always re-sync the persisted state/stateText/running/program/
+      // phase data points with the manager's actual resolved state at
+      // this point, regardless of which restore branch above fired (or
+      // none at all). Without this, a clean startup with no active
+      // cycle to restore never touches these data points at all - so
+      // any stale value left over from before the restart (the exact
+      // symptom fixed in 0.4.31: the state data point stuck on
+      // "Running" after a dryer anti-crease quick-finish that forgot
+      // to fire onStateChange) would stay stuck forever, surviving
+      // even a full adapter restart, until a brand new cycle happened
+      // to start. This call is idempotent - if the data points already
+      // match, it's a harmless no-op.
+      this._onManagerState(
+        deviceCfg.deviceId,
+        manager.currentState,
+        manager.getStatus(),
+      );
     }
 
     this.setState("info.connection", true, true);
