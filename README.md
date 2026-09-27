@@ -132,6 +132,12 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.28 (2026-09-27)
+- Fix: `@iobroker/testing` devDependency bumped to `^6.2.2` (the review checker's required minimum; was `^6.1.0`)
+- Fix: the GitHub noreply author email (`backfisch88@users.noreply.github.com`), rejected by the repository review checker, replaced with a real contact address in `package.json`, `io-package.json` and the `README.md`/`LICENSE` copyright lines
+- Fix: `tests/test_restart_resume_low_power.js`'s fake-adapter object called the bare global `setTimeout`/`setInterval` directly, which the review checker's plain-timer-usage check flags; reworked to use the same native-timer-alias pattern already used by every other test file in this suite. The mock's job is unchanged - it still just forwards to the real timer under the `adapter.setTimeout`/`adapter.setInterval` name
+- Found via the first ioBroker.repositories manual review pass (PR #6459) on 0.4.27
+
 ### 0.4.27 (2026-09-25)
 - Fix: the notification-target dropdown in the admin tab showed a hardcoded German placeholder ("Alle (broadcast)") for every notification adapter except Telegram/email, regardless of the configured system language - for Telegram this got overwritten a moment later once the user list loaded, but for Pushover/Signal/WhatsApp/Matrix/notify-my-android/Prowl it was never replaced. Now uses the existing translation everywhere
 - Fix: a Telegram user's display name (settable by anyone who messages the configured bot) was written into the admin tab's dropdown options via unescaped string concatenation - a stored-XSS-style risk in the admin UI. Now HTML-escaped before insertion
@@ -257,7 +263,7 @@ Issues and pull requests are welcome: [Issues](https://github.com/backfisch88/io
 
 MIT License
 
-Copyright (c) 2026 backfisch88
+Copyright (c) 2026 backfisch88 <henrik.schoenhofen@icloud.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
