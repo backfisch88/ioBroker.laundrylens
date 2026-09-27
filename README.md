@@ -132,6 +132,12 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.30 (2026-09-27)
+- Fix: removed the `sinon` devDependency again - it's already provided transitively via `@iobroker/testing`, so listing it directly was flagged as redundant by the review checker (E0063)
+- Fix: `tests/test_elapsed_time_unit.js`'s fake-adapter object (added in 0.4.29) made the same bare-global-timer mistake `test_restart_resume_low_power.js` had in 0.4.28 - reworked to use this suite's established native-setTimeout/setInterval alias pattern (E5004/E5005)
+- 0.4.29 was tagged and pushed but never reached npm before this follow-up was needed, so its `io-package.json` news entry has been folded into this one rather than left dangling (the review checker's E2004 flags any news entry for a version npm doesn't have)
+- Found via the second ioBroker.repositories manual review pass (PR #6459) on 0.4.29
+
 ### 0.4.29 (2026-09-27)
 - Fix: `elapsedTime` declares role `value.interval`, which requires its value in seconds - but it was computed and stored in minutes everywhere: the state definition's `unit`, the one-time migration for existing installs, `main.js`'s periodic update, and the live snapshot the admin tab reads via `getStatus`/`WashDataManager._buildStatus()`. All four now consistently use seconds, matching `timeRemaining`/`totalDuration`. Covered by a new regression test (`tests/test_elapsed_time_unit.js`)
 - Fix: added `sinon` as an explicit devDependency - several existing tests already `require("sinon")` directly, but it was missing from `package.json` (a phantom dependency the repository checker had flagged back when this adapter was first submitted)
