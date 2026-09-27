@@ -882,7 +882,7 @@ function refreshOverview() {
             var elEl  = document.getElementById('ov-elapsed');
             if (running && s.elapsedTime > 0) {
                 if (elRow) elRow.style.display = '';
-                if (elEl)  elEl.textContent = s.elapsedTime + ' min';
+                if (elEl)  elEl.textContent = Math.round(s.elapsedTime / 60) + ' min';
             } else {
                 if (elRow) elRow.style.display = 'none';
             }

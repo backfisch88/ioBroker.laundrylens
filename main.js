@@ -1508,8 +1508,8 @@ class WashdataAdapter extends utils.Adapter {
     // Elapsed time from the manager
     const mgr2 = this.managers[deviceId];
     if (mgr2 && mgr2.cycleStartTime) {
-      const elapsedMin = Math.round((Date.now() - mgr2.cycleStartTime) / 60000);
-      this.setState(`${deviceId}.elapsedTime`, elapsedMin, true);
+      const elapsedSec = Math.round((Date.now() - mgr2.cycleStartTime) / 1000);
+      this.setState(`${deviceId}.elapsedTime`, elapsedSec, true);
     }
     this.setState(`${deviceId}.totalDuration`, totalSeconds ?? 0, true);
     // Only overwrite progress if > 0 (prevents a reset if the profile briefly doesn't match)
@@ -1961,11 +1961,13 @@ class WashdataAdapter extends utils.Adapter {
   /**
    * One-time-per-startup migration for existing installations: several
    * state names used to be German (e.g. "Erkanntes Programm") and are now
-   * English. setObjectNotExistsAsync() (used in _createDeviceObjects())
-   * never touches an object that already exists, so without this,
-   * existing installs would keep showing the old German names forever.
-   * extendObjectAsync() merges rather than replaces, so this only ever
-   * touches common.name/common.read - nothing else on the object.
+   * English, and elapsedTime used to be declared in minutes instead of the
+   * seconds its value.interval role requires. setObjectNotExistsAsync()
+   * (used in _createDeviceObjects()) never touches an object that already
+   * exists, so without this, existing installs would keep showing the old
+   * German names / wrong unit forever. extendObjectAsync() merges rather
+   * than replaces, so this only ever touches common.name/common.read/
+   * common.unit - nothing else on the object.
    *
    * Safe to call on every startup: setting the same value again is a
    * no-op for the user, just a harmless extra object write.
@@ -1980,7 +1982,7 @@ class WashdataAdapter extends utils.Adapter {
       timeRemaining: { name: "Remaining time" },
       totalDuration: { name: "Total duration" },
       cycleProgress: { name: "Progress" },
-      elapsedTime: { name: "Elapsed time" },
+      elapsedTime: { name: "Elapsed time", unit: "s" },
       lastCycle: { name: "Last cycle (JSON)" },
       lastCycleProgram: { name: "Last program" },
       lastCycleDuration: { name: "Last duration" },
@@ -2084,7 +2086,7 @@ class WashdataAdapter extends utils.Adapter {
         role: "value.interval",
         def: 0,
         write: false,
-        unit: "min",
+        unit: "s",
       },
       // Last cycle
       {

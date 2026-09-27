@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.29 (2026-09-27)
+- Fix: `elapsedTime` declares role `value.interval`, which requires its value in seconds - but it was computed and stored in minutes everywhere: the state definition's `unit`, the one-time migration for existing installs, `main.js`'s periodic update, and the live snapshot the admin tab reads via `getStatus`/`WashDataManager._buildStatus()`. All four now consistently use seconds, matching `timeRemaining`/`totalDuration`. Covered by a new regression test (`tests/test_elapsed_time_unit.js`)
+- Fix: added `sinon` as an explicit devDependency - several existing tests already `require("sinon")` directly, but it was missing from `package.json` (a phantom dependency the repository checker had flagged back when this adapter was first submitted)
+- Both found via the ioBroker.repositories manual review pass on 0.4.27/0.4.28 (PR #6459); the `elapsedTime` unit mismatch had previously been marked "ignore for now" by the reviewer before being flagged again in a later pass
+
 ### 0.4.28 (2026-09-27)
 - Fix: `@iobroker/testing` devDependency bumped to `^6.2.2` (the review checker's required minimum; was `^6.1.0`)
 - Fix: the GitHub noreply author email (`backfisch88@users.noreply.github.com`), rejected by the repository review checker, replaced with a real contact address in `package.json`, `io-package.json` and the `README.md`/`LICENSE` copyright lines
