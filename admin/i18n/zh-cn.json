@@ -213,5 +213,9 @@
     "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh": "🧺 {device} 完成！\n⏱️ 总运行时间：{duration} 分钟\n📊 程序：{program}\n⚡ 消耗：{energy} 千瓦时",
     "🧺 {device} running\n⏳ Determining time…": "🧺 {device} 运行中\n⏳ 正在确定时间…",
     "🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%": "🧺 {device} 更新\n✅ 完成于 {endTime}\n[↩️ 之前：{prevTime}]\n📊 程序：{program}\n📈 进度：{progress}%",
-    "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} 更新\n✅ 完成于 {endTime}\n📊 程序：{program}"
+    "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} 更新\n✅ 完成于 {endTime}\n📊 程序：{program}",
+    "Show probable program before confirmation": "确认前显示可能的程序",
+    "OFF (default): the program/programText data points show \"detecting...\" until a match is actually confirmed. ON: as soon as a live best-candidate guess reaches at least 40% confidence, it is shown immediately, prefixed with \"≈\" (e.g. \"≈ 30 Speed\") - updated continuously as matching confidence changes, not just once confirmed.": "关闭（默认）：在真正确认匹配之前，program/programText 数据点显示「detecting...」。开启：一旦实时的最佳候选猜测达到至少 40% 的置信度，就会立即显示，并带有「≈」前缀（例如「≈ 30 Speed」）——随着置信度变化持续更新，而不仅仅是在确认后才显示。",
+    "Text data points without emoji": "文本数据点不含表情符号",
+    "OFF (default): the phaseText/stateText data points include a leading/trailing emoji (e.g. \"🫧 Washing\", \"Running ⚙️\"). ON: the emoji is omitted - useful for dashboards, text-to-speech, or anywhere emoji don't render usefully.": "关闭（默认）：phaseText/stateText 数据点包含前置/后置表情符号（例如「🫧 Washing」「Running ⚙️」）。开启：省略表情符号——适用于仪表盘、文本转语音，或任何表情符号无法正常显示的场景。"
 }

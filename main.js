@@ -203,6 +203,8 @@ class WashdataAdapter extends utils.Adapter {
           : 55,
       notifyOnProbable: !!src.notifyOnProbable,
       ignoreAntiKnitter: src.ignoreAntiKnitter !== false,
+      showProbableProgram: !!src.showProbableProgram,
+      noEmoji: !!src.noEmoji,
       // "" (the default) means "use the ioBroker system language" -
       // resolved once at startup, see onReady()'s _deviceLangCache setup.
       displayLanguage: src.displayLanguage || "",
@@ -337,6 +339,7 @@ class WashdataAdapter extends utils.Adapter {
           instantConfirmThreshold: deviceCfg.instantConfirmThreshold ?? 92,
           matchThreshold: deviceCfg.matchThreshold ?? 55,
           ignoreAntiKnitter: deviceCfg.ignoreAntiKnitter,
+          showProbableProgram: deviceCfg.showProbableProgram,
         },
         {
           onStateChange: (state, status) =>
@@ -525,7 +528,11 @@ class WashdataAdapter extends utils.Adapter {
                 );
                 await this.setStateAsync(
                   `${deviceCfg.deviceId}.stateText`,
-                  getStateText("running", this._notifTranslations),
+                  getStateText(
+                    "running",
+                    this._notifTranslations,
+                    deviceCfg.noEmoji,
+                  ),
                   true,
                 );
                 await this.setStateAsync(
@@ -1392,11 +1399,15 @@ class WashdataAdapter extends utils.Adapter {
     this._lastState[deviceId] = status.state;
     const lang =
       (this._deviceLangCache && this._deviceLangCache[deviceId]) || "en";
+    const devCfgState = this._getDeviceConfig().find(
+      (d) => d.deviceId === deviceId,
+    );
+    const noEmoji = devCfgState ? !!devCfgState.noEmoji : false;
 
     this.setState(`${deviceId}.state`, status.state, true);
     this.setState(
       `${deviceId}.stateText`,
-      getStateText(status.state, this._notifTranslations),
+      getStateText(status.state, this._notifTranslations, noEmoji),
       true,
     );
     this.setState(`${deviceId}.running`, status.running, true);
@@ -1432,7 +1443,7 @@ class WashdataAdapter extends utils.Adapter {
       this.setState(`${deviceId}.phase`, phaseKey, true);
       this.setState(
         `${deviceId}.phaseText`,
-        getPhaseText(phaseKey, lang),
+        getPhaseText(phaseKey, lang, noEmoji),
         true,
       );
     } else if (status.state === "off" || status.state === "ending") {
@@ -1488,7 +1499,13 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
-  _onTime(deviceId, remainingSeconds, totalSeconds, progressPct) {
+  _onTime(
+    deviceId,
+    remainingSeconds,
+    totalSeconds,
+    progressPct,
+    forceWrite = false,
+  ) {
     // Phase bei jedem Tick schreiben
     const mgrPh = this.managers[deviceId];
     if (mgrPh) {
@@ -1530,8 +1547,15 @@ class WashdataAdapter extends utils.Adapter {
       this.setState(`${deviceId}.elapsedTime`, elapsedSec, true);
     }
     this.setState(`${deviceId}.totalDuration`, totalSeconds ?? 0, true);
-    // Only overwrite progress if > 0 (prevents a reset if the profile briefly doesn't match)
-    if (progressPct > 0) {
+    // Only overwrite progress if > 0 (prevents a reset if the profile
+    // briefly doesn't match) - UNLESS forceWrite is set, which is how
+    // the deliberate reset-to-0 call at cycle end (_onCycleFinished())
+    // bypasses this guard. Without forceWrite, that reset call's
+    // progressPct=0 was silently swallowed by this same guard, which is
+    // exactly why cycleProgress stayed stuck at its last value (often
+    // 100%, or a stale percentage carried over from the previous cycle)
+    // after a cycle had already finished - found live.
+    if (progressPct > 0 || forceWrite) {
       this.setState(`${deviceId}.cycleProgress`, progressPct, true);
     }
   }
@@ -1563,7 +1587,7 @@ class WashdataAdapter extends utils.Adapter {
       Math.round((cycle.energyWh || 0) * 10) / 10,
       true,
     );
-    this._onTime(deviceId, 0, 0, 0);
+    this._onTime(deviceId, 0, 0, 0, true);
 
     // Reset the program override
     this.setState(`${deviceId}.programOverride`, "auto", true);

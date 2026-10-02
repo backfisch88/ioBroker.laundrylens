@@ -1,312 +1,370 @@
 {
-  "i18n": true,
-  "type": "panel",
-  "items": {
-    "name": {
-      "type": "text",
-      "label": "Device name",
-      "placeholder": "e.g. Washing machine",
-      "default": "Washing machine",
-      "help": "Display name in the dashboard",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "deviceType": {
-      "type": "select",
-      "label": "Device type",
-      "default": "washing_machine",
-      "options": [
-        {
-          "value": "washing_machine",
-          "label": "🧺 Washing machine"
+    "i18n": true,
+    "type": "panel",
+    "items": {
+        "name": {
+            "type": "text",
+            "label": "Device name",
+            "placeholder": "e.g. Washing machine",
+            "default": "Washing machine",
+            "help": "Display name in the dashboard",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
         },
-        {
-          "value": "dishwasher",
-          "label": "🍽️ Dishwasher"
+        "deviceType": {
+            "type": "select",
+            "label": "Device type",
+            "default": "washing_machine",
+            "options": [
+                {
+                    "value": "washing_machine",
+                    "label": "🧺 Washing machine"
+                },
+                {
+                    "value": "dishwasher",
+                    "label": "🍽️ Dishwasher"
+                },
+                {
+                    "value": "dryer",
+                    "label": "♨️ Dryer"
+                },
+                {
+                    "value": "washer_dryer",
+                    "label": "🔄 Washer-dryer"
+                },
+                {
+                    "value": "other",
+                    "label": "⚙️ Other"
+                }
+            ],
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
         },
-        {
-          "value": "dryer",
-          "label": "♨️ Dryer"
+        "powerId": {
+            "type": "objectId",
+            "label": "Power sensor (watt)",
+            "help": "ioBroker data point providing the current power draw in watts",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 6,
+            "xl": 6
         },
-        {
-          "value": "washer_dryer",
-          "label": "🔄 Washer-dryer"
+        "_sep1": {
+            "type": "divider",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         },
-        {
-          "value": "other",
-          "label": "⚙️ Other"
+        "_hdr1": {
+            "type": "staticText",
+            "text": "Detection thresholds",
+            "style": {
+                "fontWeight": "bold",
+                "marginTop": "8px"
+            },
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "powerThreshold": {
+            "type": "number",
+            "label": "Power-on threshold (W)",
+            "default": 10,
+            "min": 1,
+            "max": 500,
+            "help": "Power level from which the device is considered running. Recommended: 10W for all device types",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "offDelayMin": {
+            "type": "number",
+            "label": "Off delay (min)",
+            "default": 5,
+            "min": 1,
+            "max": 60,
+            "help": "How long power must stay below the threshold before the cycle ends. Recommended: washing machine 5 min · dryer 8 min · dishwasher 8 min · washer-dryer 10 min",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "startEnergyThreshold": {
+            "type": "number",
+            "label": "Start energy gate (Wh)",
+            "default": 2,
+            "min": 0,
+            "max": 50,
+            "help": "Minimum energy after start before the cycle is counted (prevents false starts). Recommended: washing machine 2 Wh · dryer 5 Wh · washer-dryer 5 Wh",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "_sep2": {
+            "type": "divider",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "_hdr2": {
+            "type": "staticText",
+            "text": "Program detection",
+            "style": {
+                "fontWeight": "bold",
+                "marginTop": "8px"
+            },
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "durationTolerance": {
+            "type": "number",
+            "label": "Duration tolerance (0.05–0.5)",
+            "default": 0.2,
+            "min": 0.05,
+            "max": 0.5,
+            "step": 0.05,
+            "help": "How much the run time may deviate from the profile. 0.2 = ±20%",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "matchIntervalMin": {
+            "type": "number",
+            "label": "Matching interval (min)",
+            "default": 5,
+            "min": 1,
+            "max": 30,
+            "help": "How often the program is matched. Recommended: 5 min for all device types",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "matchPersist": {
+            "type": "number",
+            "label": "Match confirmations (count)",
+            "default": 3,
+            "min": 1,
+            "max": 5,
+            "help": "How many times in a row the same program must be detected. 3 = reliable · 2 = faster",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "autoConfirmThreshold": {
+            "type": "number",
+            "label": "Auto-confirm from confidence (%)",
+            "default": 85,
+            "min": 0,
+            "max": 100,
+            "help": "From this confidence level the cycle is confirmed automatically. 0 = disabled · 85 = recommended",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "instantConfirmThreshold": {
+            "type": "number",
+            "label": "Instant adoption from confidence (%)",
+            "default": 92,
+            "min": 50,
+            "max": 100,
+            "help": "During a running cycle: if the live preview repeatedly (2x) shows at least this confidence, the program is adopted immediately instead of waiting for the normal, slower detection.",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "matchThreshold": {
+            "type": "number",
+            "label": "Program detection threshold (%)",
+            "default": 55,
+            "min": 30,
+            "max": 95,
+            "help": "From this confidence a program counts as detected (and is shown). Below it, it stays 'detecting...'. 55 = recommended",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "notifyOnProbable": {
+            "type": "checkbox",
+            "label": "Notify also for probable program",
+            "default": false,
+            "help": "Send a Telegram update as soon as a program is detected - even if confidence is below the auto-confirm threshold",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "showProbableProgram": {
+            "type": "checkbox",
+            "label": "Show probable program before confirmation",
+            "default": false,
+            "help": "OFF (default): the program/programText data points show \"detecting...\" until a match is actually confirmed. ON: as soon as a live best-candidate guess reaches at least 40% confidence, it is shown immediately, prefixed with \"≈\" (e.g. \"≈ 30 Speed\") - updated continuously as matching confidence changes, not just once confirmed.",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "_sep3": {
+            "type": "divider",
+            "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "_hdr3": {
+            "type": "staticText",
+            "text": "Dryer settings",
+            "style": {
+                "fontWeight": "bold",
+                "marginTop": "8px"
+            },
+            "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "ignoreAntiKnitter": {
+            "type": "checkbox",
+            "label": "Ignore saved anti-crease pattern",
+            "default": true,
+            "help": "ON (default): the cycle ends immediately at the beep, and a saved anti-crease reference pattern (if any) is not used - simplest option, and required until a pattern has been recorded. OFF: once a reference pattern exists (see 'Programs' tab), the adapter uses it to avoid mistaking anti-crease power spikes for a new cycle after the beep. Turn this off once you have saved a pattern.",
+            "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "_sep4": {
+            "type": "divider",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "_hdr4": {
+            "type": "staticText",
+            "text": "Display language",
+            "style": {
+                "fontWeight": "bold",
+                "marginTop": "8px"
+            },
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "displayLanguage": {
+            "type": "select",
+            "label": "Language for phaseText/stateText/programText",
+            "options": [
+                {
+                    "label": "System default",
+                    "value": ""
+                },
+                {
+                    "label": "English",
+                    "value": "en"
+                },
+                {
+                    "label": "Deutsch",
+                    "value": "de"
+                },
+                {
+                    "label": "Русский",
+                    "value": "ru"
+                },
+                {
+                    "label": "Português",
+                    "value": "pt"
+                },
+                {
+                    "label": "Nederlands",
+                    "value": "nl"
+                },
+                {
+                    "label": "Français",
+                    "value": "fr"
+                },
+                {
+                    "label": "Italiano",
+                    "value": "it"
+                },
+                {
+                    "label": "Español",
+                    "value": "es"
+                },
+                {
+                    "label": "Polski",
+                    "value": "pl"
+                },
+                {
+                    "label": "Українська",
+                    "value": "uk"
+                },
+                {
+                    "label": "中文 (简体)",
+                    "value": "zh-cn"
+                }
+            ],
+            "default": "",
+            "help": "The phase/state/program data points (e.g. 'washing', 'off') are language-neutral internal keys, meant for automations. This controls the language of the extra *Text data points (e.g. 'phaseText') that hold a ready-to-display translation - useful for showing status directly in a VIS dashboard without translating it yourself. Defaults to the ioBroker system language.",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
+        "noEmoji": {
+            "type": "checkbox",
+            "label": "Text data points without emoji",
+            "default": false,
+            "help": "OFF (default): the phaseText/stateText data points include a leading/trailing emoji (e.g. \"🫧 Washing\", \"Running ⚙️\"). ON: the emoji is omitted - useful for dashboards, text-to-speech, or anywhere emoji don't render usefully.",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
         }
-      ],
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "powerId": {
-      "type": "objectId",
-      "label": "Power sensor (watt)",
-      "help": "ioBroker data point providing the current power draw in watts",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 6,
-      "xl": 6
-    },
-    "_sep1": {
-      "type": "divider",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_hdr1": {
-      "type": "staticText",
-      "text": "Detection thresholds",
-      "style": {
-        "fontWeight": "bold",
-        "marginTop": "8px"
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "powerThreshold": {
-      "type": "number",
-      "label": "Power-on threshold (W)",
-      "default": 10,
-      "min": 1,
-      "max": 500,
-      "help": "Power level from which the device is considered running. Recommended: 10W for all device types",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "offDelayMin": {
-      "type": "number",
-      "label": "Off delay (min)",
-      "default": 5,
-      "min": 1,
-      "max": 60,
-      "help": "How long power must stay below the threshold before the cycle ends. Recommended: washing machine 5 min · dryer 8 min · dishwasher 8 min · washer-dryer 10 min",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "startEnergyThreshold": {
-      "type": "number",
-      "label": "Start energy gate (Wh)",
-      "default": 2,
-      "min": 0,
-      "max": 50,
-      "help": "Minimum energy after start before the cycle is counted (prevents false starts). Recommended: washing machine 2 Wh · dryer 5 Wh · washer-dryer 5 Wh",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "_sep2": {
-      "type": "divider",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_hdr2": {
-      "type": "staticText",
-      "text": "Program detection",
-      "style": {
-        "fontWeight": "bold",
-        "marginTop": "8px"
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "durationTolerance": {
-      "type": "number",
-      "label": "Duration tolerance (0.05–0.5)",
-      "default": 0.2,
-      "min": 0.05,
-      "max": 0.5,
-      "step": 0.05,
-      "help": "How much the run time may deviate from the profile. 0.2 = ±20%",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "matchIntervalMin": {
-      "type": "number",
-      "label": "Matching interval (min)",
-      "default": 5,
-      "min": 1,
-      "max": 30,
-      "help": "How often the program is matched. Recommended: 5 min for all device types",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "matchPersist": {
-      "type": "number",
-      "label": "Match confirmations (count)",
-      "default": 3,
-      "min": 1,
-      "max": 5,
-      "help": "How many times in a row the same program must be detected. 3 = reliable · 2 = faster",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "autoConfirmThreshold": {
-      "type": "number",
-      "label": "Auto-confirm from confidence (%)",
-      "default": 85,
-      "min": 0,
-      "max": 100,
-      "help": "From this confidence level the cycle is confirmed automatically. 0 = disabled · 85 = recommended",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "instantConfirmThreshold": {
-      "type": "number",
-      "label": "Instant adoption from confidence (%)",
-      "default": 92,
-      "min": 50,
-      "max": 100,
-      "help": "During a running cycle: if the live preview repeatedly (2x) shows at least this confidence, the program is adopted immediately instead of waiting for the normal, slower detection.",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "matchThreshold": {
-      "type": "number",
-      "label": "Program detection threshold (%)",
-      "default": 55,
-      "min": 30,
-      "max": 95,
-      "help": "From this confidence a program counts as detected (and is shown). Below it, it stays 'detecting...'. 55 = recommended",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "notifyOnProbable": {
-      "type": "checkbox",
-      "label": "Notify also for probable program",
-      "default": false,
-      "help": "Send a Telegram update as soon as a program is detected - even if confidence is below the auto-confirm threshold",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "_sep3": {
-      "type": "divider",
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_hdr3": {
-      "type": "staticText",
-      "text": "Dryer settings",
-      "style": {
-        "fontWeight": "bold",
-        "marginTop": "8px"
-      },
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "ignoreAntiKnitter": {
-      "type": "checkbox",
-      "label": "Ignore saved anti-crease pattern",
-      "default": true,
-      "help": "ON (default): the cycle ends immediately at the beep, and a saved anti-crease reference pattern (if any) is not used - simplest option, and required until a pattern has been recorded. OFF: once a reference pattern exists (see 'Programs' tab), the adapter uses it to avoid mistaking anti-crease power spikes for a new cycle after the beep. Turn this off once you have saved a pattern.",
-      "hidden": "!data.deviceType || (data.deviceType !== \"dryer\")",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "_sep4": {
-      "type": "divider",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_hdr4": {
-      "type": "staticText",
-      "text": "Display language",
-      "style": {
-        "fontWeight": "bold",
-        "marginTop": "8px"
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "displayLanguage": {
-      "type": "select",
-      "label": "Language for phaseText/stateText/programText",
-      "options": [
-        { "label": "System default", "value": "" },
-        { "label": "English", "value": "en" },
-        { "label": "Deutsch", "value": "de" },
-        { "label": "Русский", "value": "ru" },
-        { "label": "Português", "value": "pt" },
-        { "label": "Nederlands", "value": "nl" },
-        { "label": "Français", "value": "fr" },
-        { "label": "Italiano", "value": "it" },
-        { "label": "Español", "value": "es" },
-        { "label": "Polski", "value": "pl" },
-        { "label": "Українська", "value": "uk" },
-        { "label": "中文 (简体)", "value": "zh-cn" }
-      ],
-      "default": "",
-      "help": "The phase/state/program data points (e.g. 'washing', 'off') are language-neutral internal keys, meant for automations. This controls the language of the extra *Text data points (e.g. 'phaseText') that hold a ready-to-display translation - useful for showing status directly in a VIS dashboard without translating it yourself. Defaults to the ioBroker system language.",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
     }
-  }
 }

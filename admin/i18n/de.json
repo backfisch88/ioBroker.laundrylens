@@ -213,5 +213,9 @@
     "🧺 {device} done!\n⏱️ Total runtime: {duration} min\n📊 Program: {program}\n⚡ Consumption: {energy} kWh": "🧺 {device} fertig!\n⏱️ Gesamtlaufzeit: {duration} min\n📊 Programm: {program}\n⚡ Verbrauch: {energy} kWh",
     "🧺 {device} running\n⏳ Determining time…": "🧺 {device} läuft\n⏳ Zeit wird ermittelt…",
     "🧺 {device} update\n✅ Done at {endTime}\n[↩️ Before: {prevTime}]\n📊 Program: {program}\n📈 Progress: {progress}%": "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n[↩️ Vorher: {prevTime}]\n📊 Programm: {program}\n📈 Fortschritt: {progress}%",
-    "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n📊 Programm: {program}"
+    "🧺 {device} update\n✅ Done at {endTime}\n📊 Program: {program}": "🧺 {device} Update\n✅ Fertig um {endTime} Uhr\n📊 Programm: {program}",
+    "Show probable program before confirmation": "Wahrscheinliches Programm vor Bestätigung anzeigen",
+    "OFF (default): the program/programText data points show \"detecting...\" until a match is actually confirmed. ON: as soon as a live best-candidate guess reaches at least 40% confidence, it is shown immediately, prefixed with \"≈\" (e.g. \"≈ 30 Speed\") - updated continuously as matching confidence changes, not just once confirmed.": "AUS (Standard): Die Datenpunkte program/programText zeigen \"detecting...\", bis ein Treffer tatsächlich bestätigt ist. EIN: Sobald eine Live-Vermutung mindestens 40% Konfidenz erreicht, wird sie sofort mit dem Präfix \"≈\" angezeigt (z. B. \"≈ 30 Speed\") - fortlaufend aktualisiert, nicht erst nach Bestätigung.",
+    "Text data points without emoji": "Text-Datenpunkte ohne Emoji",
+    "OFF (default): the phaseText/stateText data points include a leading/trailing emoji (e.g. \"🫧 Washing\", \"Running ⚙️\"). ON: the emoji is omitted - useful for dashboards, text-to-speech, or anywhere emoji don't render usefully.": "AUS (Standard): Die Datenpunkte phaseText/stateText enthalten ein voran-/nachgestelltes Emoji (z. B. \"🫧 Washing\", \"Läuft ⚙️\"). EIN: Das Emoji wird weggelassen - nützlich für Dashboards, Sprachausgabe oder überall, wo Emoji nicht sinnvoll dargestellt werden."
 }
