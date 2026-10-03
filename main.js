@@ -1540,10 +1540,29 @@ class WashdataAdapter extends utils.Adapter {
     if (mgrPh) {
       const st = mgrPh.getStatus();
       if (st && st.phase) {
-        const phaseText = st.phase
+        const phaseKey = st.phase
           .replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}]\s*/u, "")
           .trim();
-        this.setState(`${deviceId}.phase`, phaseText, true);
+        this.setState(`${deviceId}.phase`, phaseKey, true);
+        // phaseText was only ever written in _onManagerState() - which
+        // only fires on actual state transitions (off/starting/running/
+        // paused/ending), not on every phase change within a single
+        // long "running" period. phase (above) was already correctly
+        // updated on every tick, which is exactly why it could show a
+        // newer phase (e.g. "dryer_drying") while phaseText stayed
+        // frozen on an older one from earlier in the same cycle (e.g.
+        // "Aufheizen"/heating) - found live.
+        const devCfgTime = this._getDeviceConfig().find(
+          (d) => d.deviceId === deviceId,
+        );
+        const langTime =
+          (this._deviceLangCache && this._deviceLangCache[deviceId]) || "en";
+        const noEmojiTime = devCfgTime ? !!devCfgTime.noEmoji : false;
+        this.setState(
+          `${deviceId}.phaseText`,
+          getPhaseText(phaseKey, langTime, noEmojiTime),
+          true,
+        );
       }
     }
     // Only check update messages every 60s AND only when a program is really recognized

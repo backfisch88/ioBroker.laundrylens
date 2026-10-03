@@ -132,6 +132,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.35 (2026-10-03)
+- Fix: reported live - `phaseText` could get stuck showing an earlier phase (e.g. "Aufheizen"/heating) while `phase` had correctly moved on (e.g. to "dryer_drying"). Root cause: `phase` was already written on every `_onTime()` tick (which fires frequently throughout a running cycle), but `phaseText` (the human-readable, localized, emoji-carrying label) was only ever written in `_onManagerState()` - which only runs on actual state transitions (off/starting/running/paused/ending), not on every phase change within a single long "running" period. Both data points now update together on every tick
+- Covered by a new regression test (`tests/test_phase_text_tick_update.js`)
+
 ### 0.4.34 (2026-10-02)
 - Fix: reported live with screenshots - `availablePrograms` could show `[]` for a device that clearly had saved programs visible in the admin tab's own "Programme" list, while a second device correctly showed all of its programs. Root cause: the data point (and `programOverride`'s dropdown states) was only ever written from five specific admin-tab actions (create/delete/rename a program, "clear all data") - never at startup, and never after a program got auto-learned from a confirmed cycle. A device whose programs were all auto-learned, with none of those five actions performed since the last restart, kept showing an empty list indefinitely even though `profileStore` had loaded the real programs from disk
 - Fix: `needsFeedback` stayed `false` even with a cycle visibly pending confirmation in the admin tab's "Lernkontrolle" tab (complete with its own "1" badge). Root cause: the data point was declared in `io-package.json` but never actually written anywhere - the admin tab computes its own pending-cycle count entirely client-side (`updateFeedbackBadge()` in `tab_m.html`, counting cycles with `!confirmed`), so the data point itself never reflected it
