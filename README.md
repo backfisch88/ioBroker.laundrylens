@@ -132,6 +132,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.37 (2026-10-03)
+- Fix: three test files added in recent releases (`test_show_probable_program.js`, `test_cycle_finish_exception_guard.js`, `test_cycle_boundary_reset.js`) called the bare global `setTimeout()`/`setInterval()` directly in their fake-adapter mocks - the same mistake made and fixed before in other test files, missed again when writing these new ones. Brought in line with the native-timer-alias pattern used everywhere else in this suite (review checker E5004/E5005)
+- Fix: `@iobroker/testing` devDependency bumped to `^6.3.0` (current; was `^6.2.2`)
+
 ### 0.4.36 (2026-10-03)
 - Fix: follow-up to 0.4.34's `needsFeedback` fix, reported live - deleting a cycle (e.g. an unconfirmed one someone just discards without confirming/correcting it first) could also leave `needsFeedback` stuck on `true` forever, since only `confirmCycle`/`correctCycle` had been covered. `clearAllData` and `importConfig` had the same gap (both can also replace `cycleHistory`/profiles wholesale). All three now also re-sync `needsFeedback`; `clearAllData`/`importConfig` additionally re-sync `availablePrograms`
 - Covered by 3 new test cases extending `tests/test_programs_and_feedback_sync.js`

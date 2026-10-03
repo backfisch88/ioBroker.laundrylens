@@ -21,6 +21,11 @@
 const assert = require("node:assert");
 const { WashDataManager } = require("../lib/washDataManager");
 
+const nativeSetTimeout = globalThis.setTimeout;
+const nativeClearTimeout = globalThis.clearTimeout;
+const nativeSetInterval = globalThis.setInterval;
+const nativeClearInterval = globalThis.clearInterval;
+
 function makeAdapter() {
   return {
     log: {
@@ -34,10 +39,10 @@ function makeAdapter() {
     readFileAsync: async () => {
       throw new Error("not found");
     },
-    setTimeout: (fn, ms, ...args) => setTimeout(fn, ms, ...args),
-    clearTimeout: (id) => clearTimeout(id),
-    setInterval: (fn, ms, ...args) => setInterval(fn, ms, ...args),
-    clearInterval: (id) => clearInterval(id),
+    setTimeout: (fn, ms, ...args) => nativeSetTimeout(fn, ms, ...args),
+    clearTimeout: (id) => nativeClearTimeout(id),
+    setInterval: (fn, ms, ...args) => nativeSetInterval(fn, ms, ...args),
+    clearInterval: (id) => nativeClearInterval(id),
   };
 }
 
