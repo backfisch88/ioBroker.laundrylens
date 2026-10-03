@@ -608,6 +608,22 @@ class WashdataAdapter extends utils.Adapter {
         manager.currentState,
         manager.getStatus(),
       );
+
+      // Same reasoning as above, for two more data points found live to
+      // have the same "only updated from specific admin-tab actions"
+      // gap: availablePrograms/programOverride's states (only ever
+      // written from the createProfile/deleteProfile/renameProfile/
+      // clearAllData sendTo handlers - never at startup, so a device
+      // with profiles already on disk showed an empty [] until one of
+      // those actions happened to run) and needsFeedback (declared as a
+      // data point but never written anywhere at all - the admin tab's
+      // own "Lernkontrolle" badge computes its pending-cycle count
+      // entirely client-side from getCycles(), so the data point never
+      // reflected it). Both are now also re-synced after every finished
+      // cycle and (for needsFeedback) after a cycle is confirmed/
+      // corrected - see _onCycleFinished()/confirmCycle/correctCycle.
+      await this._updateOverrideStates(deviceCfg.deviceId, manager);
+      await this._updateNeedsFeedback(deviceCfg.deviceId, manager);
     }
 
     this.setState("info.connection", true, true);
@@ -851,6 +867,7 @@ class WashdataAdapter extends utils.Adapter {
             );
             await mgr.profileStore.save();
           }
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
           respond({ ok: true });
           break;
         }
@@ -885,6 +902,8 @@ class WashdataAdapter extends utils.Adapter {
           );
           await mgr.profileStore.save();
           await mgr._saveState(); // Persist the cycle change
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
+          await this._updateOverrideStates(obj.message.deviceId, mgr);
           respond({ ok: true });
           break;
         }
@@ -1392,6 +1411,16 @@ class WashdataAdapter extends utils.Adapter {
     );
   }
 
+  // ── Update "feedback needed" indicator ──────────────────
+  // Mirrors admin/tab_m.html's updateFeedbackBadge() exactly (cycles
+  // with !confirmed) - that is the only place this count was ever
+  // computed before, entirely client-side, which is why the
+  // needsFeedback data point itself was never actually written.
+  async _updateNeedsFeedback(deviceId, mgr) {
+    const needsFeedback = mgr.getCycleHistory().some((c) => !c.confirmed);
+    this.setState(`${deviceId}.needsFeedback`, needsFeedback, true);
+  }
+
   // ── Callbacks ────────────────────────────────────────────────
   _onManagerState(deviceId, state, status) {
     const prevState = this._lastState && this._lastState[deviceId];
@@ -1591,6 +1620,15 @@ class WashdataAdapter extends utils.Adapter {
 
     // Reset the program override
     this.setState(`${deviceId}.programOverride`, "auto", true);
+
+    if (mgrPh) {
+      // A freshly finished cycle may be unconfirmed (needs feedback) and/or
+      // may have caused profileStore.learnFromCycle() to auto-learn a brand
+      // new program - both found live to otherwise only ever update from
+      // specific admin-tab actions, never automatically here.
+      await this._updateNeedsFeedback(deviceId, mgrPh);
+      await this._updateOverrideStates(deviceId, mgrPh);
+    }
 
     // Send notification
     await this._sendNotification(deviceId, cycle);
