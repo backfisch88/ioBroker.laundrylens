@@ -132,6 +132,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.36 (2026-10-03)
+- Fix: follow-up to 0.4.34's `needsFeedback` fix, reported live - deleting a cycle (e.g. an unconfirmed one someone just discards without confirming/correcting it first) could also leave `needsFeedback` stuck on `true` forever, since only `confirmCycle`/`correctCycle` had been covered. `clearAllData` and `importConfig` had the same gap (both can also replace `cycleHistory`/profiles wholesale). All three now also re-sync `needsFeedback`; `clearAllData`/`importConfig` additionally re-sync `availablePrograms`
+- Covered by 3 new test cases extending `tests/test_programs_and_feedback_sync.js`
+
 ### 0.4.35 (2026-10-03)
 - Fix: reported live - `phaseText` could get stuck showing an earlier phase (e.g. "Aufheizen"/heating) while `phase` had correctly moved on (e.g. to "dryer_drying"). Root cause: `phase` was already written on every `_onTime()` tick (which fires frequently throughout a running cycle), but `phaseText` (the human-readable, localized, emoji-carrying label) was only ever written in `_onManagerState()` - which only runs on actual state transitions (off/starting/running/paused/ending), not on every phase change within a single long "running" period. Both data points now update together on every tick
 - Covered by a new regression test (`tests/test_phase_text_tick_update.js`)

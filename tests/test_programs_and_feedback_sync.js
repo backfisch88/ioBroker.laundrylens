@@ -142,4 +142,39 @@ describe("availablePrograms and needsFeedback stay in sync, not just after speci
       "correctCycle must re-sync needsFeedback too",
     );
   });
+
+  // Found via a follow-up live report: deleting a cycle (e.g. an
+  // unconfirmed one someone decides to just discard, without confirming
+  // or correcting it first) didn't re-sync needsFeedback either - only
+  // confirmCycle/correctCycle did. clearAllData and importConfig can
+  // also replace cycleHistory/profiles wholesale and had the same gap.
+  for (const [caseName, needsAvailablePrograms] of [
+    ["deleteCycle", false],
+    ["clearAllData", true],
+    ["importConfig", true],
+  ]) {
+    it(`${caseName} re-syncs needsFeedback${needsAvailablePrograms ? " and availablePrograms" : ""} after mutating cycleHistory/profiles`, () => {
+      const caseMatch = mainSrc.match(
+        new RegExp(
+          `case "${caseName}": \\{([\\s\\S]*?)\\n {10}break;\\n {8}\\}`,
+        ),
+      );
+      assert.ok(caseMatch, `could not locate the ${caseName} sendTo handler`);
+      assert.ok(
+        /await this\._updateNeedsFeedback\(obj\.message\.deviceId, mgr\);/.test(
+          caseMatch[1],
+        ),
+        `${caseName} must re-sync needsFeedback - it mutates cycleHistory, ` +
+          "so whether any cycle still needs feedback can change here too",
+      );
+      if (needsAvailablePrograms) {
+        assert.ok(
+          /await this\._updateOverrideStates\(obj\.message\.deviceId, mgr\);/.test(
+            caseMatch[1],
+          ),
+          `${caseName} must also re-sync availablePrograms - it mutates profiles too`,
+        );
+      }
+    });
+  }
 });

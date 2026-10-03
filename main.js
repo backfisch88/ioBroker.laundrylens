@@ -1153,6 +1153,10 @@ class WashdataAdapter extends utils.Adapter {
           mgr.traceStore.deleteTrace(cycleId);
           await mgr._saveState();
           await mgr.traceStore.save();
+          // Deleting a cycle - even an unconfirmed one, without ever
+          // confirming/correcting it first - changes whether any cycle
+          // still needs feedback, exactly like confirming one does.
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
           respond({ ok: true });
           break;
         }
@@ -1171,6 +1175,7 @@ class WashdataAdapter extends utils.Adapter {
             mgr._saveState(),
           ]);
           await this._updateOverrideStates(obj.message.deviceId, mgr);
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
           respond({ ok: true });
           break;
         }
@@ -1202,6 +1207,11 @@ class WashdataAdapter extends utils.Adapter {
             await mgr.traceStore.save();
             importedTraces = Object.keys(data.traces).length;
           }
+
+          // Imported data can add profiles and/or replace cycleHistory
+          // wholesale - same as any other action that changes either.
+          await this._updateOverrideStates(obj.message.deviceId, mgr);
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
 
           respond({
             ok: true,
