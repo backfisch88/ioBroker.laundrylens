@@ -301,6 +301,16 @@ describe("State-name migration completeness (found via a real object dump)", () 
       "phaseText",
       "stateText",
       "programText",
+      "pendingFeedbackCount",
+      "pendingFeedback",
+      "feedbackCycleId",
+      "feedbackProgram",
+      "feedbackDuration",
+      "feedbackEnergy",
+      "feedbackConfidence",
+      "feedbackConfirm",
+      "feedbackCorrectProgram",
+      "feedbackDelete",
     ]);
 
     const mainSrc = fs.readFileSync(

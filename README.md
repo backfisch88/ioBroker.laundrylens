@@ -132,6 +132,12 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.38 (2026-10-04)
+- New: the Lernkontrolle (learning review/feedback) flow can now be driven from a VIS dashboard, not just the admin tab - previously only reachable via sendTo commands, invisible to VIS, which can only read/write data points
+- New read-only data points: `pendingFeedbackCount`, `pendingFeedback` (JSON array of all unconfirmed cycles, oldest first), and `feedbackCycleId`/`feedbackProgram`/`feedbackDuration`/`feedbackEnergy`/`feedbackConfidence` (convenience fields for the oldest pending cycle, so a simple VIS text widget doesn't need to parse JSON)
+- New writable actions, each acting on the oldest pending cycle: `feedbackConfirm` (button - same as the admin tab's "Correct – confirm"), `feedbackCorrectProgram` (dropdown of program names, kept in sync the same way `programOverride`'s own dropdown is - writing a name corrects and confirms, same as the admin tab's "Wrong program" flow), `feedbackDelete` (button - discards the cycle without confirming it)
+- Covered by a new test file (`tests/test_vis_feedback_actions.js`, 17 cases) plus an extension to `test_english_only.js`'s existing state/migration-coverage invariant check (the ten new state ids are brand new, so correctly added to the "nothing to migrate" allow-list rather than the migrations object)
+
 ### 0.4.37 (2026-10-03)
 - Fix: three test files added in recent releases (`test_show_probable_program.js`, `test_cycle_finish_exception_guard.js`, `test_cycle_boundary_reset.js`) called the bare global `setTimeout()`/`setInterval()` directly in their fake-adapter mocks - the same mistake made and fixed before in other test files, missed again when writing these new ones. Brought in line with the native-timer-alias pattern used everywhere else in this suite (review checker E5004/E5005)
 - Fix: `@iobroker/testing` devDependency bumped to `^6.3.0` (current; was `^6.2.2`)

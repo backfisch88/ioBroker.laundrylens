@@ -57,13 +57,15 @@ describe("availablePrograms and needsFeedback stay in sync, not just after speci
       "expected an _updateNeedsFeedback(deviceId, mgr) helper in main.js",
     );
     assert.ok(
-      /\.getCycleHistory\(\)\s*\.some\(\(c\) => !c\.confirmed\)/.test(mainSrc),
+      /\.getCycleHistory\(\)\s*\.filter\(\(c\) => !c\.confirmed\)/.test(
+        mainSrc,
+      ),
       "expected _updateNeedsFeedback() to compute its value the same way " +
         "admin/tab_m.html's updateFeedbackBadge() does: " +
-        "cycles.filter(c => !c.confirmed).length > 0",
+        "cycles.filter(c => !c.confirmed)",
     );
     assert.ok(
-      /this\.setState\(`\$\{deviceId\}\.needsFeedback`, needsFeedback, true\)/.test(
+      /this\.setState\(`\$\{deviceId\}\.needsFeedback`, open\.length > 0, true\)/.test(
         mainSrc,
       ),
       "expected _updateNeedsFeedback() to actually write the needsFeedback data point",

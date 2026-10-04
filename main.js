@@ -378,6 +378,11 @@ class WashdataAdapter extends utils.Adapter {
       // Subscribe to writable states
       await this.subscribeStatesAsync(`${deviceCfg.deviceId}.programOverride`);
       await this.subscribeStatesAsync(`${deviceCfg.deviceId}.forceFinish`);
+      await this.subscribeStatesAsync(`${deviceCfg.deviceId}.feedbackConfirm`);
+      await this.subscribeStatesAsync(
+        `${deviceCfg.deviceId}.feedbackCorrectProgram`,
+      );
+      await this.subscribeStatesAsync(`${deviceCfg.deviceId}.feedbackDelete`);
 
       // Disable ghost protection if the sensor is currently drawing power
       try {
@@ -664,6 +669,36 @@ class WashdataAdapter extends utils.Adapter {
           }
           return;
         }
+        if (id === `${this.namespace}.${deviceId}.feedbackConfirm`) {
+          if (state.val === true) {
+            this._handleFeedbackConfirm(deviceId, mgr).catch((err) =>
+              this.log.error(`${deviceId}: feedbackConfirm: ${err.message}`),
+            );
+            this.setState(`${deviceId}.feedbackConfirm`, false, true);
+          }
+          return;
+        }
+        if (id === `${this.namespace}.${deviceId}.feedbackCorrectProgram`) {
+          if (state.val) {
+            this._handleFeedbackCorrectProgram(deviceId, mgr, state.val).catch(
+              (err) =>
+                this.log.error(
+                  `${deviceId}: feedbackCorrectProgram: ${err.message}`,
+                ),
+            );
+          }
+          this.setState(`${deviceId}.feedbackCorrectProgram`, "", true);
+          return;
+        }
+        if (id === `${this.namespace}.${deviceId}.feedbackDelete`) {
+          if (state.val === true) {
+            this._handleFeedbackDelete(deviceId, mgr).catch((err) =>
+              this.log.error(`${deviceId}: feedbackDelete: ${err.message}`),
+            );
+            this.setState(`${deviceId}.feedbackDelete`, false, true);
+          }
+          return;
+        }
       }
     }
 
@@ -758,6 +793,84 @@ class WashdataAdapter extends utils.Adapter {
       accumulatedEnergy: mgr.detector.accumulatedEnergy || 0,
     });
     mgr.detector.reset();
+  }
+
+  // Returns the oldest cycle still needing feedback for this device, or
+  // null if there isn't one - the single target the three feedback*
+  // writable data points below act on, same cycle _updateNeedsFeedback()
+  // exposes via feedbackCycleId/feedbackProgram/etc.
+  _oldestPendingCycle(mgr) {
+    const open = mgr
+      .getCycleHistory()
+      .filter((c) => !c.confirmed)
+      .sort((a, b) => a.startTime - b.startTime);
+    return open[0] || null;
+  }
+
+  // VIS-friendly equivalent of the admin tab's confirmCycle sendTo
+  // handler (see onMessage() below), acting on the oldest pending cycle.
+  async _handleFeedbackConfirm(deviceId, mgr) {
+    const cycle = this._oldestPendingCycle(mgr);
+    if (!cycle) {
+      return;
+    }
+    cycle.confirmed = true;
+    if (cycle.profileId) {
+      mgr.profileStore.learnFromCycle(cycle.profileId, [], cycle.durationMs);
+      await mgr.profileStore.save();
+    }
+    await mgr._saveState();
+    await this._updateNeedsFeedback(deviceId, mgr);
+  }
+
+  // VIS-friendly equivalent of correctCycle, resolving the written
+  // program name back to a profile id the way programOverride's own
+  // handler (_handleProgramOverride) already does.
+  async _handleFeedbackCorrectProgram(deviceId, mgr, programName) {
+    const cycle = this._oldestPendingCycle(mgr);
+    if (!cycle) {
+      return;
+    }
+    const profile = mgr.profileStore
+      .getAllProfiles()
+      .find((p) => p.name === programName);
+    if (!profile) {
+      this.log.warn(
+        `${deviceId}: feedbackCorrectProgram: unknown program "${programName}"`,
+      );
+      return;
+    }
+    cycle.matchedProfile = profile.name;
+    cycle.profileId = profile.id;
+    cycle.confirmed = true;
+    cycle.corrected = true;
+    const traceForLearn = mgr.getTrace(cycle.id);
+    const tracePoints = traceForLearn
+      ? traceForLearn.points.map((p) => ({ ts: p.ts, watts: p.watts }))
+      : [];
+    mgr.profileStore.learnFromCycle(profile.id, tracePoints, cycle.durationMs);
+    await mgr.profileStore.save();
+    await mgr._saveState();
+    await this._updateNeedsFeedback(deviceId, mgr);
+    await this._updateOverrideStates(deviceId, mgr);
+  }
+
+  // VIS-friendly equivalent of deleteCycle, discarding the oldest
+  // pending cycle without confirming or correcting it.
+  async _handleFeedbackDelete(deviceId, mgr) {
+    const cycle = this._oldestPendingCycle(mgr);
+    if (!cycle) {
+      return;
+    }
+    const idx = mgr.cycleHistory.findIndex((c) => c.id === cycle.id);
+    if (idx === -1) {
+      return;
+    }
+    mgr.cycleHistory.splice(idx, 1);
+    mgr.traceStore.deleteTrace(cycle.id);
+    await mgr._saveState();
+    await mgr.traceStore.save();
+    await this._updateNeedsFeedback(deviceId, mgr);
   }
 
   async onMessage(obj) {
@@ -1419,16 +1532,76 @@ class WashdataAdapter extends utils.Adapter {
       JSON.stringify(profiles.map((p) => p.name)),
       true,
     );
+    // feedbackCorrectProgram's own dropdown - same program list, also
+    // without 'auto' (correcting a past, already-finished cycle to
+    // "automatic" makes no sense the way it does for programOverride)
+    await this.extendObjectAsync(`${deviceId}.feedbackCorrectProgram`, {
+      common: {
+        states: profiles.reduce((o, p) => {
+          o[p.name] = p.name;
+          return o;
+        }, {}),
+      },
+    });
   }
 
-  // ── Update "feedback needed" indicator ──────────────────
-  // Mirrors admin/tab_m.html's updateFeedbackBadge() exactly (cycles
-  // with !confirmed) - that is the only place this count was ever
-  // computed before, entirely client-side, which is why the
-  // needsFeedback data point itself was never actually written.
+  // ── Update "feedback needed" indicator + VIS-friendly pending-
+  // feedback data points ──────────────────────────────────
+  // Mirrors admin/tab_m.html's renderFeedback()/updateFeedbackBadge()
+  // exactly (cycles with !confirmed, oldest first) - that used to be
+  // the only place this was ever computed, entirely client-side via
+  // sendTo, which is why none of this was ever exposed as data points
+  // that a VIS dashboard (or any other automation) could read or act
+  // on directly.
   async _updateNeedsFeedback(deviceId, mgr) {
-    const needsFeedback = mgr.getCycleHistory().some((c) => !c.confirmed);
-    this.setState(`${deviceId}.needsFeedback`, needsFeedback, true);
+    const open = mgr
+      .getCycleHistory()
+      .filter((c) => !c.confirmed)
+      .sort((a, b) => a.startTime - b.startTime);
+
+    this.setState(`${deviceId}.needsFeedback`, open.length > 0, true);
+    this.setState(`${deviceId}.pendingFeedbackCount`, open.length, true);
+    this.setState(
+      `${deviceId}.pendingFeedback`,
+      JSON.stringify(
+        open.map((c) => ({
+          id: c.id,
+          startTime: c.startTime,
+          program: c.matchedProfile || "",
+          durationMin: Math.round((c.durationMs || 0) / 60000),
+          energyWh: Math.round((c.energyWh || 0) * 100) / 100,
+          confidencePct: Math.round((c.confidence || 0) * 100),
+        })),
+      ),
+      true,
+    );
+
+    // Convenience fields for the single oldest pending cycle - the one
+    // feedbackConfirm/feedbackCorrectProgram/feedbackDelete act on - so
+    // a simple VIS text/button widget doesn't need to parse the JSON
+    // array above just to show "what am I confirming right now".
+    const oldest = open[0];
+    this.setState(`${deviceId}.feedbackCycleId`, oldest ? oldest.id : "", true);
+    this.setState(
+      `${deviceId}.feedbackProgram`,
+      oldest ? oldest.matchedProfile || "" : "",
+      true,
+    );
+    this.setState(
+      `${deviceId}.feedbackDuration`,
+      oldest ? Math.round((oldest.durationMs || 0) / 60000) : 0,
+      true,
+    );
+    this.setState(
+      `${deviceId}.feedbackEnergy`,
+      oldest ? Math.round((oldest.energyWh || 0) * 100) / 100 : 0,
+      true,
+    );
+    this.setState(
+      `${deviceId}.feedbackConfidence`,
+      oldest ? Math.round((oldest.confidence || 0) * 100) : 0,
+      true,
+    );
   }
 
   // ── Callbacks ────────────────────────────────────────────────
@@ -2240,6 +2413,67 @@ class WashdataAdapter extends utils.Adapter {
         def: false,
         write: false,
       },
+      // Lernkontrolle (feedback) - VIS-friendly data points so the
+      // confirm/correct/delete flow doesn't require the admin tab
+      {
+        id: "pendingFeedbackCount",
+        name: "Cycles needing feedback",
+        type: "number",
+        role: "value",
+        def: 0,
+        write: false,
+      },
+      {
+        id: "pendingFeedback",
+        name: "Cycles needing feedback (JSON)",
+        type: "string",
+        role: "json",
+        def: "[]",
+        write: false,
+      },
+      {
+        id: "feedbackCycleId",
+        name: "Oldest pending cycle ID",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "feedbackProgram",
+        name: "Oldest pending cycle: detected program",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "feedbackDuration",
+        name: "Oldest pending cycle: duration",
+        type: "number",
+        role: "value",
+        def: 0,
+        write: false,
+        unit: "min",
+      },
+      {
+        id: "feedbackEnergy",
+        name: "Oldest pending cycle: consumption",
+        type: "number",
+        role: "value",
+        def: 0,
+        write: false,
+        unit: "Wh",
+      },
+      {
+        id: "feedbackConfidence",
+        name: "Oldest pending cycle: confidence",
+        type: "number",
+        role: "value",
+        def: 0,
+        write: false,
+        unit: "%",
+      },
       // Zusatz-Info
       {
         id: "phase",
@@ -2309,6 +2543,32 @@ class WashdataAdapter extends utils.Adapter {
       {
         id: "forceFinish",
         name: "End cycle",
+        type: "boolean",
+        role: "button",
+        def: false,
+        write: true,
+        read: false,
+      },
+      {
+        id: "feedbackConfirm",
+        name: "Confirm oldest pending cycle",
+        type: "boolean",
+        role: "button",
+        def: false,
+        write: true,
+        read: false,
+      },
+      {
+        id: "feedbackCorrectProgram",
+        name: "Correct oldest pending cycle to this program, then confirm",
+        type: "string",
+        role: "text",
+        def: "",
+        write: true,
+      },
+      {
+        id: "feedbackDelete",
+        name: "Delete oldest pending cycle without confirming",
         type: "boolean",
         role: "button",
         def: false,
