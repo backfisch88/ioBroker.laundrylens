@@ -347,6 +347,7 @@ class WashdataAdapter extends utils.Adapter {
           onProgramChange: (program, confidence) =>
             this._onProgram(deviceCfg.deviceId, program, confidence),
           onTimeUpdate: (remaining, total, pct) => {
+            this._updateElapsedTime(deviceCfg.deviceId);
             if (remaining === null) {
               // No program detected – reset remaining time and progress
               this.setState(`${deviceCfg.deviceId}.timeRemaining`, 0, true);
@@ -1711,6 +1712,22 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
+  // elapsedTime is purely Date.now() - cycleStartTime - meaningful and
+  // available from the moment RUNNING starts, with no actual dependency
+  // on whether a program has been detected yet. Called both from
+  // onTimeUpdate()'s "no program detected" early-return branch and from
+  // _onTime()'s normal path, so it keeps ticking up throughout the
+  // entire "detecting..." period instead of only once a program is
+  // confirmed - found live (reported stuck at a stale value, e.g. left
+  // over from a previous, longer cycle, until recognition caught up).
+  _updateElapsedTime(deviceId) {
+    const mgr = this.managers[deviceId];
+    if (mgr && mgr.cycleStartTime) {
+      const elapsedSec = Math.round((Date.now() - mgr.cycleStartTime) / 1000);
+      this.setState(`${deviceId}.elapsedTime`, elapsedSec, true);
+    }
+  }
+
   _onTime(
     deviceId,
     remainingSeconds,
@@ -1771,12 +1788,7 @@ class WashdataAdapter extends utils.Adapter {
       ).catch(() => {});
     }
     this.setState(`${deviceId}.timeRemaining`, remainingSeconds ?? 0, true);
-    // Elapsed time from the manager
-    const mgr2 = this.managers[deviceId];
-    if (mgr2 && mgr2.cycleStartTime) {
-      const elapsedSec = Math.round((Date.now() - mgr2.cycleStartTime) / 1000);
-      this.setState(`${deviceId}.elapsedTime`, elapsedSec, true);
-    }
+    this._updateElapsedTime(deviceId);
     this.setState(`${deviceId}.totalDuration`, totalSeconds ?? 0, true);
     // Only overwrite progress if > 0 (prevents a reset if the profile
     // briefly doesn't match) - UNLESS forceWrite is set, which is how

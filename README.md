@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.39 (2026-10-06)
+- Fix: reported live - `elapsedTime` stayed frozen (often at a stale value left over from a previous cycle) for the entire "detecting..." period of a new cycle, only starting to update once a program was actually confirmed (observed: stuck at 11342 while only ~15 minutes into a new washer cycle; for a dryer, jumped from frozen to 1096 the moment the program was recognized). Root cause: `elapsedTime` is just `Date.now()` minus the cycle's start time, with no real dependency on program detection - but the `onTimeUpdate` callback that wrote it (via `_onTime()`) returned early, skipping the write entirely, whenever `WashDataManager._updateTimeEstimate()` reported no program/bestCandidate yet
+- Fixed by extracting the computation into a shared `_updateElapsedTime()` helper, now called unconditionally at the top of `onTimeUpdate` - before its "no program detected" early return - as well as from `_onTime()`'s normal path, so it updates from the moment a cycle starts running regardless of detection status
+- Covered by a new regression test (`tests/test_elapsed_time_before_detection.js`)
+
 ### 0.4.38 (2026-10-04)
 - New: the Lernkontrolle (learning review/feedback) flow can now be driven from a VIS dashboard, not just the admin tab - previously only reachable via sendTo commands, invisible to VIS, which can only read/write data points
 - New read-only data points: `pendingFeedbackCount`, `pendingFeedback` (JSON array of all unconfirmed cycles, oldest first), and `feedbackCycleId`/`feedbackProgram`/`feedbackDuration`/`feedbackEnergy`/`feedbackConfidence` (convenience fields for the oldest pending cycle, so a simple VIS text widget doesn't need to parse JSON)
