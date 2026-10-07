@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.40 (2026-10-07)
+- Fix: reported live (notification history showing a predicted finish time creeping from 12:30 to 14:06 over the course of a single wash cycle, while `cycleProgress` stayed roughly accurate - over an hour off by the end) - the predicted finish time could drift later and later with every update. Root cause: whenever the recent power trace's variance exceeds a threshold (e.g. a washer motor cycling on/off during agitation), the remaining-time estimate gets "locked" to the last trusted value, to avoid jumpy/unstable predictions from noisy readings. The locked value was a frozen millisecond *duration* though, which never shrank while locked - so the countdown effectively stopped entirely for as long as the noisy condition persisted, while real wall-clock time kept passing, making `now + remaining` (the predicted finish time) creep later and later
+- Fixed by decrementing the locked value by the real elapsed time since it was last touched, instead of freezing it as a constant - it now keeps counting down correctly even while locked, while still avoiding jumpy re-estimates from noisy readings (the original intent)
+- Covered by a new regression test extending `tests/test_time_estimate.js`
+
 ### 0.4.39 (2026-10-06)
 - Fix: reported live - `elapsedTime` stayed frozen (often at a stale value left over from a previous cycle) for the entire "detecting..." period of a new cycle, only starting to update once a program was actually confirmed (observed: stuck at 11342 while only ~15 minutes into a new washer cycle; for a dryer, jumped from frozen to 1096 the moment the program was recognized). Root cause: `elapsedTime` is just `Date.now()` minus the cycle's start time, with no real dependency on program detection - but the `onTimeUpdate` callback that wrote it (via `_onTime()`) returned early, skipping the write entirely, whenever `WashDataManager._updateTimeEstimate()` reported no program/bestCandidate yet
 - Fixed by extracting the computation into a shared `_updateElapsedTime()` helper, now called unconditionally at the top of `onTimeUpdate` - before its "no program detected" early return - as well as from `_onTime()`'s normal path, so it updates from the moment a cycle starts running regardless of detection status

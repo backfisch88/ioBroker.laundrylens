@@ -106,6 +106,76 @@ describe("ProfileStore.learnFromCycle() - durationCV", () => {
   });
 });
 
+describe("_updateTimeEstimate() - variance lock still counts down in real time", () => {
+  it("decrements the locked remaining time by real elapsed time, instead of freezing it as a constant duration", () => {
+    // Real bug reported live: a washer's predicted finish time drifted
+    // later and later with every update over the course of a single
+    // cycle (eventually more than an hour off), while reported progress
+    // stayed roughly accurate. Root cause: once the recent power trace's
+    // variance exceeds VARIANCE_LOCK_W, remainingMs gets pinned to
+    // _lockedRemaining and stays there - previously as a frozen,
+    // never-shrinking duration, even though real wall-clock time kept
+    // passing while locked.
+    const updates = [];
+    const mgr = makeManager((remainingSec, totalSec, progressPct) =>
+      updates.push({ remainingSec, totalSec, progressPct }),
+    );
+    const pid = mgr.profileStore.createManualProfile("Cotton 40", 90 * 60_000);
+    const profile = mgr.profileStore.getProfile(pid);
+    mgr.currentProgram = profile;
+    mgr.confidence = 0.9;
+
+    const t0 = Date.now();
+    mgr.cycleStartTime = t0;
+
+    // First call: low-variance trace, establishes a real (unlocked)
+    // baseline estimate.
+    mgr.detector.powerTrace = Array.from({ length: 10 }, (_, i) => ({
+      ts: t0 + i * 1000,
+      watts: 400,
+    }));
+    mgr._updateTimeEstimate(t0 + 20 * 60_000); // 20 min in
+    assert.strictEqual(updates.length, 1);
+    const baseline = updates[0].remainingSec;
+
+    // Second call, 30 minutes later: high-variance trace (e.g. a
+    // washer's agitation cycling the motor on/off) triggers the lock.
+    mgr.detector.powerTrace = [
+      { ts: 0, watts: 10 },
+      { ts: 1000, watts: 500 },
+      { ts: 2000, watts: 20 },
+      { ts: 3000, watts: 480 },
+      { ts: 4000, watts: 15 },
+      { ts: 5000, watts: 510 },
+      { ts: 6000, watts: 5 },
+      { ts: 7000, watts: 495 },
+      { ts: 8000, watts: 10 },
+      { ts: 9000, watts: 505 },
+    ];
+    const t1 = t0 + 50 * 60_000; // 20 + 30 min
+    mgr._updateTimeEstimate(t1);
+    assert.strictEqual(updates.length, 2);
+
+    assert.strictEqual(
+      updates[1].remainingSec,
+      Math.max(0, baseline - 30 * 60),
+      "while locked, remaining time must still count down by the real " +
+        "30 minutes that passed, not stay frozen at the baseline value",
+    );
+
+    // A third call another 10 minutes later, still locked, must keep
+    // counting down further still.
+    mgr.detector.powerTrace[0] = { ts: 0, watts: 8 }; // keep it noisy
+    mgr._updateTimeEstimate(t1 + 10 * 60_000);
+    assert.strictEqual(updates.length, 3);
+    assert.strictEqual(
+      updates[2].remainingSec,
+      Math.max(0, baseline - 40 * 60),
+      "a third update, still locked, must count down by the further 10 minutes too",
+    );
+  });
+});
+
 describe("_updateTimeEstimate() - variance-aware blending and progress consistency", () => {
   it("leans more on the energy-based estimate for a high-CV (inconsistent) profile", async () => {
     const updates = [];
