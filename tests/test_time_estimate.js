@@ -279,6 +279,106 @@ describe("_updateTimeEstimate() - variance-aware blending and progress consisten
     );
   });
 
+  it("fully trusts the energy-based estimate once the whole cycle has already overrun its historical average (no phase data)", async () => {
+    // Real bug reported live: a wash cycle running noticeably longer than
+    // its historical average plateaued at ~99% progress / near-zero
+    // remaining time for over half an hour before actually finishing,
+    // instead of correcting once it became clear it was running long.
+    // Root cause: once timeBasedRemainingMs floors at 0 (elapsed >=
+    // profile.durationMs), the old blend still only gave the live
+    // energy-based estimate its CV-based weight (as low as 30% for a
+    // consistent/low-CV profile) instead of full weight - so the
+    // estimate kept reporting "almost done" no matter how much further
+    // the energy-based projection suggested.
+    const updates = [];
+    const mgr = makeManager((remainingSec, totalSec, progressPct) =>
+      updates.push({ remainingSec, totalSec, progressPct }),
+    );
+    await mgr.start();
+    const pid = mgr.profileStore.createManualProfile("60", 90 * 60_000);
+    // Low-CV (consistent) history, same as the "leans more on the
+    // time-based estimate" test above - this is exactly the case where
+    // the old code would have attenuated the energy-based estimate the
+    // most (down to its 30% floor).
+    for (const d of [89, 91, 90, 90, 91]) {
+      mgr.profileStore.learnFromCycle(pid, [], d * 60_000);
+    }
+    const profile = mgr.profileStore.getProfile(pid);
+    profile.energyWh = 1000;
+    mgr.currentProgram = profile;
+    mgr.confidence = 0.9;
+    // 100 minutes in - already past the ~90min historical average.
+    mgr.cycleStartTime = Date.now() - 100 * 60_000;
+    // Energy pace suggests the cycle isn't actually done yet - only 90%
+    // of typical energy consumed with elapsed time already past average.
+    mgr.detector.accumulatedEnergy = 900;
+
+    mgr._updateTimeEstimate(Date.now());
+
+    assert.strictEqual(updates.length, 1);
+    const { remainingSec } = updates[0];
+    // Pure energy-based projection: 100min / 0.9 = ~111min total ->
+    // ~11min = ~667s remaining. The old blend (30% weight) would have
+    // given only ~200s; this must be much closer to the full figure.
+    assert.ok(
+      remainingSec > 500,
+      `expected the overrun case to lean heavily on the energy-based ` +
+        `estimate (~667s), not the old attenuated ~200s figure, got ${remainingSec}s`,
+    );
+  });
+
+  it("leans much more heavily on the energy-based estimate once the current phase has overrun its typical duration", async () => {
+    // Same root cause as the test above, but for the phase-based branch
+    // (used once enough per-phase history exists): a phase running
+    // longer than its own typical duration left phaseBasedRemainingMs's
+    // in-phase component floored at 0, with no future phases left to add
+    // (this is the cycle's last phase) - so the old 70/30 blend reported
+    // almost nothing left, regardless of how much longer the live
+    // energy signal suggested the phase (and cycle) would actually run.
+    const updates = [];
+    const mgr = makeManager((remainingSec, totalSec, progressPct) =>
+      updates.push({ remainingSec, totalSec, progressPct }),
+    );
+    await mgr.start();
+    const pid = mgr.profileStore.createManualProfile("60", 90 * 60_000);
+    // Learn a consistent two-phase sequence (washing 60min, then rinsing
+    // 30min, the cycle's last phase) across 3 cycles, so phaseStats
+    // trusts "rinsing" with >=3 samples.
+    for (let i = 0; i < 3; i++) {
+      mgr.profileStore.learnFromCycle(pid, [], 90 * 60_000, [
+        { phase: "washing", tMs: 0 },
+        { phase: "rinsing", tMs: 60 * 60_000 },
+      ]);
+    }
+    const profile = mgr.profileStore.getProfile(pid);
+    profile.energyWh = 1000;
+    mgr.currentProgram = profile;
+    mgr.confidence = 0.9;
+    mgr._stablePhase = "rinsing";
+    // 100 minutes elapsed overall; rinsing itself started at the 60min
+    // mark, so it's been running 40min - 10min past its typical 30min.
+    const now = Date.now();
+    mgr.cycleStartTime = now - 100 * 60_000;
+    mgr._phaseHistory = [{ phase: "rinsing", ts: now - 40 * 60_000 }];
+    // Energy pace suggests the cycle isn't actually done yet.
+    mgr.detector.accumulatedEnergy = 700;
+
+    mgr._updateTimeEstimate(now);
+
+    assert.strictEqual(updates.length, 1);
+    const { remainingSec } = updates[0];
+    // Pure energy-based projection: 100min / 0.7 = ~142.9min total,
+    // clamped to 1.5x the 90min average = 135min -> 35min = 2100s
+    // remaining. The old 70/30 blend (phaseBased=0, so just 30% of
+    // that) would give only ~630s; the new 30/70 overrun blend should
+    // land much higher, close to 1470s.
+    assert.ok(
+      remainingSec > 1000,
+      `expected the phase-overrun case to lean heavily on the ` +
+        `energy-based estimate (~1470s), not the old attenuated ~630s figure, got ${remainingSec}s`,
+    );
+  });
+
   it("caps the remaining time during the dryer's 'cooling' phase, like it already does for 'spinning'", async () => {
     const updates = [];
     const mgr = makeManager((remainingSec, totalSec, progressPct) =>
