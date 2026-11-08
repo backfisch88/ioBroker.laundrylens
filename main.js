@@ -1055,15 +1055,9 @@ class WashdataAdapter extends utils.Adapter {
           if (!mgr) {
             return respond({ error: "Device not found" });
           }
-          const result = mgr.trimTrace(cycleId, newStartTs, newEndTs);
+          const result = mgr.trimCycle(cycleId, newStartTs, newEndTs);
           if (!result) {
             return respond({ error: "Trim failed" });
-          }
-          const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
-          if (cycle) {
-            cycle.startTime = newStartTs;
-            cycle.endTime = newEndTs;
-            cycle.durationMs = newEndTs - newStartTs;
           }
           await mgr._saveState();
           await mgr.traceStore.save();
@@ -1078,32 +1072,9 @@ class WashdataAdapter extends utils.Adapter {
           if (!mgr) {
             return respond({ error: "Device not found" });
           }
-          const result = mgr.splitTrace(cycleId, splitTs);
+          const result = mgr.splitCycle(cycleId, splitTs);
           if (!result) {
             return respond({ error: "Split failed" });
-          }
-          const history = mgr.getCycleHistory();
-          const idx = history.findIndex((c) => c.id === cycleId);
-          if (idx >= 0) {
-            const orig = history[idx];
-            history.splice(
-              idx,
-              1,
-              {
-                ...orig,
-                id: result.id1,
-                endTime: splitTs,
-                durationMs: splitTs - orig.startTime,
-                hasTrace: true,
-              },
-              {
-                ...orig,
-                id: result.id2,
-                startTime: splitTs,
-                durationMs: orig.endTime - splitTs,
-                hasTrace: true,
-              },
-            );
           }
           await mgr._saveState();
           await mgr.traceStore.save();
