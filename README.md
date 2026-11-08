@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.42 (2026-11-08)
+- New: merge 2-3 cycles into one in the admin tab (Cycles)
+
 ### 0.4.41 (2026-10-08)
 - Fix: reported live - a cycle running noticeably longer than its historical average plateaued at ~99% progress / near-zero remaining time for a long stretch instead of correcting (a wash cycle showed 98% progress/2min remaining a full 34 minutes before it actually finished - confirmed from the debug log: still well inside an overrunning rinse phase, with spinning not even starting until 29 minutes later). Root cause: once the plain duration-average estimate (or, within a phase, that phase's typical duration) runs out, it has nothing more to contribute - but the live energy-based estimate (which tracks this specific run's actual pace, not a historical average) was still only partially trusted, as little as 30% weight for a consistent/low-CV profile
 - Fixed by fully trusting the energy-based estimate once the whole-cycle average has run out (no phase data available), and leaning much more heavily on it (30/70 instead of 70/30) once the current phase has overrun its own typical duration - so an unusually long run corrects toward reality instead of sitting stuck near 0% remaining

@@ -1111,6 +1111,23 @@ class WashdataAdapter extends utils.Adapter {
           break;
         }
 
+        case "mergeCycles": {
+          const { cycleIds } = obj.message || {};
+          const mgr = this._mgr(obj.message);
+          if (!mgr) {
+            return respond({ error: "Device not found" });
+          }
+          const result = mgr.mergeCycles(cycleIds);
+          if (result.error) {
+            return respond({ error: result.error });
+          }
+          await mgr._saveState();
+          await mgr.traceStore.save();
+          await this._updateNeedsFeedback(obj.message.deviceId, mgr);
+          respond({ ok: true, cycleId: result.cycle.id });
+          break;
+        }
+
         case "getAntiKnitter": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {
