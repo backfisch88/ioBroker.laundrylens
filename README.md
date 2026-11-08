@@ -132,10 +132,12 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.44 (2026-11-08)
+- Fix: splitting a cycle now splits its energy too (trim scales it, merging old split parts is corrected)
+- Fix: admin error messages are now translated
+
 ### 0.4.43 (2026-11-08)
 - Changed: merge a cycle with the previous one via a single button (Cycles tab)
-- Fix: admin error messages are now translated
-- Fix: splitting a cycle now splits its energy too (trim scales it, merging old split parts is corrected)
 
 ### 0.4.42 (2026-11-08)
 - New: merge 2-3 cycles into one in the admin tab (Cycles)
