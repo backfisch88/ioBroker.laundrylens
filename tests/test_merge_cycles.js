@@ -224,17 +224,16 @@ describe("mergeCycles wiring", () => {
     assert.match(body, /_updateNeedsFeedback\(/);
   });
 
-  it("admin tab offers selection checkboxes and a merge button", () => {
-    assert.match(tabSrc, /class="merge-cb"/);
-    assert.match(tabSrc, /id="btn-merge"/);
+  it("admin tab offers a merge-with-previous button per cycle", () => {
+    assert.match(tabSrc, /mergeWithPrevious\(/);
+    assert.match(tabSrc, /list\[idx \+ 1\]/);
     assert.match(tabSrc, /send\('mergeCycles'/);
   });
 
   it("new texts are translated in every language", () => {
     const keys = [
-      "Merge selected",
-      "Select 2 or 3 cycles to merge",
-      "Merge the selected cycles into one?",
+      "Merge with previous cycle",
+      "Merge this cycle with the previous one?",
       "Cycles merged",
     ];
     const dir = path.join(root, "admin", "i18n");

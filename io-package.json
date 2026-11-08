@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "laundrylens",
-        "version": "0.4.42",
+        "version": "0.4.43",
         "news": {
+            "0.4.43": {
+                "en": "Changed: merge a cycle with the previous one via a single button (Cycles tab).",
+                "de": "Geändert: Zyklus per Knopf mit dem vorherigen zusammenführen (Tab Zyklen).",
+                "ru": "Изменено: объединение цикла с предыдущим одной кнопкой (вкладка «Циклы»).",
+                "pt": "Alterado: unir um ciclo com o anterior com um único botão (aba Ciclos).",
+                "nl": "Gewijzigd: een cyclus met de vorige samenvoegen met één knop (tab Cycli).",
+                "fr": "Modifié : fusionner un cycle avec le précédent d'un seul bouton (onglet Cycles).",
+                "it": "Modificato: unire un ciclo al precedente con un solo pulsante (scheda Cicli).",
+                "es": "Cambiado: fusionar un ciclo con el anterior con un solo botón (pestaña Ciclos).",
+                "pl": "Zmieniono: połączenie cyklu z poprzednim jednym przyciskiem (zakładka Cykle).",
+                "uk": "Змінено: об'єднання циклу з попереднім однією кнопкою (вкладка «Цикли»).",
+                "zh-cn": "变更：用一个按钮将周期与上一个周期合并（周期标签页）。"
+            },
             "0.4.42": {
                 "en": "New: merge 2-3 cycles into one in the admin tab (Cycles).",
                 "de": "Neu: 2-3 Zyklen im Admin-Tab (Zyklen) zu einem zusammenführen.",
@@ -80,19 +93,6 @@
                 "pl": "Poprawka: trzy pliki testowe dodane w ostatnich wydaniach (test_show_probable_program.js, test_cycle_finish_exception_guard.js, test_cycle_boundary_reset.js) wywolywaly bezposrednio goly globalny setTimeout()/setInterval() w swoich atrapach adaptera, co zglasza kontrola checkera dotyczaca uzycia prostych timerow - dostosowano do wzorca aliasow natywnych timera uzywanego juz wszedzie indziej w tym zestawie testow. Poprawka: zaktualizowano devDependency @iobroker/testing do aktualnej wersji (6.3.0).",
                 "uk": "Виправлення: три тестові файли, доданi в останніх релізах (test_show_probable_program.js, test_cycle_finish_exception_guard.js, test_cycle_boundary_reset.js), напряму викликали голий глобальний setTimeout()/setInterval() у своїх фіктивних адаптерах, що позначає перевірка чекера на використання простих таймерів - приведено у відповідність із шаблоном нативних псевдонімів таймера, який уже використовується всюди в цьому наборі тестів. Виправлення: devDependency @iobroker/testing оновлено до поточної версії (6.3.0).",
                 "zh-cn": "修复：最近版本中新增的三个测试文件（test_show_probable_program.js、test_cycle_finish_exception_guard.js、test_cycle_boundary_reset.js）在其伪造适配器中直接调用了原生的全局 setTimeout()/setInterval()，这会被审查检查器的简单计时器使用检测标记——现已与本测试套件中其余部分一致使用原生计时器别名写法。修复：将 @iobroker/testing 开发依赖升级到当前版本（6.3.0）。"
-            },
-            "0.4.36": {
-                "en": "Follow-up to 0.4.34's needsFeedback fix: deleting a cycle (e.g. an unconfirmed one someone just discards without confirming/correcting it first), clearing all data, or importing a config could also leave needsFeedback stuck on true, since only confirmCycle/correctCycle had been covered. Now also re-synced after deleteCycle, clearAllData and importConfig (the latter two also re-sync availablePrograms, since they can add/replace profiles too).",
-                "de": "Folgefix zum needsFeedback-Fix aus 0.4.34: Das Löschen eines Zyklus (z. B. eines unbestätigten, den man einfach verwirft, ohne ihn vorher zu bestätigen/korrigieren), das Löschen aller Daten oder der Import einer Konfiguration konnten needsFeedback ebenfalls dauerhaft auf true belassen, da bisher nur confirmCycle/correctCycle abgedeckt waren. Wird jetzt auch nach deleteCycle, clearAllData und importConfig synchronisiert (die letzten beiden synchronisieren zusätzlich availablePrograms, da sie auch Programme hinzufügen/ersetzen können).",
-                "ru": "Дополнение к исправлению needsFeedback из 0.4.34: удаление цикла (например, неподтверждённого, который просто отклоняют без предварительного подтверждения/исправления), очистка всех данных или импорт конфигурации тоже могли оставить needsFeedback застрявшим на true, поскольку ранее были покрыты только confirmCycle/correctCycle. Теперь также синхронизируется после deleteCycle, clearAllData и importConfig (последние два дополнительно синхронизируют availablePrograms, так как они тоже могут добавлять/заменять программы).",
-                "pt": "Acompanhamento da correção do needsFeedback em 0.4.34: excluir um ciclo (ex. um não confirmado que alguém apenas descarta sem confirmar/corrigir antes), limpar todos os dados ou importar uma configuração também podiam deixar needsFeedback preso em true, já que só confirmCycle/correctCycle haviam sido cobertos. Agora também é ressincronizado após deleteCycle, clearAllData e importConfig (os dois últimos também ressincronizam availablePrograms, já que podem adicionar/substituir programas).",
-                "nl": "Vervolg op de needsFeedback-fix van 0.4.34: het verwijderen van een cyclus (bijv. een onbevestigde die iemand gewoon weggooit zonder deze eerst te bevestigen/corrigeren), alle data wissen, of een configuratie importeren konden needsFeedback ook vast laten zitten op true, aangezien alleen confirmCycle/correctCycle waren afgedekt. Wordt nu ook opnieuw gesynchroniseerd na deleteCycle, clearAllData en importConfig (de laatste twee synchroniseren ook availablePrograms, omdat ze ook programma's kunnen toevoegen/vervangen).",
-                "fr": "Suite de la correction needsFeedback de la 0.4.29 : supprimer un cycle (par ex. un cycle non confirmé que l'on écarte simplement sans le confirmer/corriger au préalable), effacer toutes les données ou importer une configuration pouvaient aussi laisser needsFeedback bloqué sur true, car seuls confirmCycle/correctCycle étaient couverts. Désormais resynchronisé aussi après deleteCycle, clearAllData et importConfig (ces deux derniers resynchronisent aussi availablePrograms, car ils peuvent également ajouter/remplacer des programmes).",
-                "it": "Seguito della correzione di needsFeedback della 0.4.34: eliminare un ciclo (es. uno non confermato che viene semplicemente scartato senza prima confermarlo/correggerlo), cancellare tutti i dati o importare una configurazione potevano anch'essi lasciare needsFeedback bloccato su true, poiché erano coperti solo confirmCycle/correctCycle. Ora risincronizzato anche dopo deleteCycle, clearAllData e importConfig (questi ultimi due risincronizzano anche availablePrograms, poiché possono anche aggiungere/sostituire programmi).",
-                "es": "Seguimiento de la corrección de needsFeedback de 0.4.34: eliminar un ciclo (p. ej. uno no confirmado que simplemente se descarta sin confirmarlo/corregirlo antes), borrar todos los datos o importar una configuración también podían dejar needsFeedback atascado en true, ya que solo confirmCycle/correctCycle estaban cubiertos. Ahora también se resincroniza tras deleteCycle, clearAllData e importConfig (estos dos últimos también resincronizan availablePrograms, ya que pueden añadir/sustituir programas).",
-                "pl": "Kontynuacja poprawki needsFeedback z 0.4.34: usunięcie cyklu (np. niepotwierdzonego, który ktoś po prostu odrzuca bez wcześniejszego potwierdzenia/poprawienia), wyczyszczenie wszystkich danych lub import konfiguracji mogły również pozostawić needsFeedback na stałe na true, ponieważ wcześniej objęto tylko confirmCycle/correctCycle. Teraz synchronizowane również po deleteCycle, clearAllData i importConfig (te dwa ostatnie synchronizują też availablePrograms, ponieważ mogą dodawać/zastępować programy).",
-                "uk": "Продовження виправлення needsFeedback з 0.4.34: видалення циклу (наприклад, непідтвердженого, який просто відхиляють без попереднього підтвердження/виправлення), очищення всіх даних або імпорт конфігурації також могли залишати needsFeedback застряглим на true, оскільки раніше були охоплені лише confirmCycle/correctCycle. Тепер також синхронізується після deleteCycle, clearAllData та importConfig (останні два також синхронізують availablePrograms, оскільки вони можуть додавати/замінювати програми).",
-                "zh-cn": "0.4.34 needsFeedback 修复的后续：删除某个周期（例如直接丢弃一个未确认的周期，而不先确认/更正它）、清除所有数据或导入配置，也可能导致 needsFeedback 一直卡在 true，因为此前只覆盖了 confirmCycle/correctCycle。现在 deleteCycle、clearAllData 和 importConfig 之后也会重新同步（后两者还会同步 availablePrograms，因为它们也可能添加/替换程序）。"
             }
         },
         "titleLang": {

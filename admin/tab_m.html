@@ -1180,7 +1180,6 @@ function renderCycles(deviceId) {
         var rowStyle = isAK ? 'opacity:0.6;' : '';
         var rowId = 'cycle-detail-' + idx;
         return '<tr class="cycle-row" onclick="toggleCycleDetail(\''+deviceId+'\',\''+c.id+'\',\''+rowId+'\')" style="cursor:pointer;'+rowStyle+'">' +
-            '<td onclick="event.stopPropagation()"><input type="checkbox" class="merge-cb" data-id="' + escapeHtml(c.id) + '" onchange="updateMergeBtn()"></td>' +
             '<td class="text-sm">' + new Date(c.startTime).toLocaleString(_currentLang || 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</td>' +
             '<td><strong>' + getProfileDisplayName(c.matchedProfile) + '</strong><br><span class="text-sm text-muted">' + conf + '</span></td>' +
             '<td>' + dur + ' min</td>' +
@@ -1188,7 +1187,7 @@ function renderCycles(deviceId) {
             '<td>' + statusBadge + '</td>' +
             '<td><span class="cycle-arrow" id="arrow-'+rowId+'">▶</span></td>' +
             '</tr>' +
-            '<tr id="' + rowId + '" style="display:none"><td colspan="7" style="padding:0">' +
+            '<tr id="' + rowId + '" style="display:none"><td colspan="6" style="padding:0">' +
             '<div class="cycle-detail-wrap" style="padding:12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
             '<span style="font-weight:600">' + _('Power curve') + '</span>' +
@@ -1211,27 +1210,17 @@ function renderCycles(deviceId) {
             '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
             '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveAsProgram(\''+deviceId+'\',\''+c.id+'\')">💾 ' + _('Save as program') + '</button>' +
             '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();assignProgram(\''+deviceId+'\',\''+c.id+'\')">🏷 ' + _('Assign program') + '</button>' +
+            (list[idx + 1] ? '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();mergeWithPrevious(\''+deviceId+'\',\''+c.id+'\',\''+list[idx + 1].id+'\')">🔗 ' + _('Merge with previous cycle') + '</button>' : '') +
 
             '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCycle(\''+deviceId+'\',\''+c.id+'\')">🗑 ' + _('Delete') + '</button>' +
             '</div></div></td></tr>';
     }).join('');
-    wrap.innerHTML = '<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
-        '<button class="btn btn-outline btn-sm" id="btn-merge" disabled onclick="mergeSelected(\'' + deviceId + '\')">🔗 ' + _('Merge selected') + '</button>' +
-        '<span class="text-sm text-muted">' + _('Select 2 or 3 cycles to merge') + '</span></div>' +
-        '<table class="tbl" style="width:100%"><thead><tr><th></th><th>' + _('Start') + '</th><th>' + _('Program') + '</th><th>min</th><th>kWh</th><th></th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+    wrap.innerHTML = '<table class="tbl" style="width:100%"><thead><tr><th>' + _('Start') + '</th><th>' + _('Program') + '</th><th>min</th><th>kWh</th><th></th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
-function updateMergeBtn() {
-    var n = document.querySelectorAll('.merge-cb:checked').length;
-    var b = document.getElementById('btn-merge');
-    if (b) b.disabled = n < 2 || n > 3;
-}
-
-function mergeSelected(deviceId) {
-    var ids = Array.prototype.map.call(document.querySelectorAll('.merge-cb:checked'), function(cb) { return cb.getAttribute('data-id'); });
-    if (ids.length < 2 || ids.length > 3) return toast(_('Select 2 or 3 cycles to merge'), 'err');
-    if (!confirm(_('Merge the selected cycles into one?'))) return;
-    send('mergeCycles', {deviceId: deviceId, cycleIds: ids}).then(function(res) {
+function mergeWithPrevious(deviceId, cycleId, prevId) {
+    if (!confirm(_('Merge this cycle with the previous one?'))) return;
+    send('mergeCycles', {deviceId: deviceId, cycleIds: [prevId, cycleId]}).then(function(res) {
         if (res && res.ok) { toast(_('Cycles merged'), 'ok'); loadCycles(); }
         else toast((res && res.error) || _('Error'), 'err');
     });

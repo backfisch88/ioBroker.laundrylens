@@ -132,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.4.43 (2026-11-08)
+- Changed: merge a cycle with the previous one via a single button (Cycles tab)
+
 ### 0.4.42 (2026-11-08)
 - New: merge 2-3 cycles into one in the admin tab (Cycles)
 
