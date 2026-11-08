@@ -658,7 +658,8 @@ function send(cmd, data) {
 function toast(msg, type) {
     var el = document.createElement('div');
     el.className = 'toast ' + (type || 'info');
-    el.textContent = msg;
+    // Backend error texts are English keys - translate them if known
+    el.textContent = _(String(msg));
     document.getElementById('toasts').appendChild(el);
     setTimeout(function() { el.remove(); }, 3000);
 }

@@ -904,7 +904,7 @@ class WashdataAdapter extends utils.Adapter {
             return respond({ error: "Device not found" });
           }
           if (!name) {
-            return respond({ error: "Name fehlt" });
+            return respond({ error: "Name missing" });
           }
           const devCfg = this._getDeviceConfig().find(
             (d) => d.deviceId === (obj.message && obj.message.deviceId),
@@ -1057,7 +1057,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const result = mgr.trimTrace(cycleId, newStartTs, newEndTs);
           if (!result) {
-            return respond({ error: "Trim fehlgeschlagen" });
+            return respond({ error: "Trim failed" });
           }
           const cycle = mgr.getCycleHistory().find((c) => c.id === cycleId);
           if (cycle) {
@@ -1080,7 +1080,7 @@ class WashdataAdapter extends utils.Adapter {
           }
           const result = mgr.splitTrace(cycleId, splitTs);
           if (!result) {
-            return respond({ error: "Split fehlgeschlagen" });
+            return respond({ error: "Split failed" });
           }
           const history = mgr.getCycleHistory();
           const idx = history.findIndex((c) => c.id === cycleId);
@@ -1377,7 +1377,7 @@ class WashdataAdapter extends utils.Adapter {
         case "sendNotification": {
           const { adapter: notifAdapter, target, message } = obj.message || {};
           if (!notifAdapter || !message) {
-            return respond({ error: "adapter und message erforderlich" });
+            return respond({ error: "adapter and message required" });
           }
           try {
             const payload = this._buildNotifyPayload(
@@ -1458,7 +1458,7 @@ class WashdataAdapter extends utils.Adapter {
           // Save notification settings per device
           const { deviceId, config: notifConfig } = obj.message || {};
           if (!deviceId) {
-            return respond({ error: "deviceId fehlt" });
+            return respond({ error: "deviceId missing" });
           }
           try {
             await this.writeFileAsync(
@@ -1476,7 +1476,7 @@ class WashdataAdapter extends utils.Adapter {
         case "getNotifyConfig": {
           const { deviceId } = obj.message || {};
           if (!deviceId) {
-            return respond({ error: "deviceId fehlt" });
+            return respond({ error: "deviceId missing" });
           }
           try {
             const raw = await this.readFileAsync(
@@ -1522,7 +1522,7 @@ class WashdataAdapter extends utils.Adapter {
         }
 
         default:
-          respond({ error: `Unbekannt: ${obj.command}` });
+          respond({ error: "Unknown command" });
       }
     } catch (err) {
       this.log.error(`sendTo [${obj.command}]: ${err.message}`);

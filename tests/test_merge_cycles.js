@@ -193,7 +193,7 @@ describe("mergeCycles()", () => {
       const mgr = makeManager();
       addCycle(mgr, "c1", 0, 50);
       addCycle(mgr, "c2", 50 + 7 * 60, 50 + 7 * 60 + 40);
-      expectError(mgr, ["c1", "c2"], "Cycles are too far apart");
+      expectError(mgr, ["c1", "c2"], "Cycles are too far apart (max. 6 h)");
     });
 
     it("another cycle lies in between", () => {
