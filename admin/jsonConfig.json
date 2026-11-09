@@ -28,6 +28,10 @@
                     "label": "🍽️ Dishwasher"
                 },
                 {
+                    "value": "washer_dishwasher",
+                    "label": "🧺🍽️ Washing machine + dishwasher (same plug)"
+                },
+                {
                     "value": "dryer",
                     "label": "♨️ Dryer"
                 },

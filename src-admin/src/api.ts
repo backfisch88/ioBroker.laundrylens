@@ -48,6 +48,7 @@ export interface Profile {
     cycleCount?: number;
     createdAt?: number;
     isManual?: boolean;
+    deviceType?: string;
 }
 
 export interface Status {

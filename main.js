@@ -3,13 +3,22 @@
 const utils = require("@iobroker/adapter-core");
 const fs = require("node:fs");
 const path = require("node:path");
-const { WashDataManager } = require("./lib/washDataManager");
+const {
+  WashDataManager,
+  SHARED_PLUG_APPLIANCES,
+} = require("./lib/washDataManager");
 const { resolveStatePlaceholders } = require("./lib/notifyTemplate");
 const {
   getPhaseText,
   getStateText,
   getProgramText,
 } = require("./lib/displayLabels");
+
+// i18n keys of the machines a shared plug can power
+const APPLIANCE_LABELS = {
+  washing_machine: "🧺 Washing machine",
+  dishwasher: "🍽️ Dishwasher",
+};
 
 // ── Notification message translations ──────────────────────────
 // Reuses the same admin/i18n/<lang>.json files as the admin UI, so the
@@ -163,7 +172,8 @@ class WashdataAdapter extends utils.Adapter {
             ? 8
             : src.deviceType === "washer_dryer"
               ? 10
-              : src.deviceType === "dishwasher"
+              : src.deviceType === "dishwasher" ||
+                  src.deviceType === "washer_dishwasher"
                 ? 8
                 : 5,
       durationTolerance:
@@ -845,6 +855,7 @@ class WashdataAdapter extends utils.Adapter {
     cycle.profileId = profile.id;
     cycle.confirmed = true;
     cycle.corrected = true;
+    mgr.refreshCycleAppliance(cycle);
     const traceForLearn = mgr.getTrace(cycle.id);
     const tracePoints = traceForLearn
       ? traceForLearn.points.map((p) => ({ ts: p.ts, watts: p.watts }))
@@ -898,7 +909,7 @@ class WashdataAdapter extends utils.Adapter {
         }
 
         case "createProfile": {
-          const { name, durationMin } = obj.message || {};
+          const { name, durationMin, appliance } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
             return respond({ error: "Device not found" });
@@ -906,13 +917,10 @@ class WashdataAdapter extends utils.Adapter {
           if (!name) {
             return respond({ error: "Name missing" });
           }
-          const devCfg = this._getDeviceConfig().find(
-            (d) => d.deviceId === (obj.message && obj.message.deviceId),
-          );
           const pid = mgr.profileStore.createManualProfile(
             name,
             (durationMin || 60) * 60_000,
-            devCfg ? devCfg.deviceType : "washing_machine",
+            mgr.programTypeFor(appliance),
           );
           await mgr.profileStore.save();
           // Update the programOverride dropdown
@@ -949,6 +957,27 @@ class WashdataAdapter extends utils.Adapter {
           p.name = name;
           await mgr.profileStore.save();
           await this._updateOverrideStates(obj.message.deviceId, mgr);
+          respond({ ok: true });
+          break;
+        }
+
+        case "setProgramAppliance": {
+          const { profileId, appliance } = obj.message || {};
+          const mgr = this._mgr(obj.message);
+          if (!mgr) {
+            return respond({ error: "Device not found" });
+          }
+          if (
+            !mgr.isSharedPlug() ||
+            !SHARED_PLUG_APPLIANCES.includes(appliance)
+          ) {
+            return respond({ error: "Invalid machine" });
+          }
+          if (!mgr.setProgramAppliance(profileId, appliance)) {
+            return respond({ error: "Program not found" });
+          }
+          await mgr.profileStore.save();
+          await mgr._saveState();
           respond({ ok: true });
           break;
         }
@@ -1004,6 +1033,7 @@ class WashdataAdapter extends utils.Adapter {
           cycle.profileId = profileId;
           cycle.confirmed = true;
           cycle.corrected = true;
+          mgr.refreshCycleAppliance(cycle);
           // Get trace for learning, if available
           const traceForLearn = mgr.getTrace(cycleId);
           const tracePoints = traceForLearn
@@ -1190,7 +1220,7 @@ class WashdataAdapter extends utils.Adapter {
         }
 
         case "createProfileFromTrace": {
-          const { cycleId, name } = obj.message || {};
+          const { cycleId, name, appliance } = obj.message || {};
           const mgr = this._mgr(obj.message);
           if (!mgr) {
             return respond({ error: "Device not found" });
@@ -1199,9 +1229,6 @@ class WashdataAdapter extends utils.Adapter {
           if (!trace) {
             return respond({ error: "No trace available" });
           }
-          const devCfg = this._getDeviceConfig().find(
-            (d) => d.deviceId === (obj.message && obj.message.deviceId),
-          );
           const rawTrace = trace.points.map((p) => ({
             ts: p.ts,
             watts: p.watts,
@@ -1209,7 +1236,7 @@ class WashdataAdapter extends utils.Adapter {
           const pid = mgr.profileStore.createProfile(
             name || "Neues Profil",
             rawTrace,
-            devCfg ? devCfg.deviceType : "washing_machine",
+            mgr.programTypeFor(appliance),
           );
           await mgr.profileStore.save();
           await this._updateOverrideStates(obj.message.deviceId, mgr);
@@ -1612,6 +1639,7 @@ class WashdataAdapter extends utils.Adapter {
       true,
     );
     this.setState(`${deviceId}.running`, status.running, true);
+    this.setState(`${deviceId}.appliance`, status.appliance || "", true);
 
     // Keep confidence + program data point always up to date
     if (status.bestCandidate) {
@@ -1647,7 +1675,11 @@ class WashdataAdapter extends utils.Adapter {
         getPhaseText(phaseKey, lang, noEmoji),
         true,
       );
-    } else if (status.state === "off" || status.state === "ending") {
+    } else if (
+      !status.phase ||
+      status.state === "off" ||
+      status.state === "ending"
+    ) {
       this.setState(`${deviceId}.phase`, "", true);
       this.setState(`${deviceId}.phaseText`, "", true);
     }
@@ -1675,6 +1707,15 @@ class WashdataAdapter extends utils.Adapter {
       true,
     );
     this.setState(`${deviceId}.confidence`, Math.round(confidence * 100), true);
+    // On a shared plug, the program is what tells which machine is running
+    const programMgr = this.managers[deviceId];
+    if (programMgr) {
+      this.setState(
+        `${deviceId}.appliance`,
+        programMgr.getApplianceType() || "",
+        true,
+      );
+    }
 
     // Update message on transition detecting → program:
     // - With notifyOnProbable: from matchThreshold
@@ -2002,7 +2043,11 @@ class WashdataAdapter extends utils.Adapter {
       const prevTimeStr = prevEndStr || "";
       // All values as a map, for conditional blocks
       const vars = {
-        device: devName,
+        device: await this._notificationDeviceName(
+          devCfgU,
+          deviceId,
+          mgr.getApplianceType(activeProgram.id),
+        ),
         program: programName,
         endTime: endTimeStr,
         prevTime: prevTimeStr,
@@ -2080,6 +2125,28 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
+  /**
+   * The {device} placeholder: on a shared plug the name of the machine that
+   * ran, because the name of the device fits both of them.
+   *
+   * @param {object} [devCfg]  – normalized device config
+   * @param {string} deviceId  – device ID, used if there is no config
+   * @param {string|null} [appliance]  – machine of the program, if known
+   * @returns {Promise<string>} – name to show
+   */
+  async _notificationDeviceName(devCfg, deviceId, appliance) {
+    if (!devCfg) {
+      return deviceId;
+    }
+    const label =
+      devCfg.deviceType === "washer_dishwasher" && APPLIANCE_LABELS[appliance];
+    if (!label) {
+      return devCfg.name;
+    }
+    // The labels start with an emoji, which the message templates bring themselves
+    return (await this._t(label)).replace(/^[^\p{L}]+/u, "");
+  }
+
   async _sendNotification(deviceId, cycle, event = "done") {
     const devCfgN = this._getDeviceConfig().find(
       (d) => d.deviceId === deviceId,
@@ -2147,7 +2214,11 @@ class WashdataAdapter extends utils.Adapter {
           ? cfg[msgKey]
           : defaults[event] || "";
       const doneVars = {
-        device: devName,
+        device: await this._notificationDeviceName(
+          devCfgN,
+          deviceId,
+          cycle.deviceType,
+        ),
         program: cycle.matchedProfile || "detecting...",
         duration: String(Math.round((cycle.durationMs || 0) / 60000)),
         energy: ((cycle.energyWh || 0) / 1000).toFixed(3),
@@ -2494,6 +2565,14 @@ class WashdataAdapter extends utils.Adapter {
       {
         id: "stateText",
         name: "Status (localized)",
+        type: "string",
+        role: "text",
+        def: "",
+        write: false,
+      },
+      {
+        id: "appliance",
+        name: "Running machine",
         type: "string",
         role: "text",
         def: "",

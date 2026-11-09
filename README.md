@@ -31,6 +31,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`, `{state:objectId}` for any ioBroker data point) and conditional text blocks
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
+- One plug for a washing machine and a dishwasher that never run at the same time: the detected program tells which of them is running
 - Localized, ready-to-display text data points (`phaseText`, `stateText`, `programText`) alongside the language-neutral internal ones, for dropping straight into a VIS dashboard
 
 ---
@@ -57,7 +58,7 @@ Each instance has the following settings:
 | Setting | Description |
 |---|---|
 | Device name | Display name for this device |
-| Device type | `washing_machine` or `dryer` (affects phase detection logic) |
+| Device type | `washing_machine`, `dishwasher`, `dryer`, `washer_dryer` or `washer_dishwasher` (affects phase detection logic, see [One plug for two machines](#one-plug-for-a-washing-machine-and-a-dishwasher)) |
 | Power sensor (W) | ioBroker data point providing watt values |
 | Power threshold (W) | Minimum wattage to consider the device as running |
 | Off delay (min) | Time to wait after power drops before ending the cycle |
@@ -75,6 +76,17 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 
 ---
 
+## One plug for a washing machine and a dishwasher
+
+With the device type `washer_dishwasher`, one plug can power both machines, as long as they never run at the same time. Two running machines add up to one power curve, which can't be told apart.
+
+1. Select the device type, and give the device a name that fits both.
+2. In the tab "Programs", choose the machine for each program. Programs learned before default to the washing machine, so move the dishwasher programs once. Their recorded cycles get the matching phases.
+
+The detected program then decides which machine is running: the phases, the `appliance` data point and the `{device}` placeholder of notifications follow it. Until the program is known, there is no phase yet and `{device}` is the name of the device, which also applies to the start notification. The off delay is shared by both machines, so it has to fit the longer one (8 min by default).
+
+---
+
 ## Data points per device
 
 | Data point | Type | Description |
@@ -82,6 +94,7 @@ The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade
 | `state` | string | off / starting / running / paused / ending (language-neutral internal key, meant for automations) |
 | `stateText` | string | Same as `state`, but as ready-to-display, localized text (e.g. "Running ⚙️" / "Läuft ⚙️") - see [`displayLanguage`](#configuration) |
 | `running` | boolean | Simple on/off indicator |
+| `appliance` | string | Running machine as a language-neutral key: the device type, or on a shared plug `washing_machine` / `dishwasher` as soon as the program is known (empty before that) |
 | `program` | string | Detected program name |
 | `programText` | string | Same as `program`, but with the `detecting...` placeholder localized (a confirmed program is your own saved name, passed through unchanged) |
 | `confidence` | number | Match confidence in % |
@@ -132,6 +145,8 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+- New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
+- New: data point `appliance` with the running machine
 - BREAKING: requires ioBroker.admin 8 or newer
 - Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It now follows the theme of Admin, including dark mode
 - Fix: some admin tab messages were always German

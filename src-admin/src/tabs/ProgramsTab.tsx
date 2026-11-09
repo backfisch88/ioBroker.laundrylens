@@ -18,7 +18,7 @@ import {
 import type { Cycle, Profile } from '../api';
 import { Empty, Section } from '../components/Section';
 import { useLoader, useUi } from '../context';
-import { formatDate, formatDateTime, t, toKwh, toMinutes } from '../labels';
+import { APPLIANCES, formatDate, formatDateTime, SHARED_PLUG_TYPE, t, toKwh, toMinutes } from '../labels';
 
 /** Time to read the first toast before the follow-up hint replaces it */
 const HINT_DELAY_MS = 3500;
@@ -37,9 +37,12 @@ function isDryer(deviceType?: string): boolean {
 export default function ProgramsTab(props: { deviceId: string }): React.JSX.Element {
     const { deviceId } = props;
     const { api, devices, toast, toastError, confirm, prompt } = useUi();
-    const dryer = isDryer(devices.find(device => device.deviceId === deviceId)?.deviceType);
+    const deviceType = devices.find(device => device.deviceId === deviceId)?.deviceType;
+    const dryer = isDryer(deviceType);
+    const sharedPlug = deviceType === SHARED_PLUG_TYPE;
     const [name, setName] = useState('');
     const [duration, setDuration] = useState('90');
+    const [appliance, setAppliance] = useState(APPLIANCES[0].value);
     const [referenceCycle, setReferenceCycle] = useState('');
 
     const [data, reload] = useLoader(async () => {
@@ -74,6 +77,7 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
             deviceId,
             name: trimmed,
             durationMin: parseInt(duration, 10) || 90,
+            appliance,
         });
         if (answer?.ok) {
             toast(t('Program "{0}" created').replace('{0}', trimmed), 'ok');
@@ -97,6 +101,16 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
         const answer = await api.send('renameProfile', { deviceId, profileId: profile.id, name: newName });
         if (answer?.ok) {
             toast(t('Renamed'), 'ok');
+            await reload();
+        } else {
+            toastError(answer);
+        }
+    };
+
+    const changeAppliance = async (profile: Profile, value: string): Promise<void> => {
+        const answer = await api.send('setProgramAppliance', { deviceId, profileId: profile.id, appliance: value });
+        if (answer?.ok) {
+            toast(t('Machine changed'), 'ok');
             await reload();
         } else {
             toastError(answer);
@@ -181,6 +195,25 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                         slotProps={{ htmlInput: { min: 1, max: 480 } }}
                         sx={{ width: 130 }}
                     />
+                    {sharedPlug ? (
+                        <TextField
+                            select
+                            size="small"
+                            label={t('Machine')}
+                            value={appliance}
+                            onChange={e => setAppliance(e.target.value)}
+                            sx={{ minWidth: 180 }}
+                        >
+                            {APPLIANCES.map(option => (
+                                <MenuItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
+                                    {t(option.label)}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    ) : null}
                     <Button
                         variant="contained"
                         color="success"
@@ -213,6 +246,7 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                         <TableHead>
                             <TableRow>
                                 <TableCell>{t('Name')}</TableCell>
+                                {sharedPlug ? <TableCell>{t('Machine')}</TableCell> : null}
                                 <TableCell>{t('Duration (avg)')}</TableCell>
                                 <TableCell>{t('Cycles')}</TableCell>
                                 <TableCell>{t('Created')}</TableCell>
@@ -230,6 +264,31 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                                             label={profile.isManual ? t('manual') : t('learned')}
                                         />
                                     </TableCell>
+                                    {sharedPlug ? (
+                                        <TableCell>
+                                            <TextField
+                                                select
+                                                size="small"
+                                                variant="standard"
+                                                aria-label={t('Machine')}
+                                                value={
+                                                    profile.deviceType === 'dishwasher'
+                                                        ? 'dishwasher'
+                                                        : 'washing_machine'
+                                                }
+                                                onChange={e => void changeAppliance(profile, e.target.value)}
+                                            >
+                                                {APPLIANCES.map(option => (
+                                                    <MenuItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {t(option.label)}
+                                                    </MenuItem>
+                                                ))}
+                                            </TextField>
+                                        </TableCell>
+                                    ) : null}
                                     <TableCell>
                                         {profile.durationMs ? `${toMinutes(profile.durationMs)} min` : '–'}
                                     </TableCell>
@@ -261,6 +320,15 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                 ) : (
                     <Empty>{t('No programs created yet.')}</Empty>
                 )}
+                {sharedPlug && data.profiles.length ? (
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', p: 1.5 }}
+                    >
+                        {t('💡 Choose the machine for each program. It decides the phases and the name in notifications.')}
+                    </Typography>
+                ) : null}
             </Section>
 
             {dryer ? (

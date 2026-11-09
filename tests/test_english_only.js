@@ -286,6 +286,7 @@ describe("State-name migration completeness (found via a real object dump)", () 
       "feedbackConfirm",
       "feedbackCorrectProgram",
       "feedbackDelete",
+      "appliance",
     ]);
 
     const mainSrc = fs.readFileSync(
