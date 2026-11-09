@@ -2368,6 +2368,12 @@ class WashdataAdapter extends utils.Adapter {
       common: { name: name || deviceId },
       native: {},
     });
+    // setObjectNotExists keeps the name the device had when it was created.
+    // The widgets show this name, so a renamed device must not keep the old one.
+    const channel = await this.getObjectAsync(deviceId);
+    if (channel && name && channel.common.name !== name) {
+      await this.extendObjectAsync(deviceId, { common: { name } });
+    }
 
     const states = [
       // Live

@@ -145,6 +145,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+- Fix: a renamed device kept the old name in its channel object
 - New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
 - New: data point `appliance` with the running machine
 - BREAKING: requires ioBroker.admin 8 or newer
