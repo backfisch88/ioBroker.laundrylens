@@ -112,6 +112,18 @@ The detected program then decides which machine is running: the phases, the `app
 
 ---
 
+## Widgets
+
+The adapter brings one widget that shows the state, program, phase and remaining time of a device, with a progress ring. A click shows all details, including the last cycle and the number of cycles to review. The widgets only read: confirming a cycle stays in the admin tab.
+
+| Host | Widget | Layouts |
+|------|--------|---------|
+| ioBroker.devices | Tile "LaundryLens" | 1x1, 2x1, 2x½ |
+| ioBroker.vis-2 | Widget set "LaundryLens" | Automatic by size, compact, bar, wide, everything |
+| Aura and other hosts of [`@iobroker/web-components`](https://github.com/ioBroker/web-components) | `<iob-laundrylens-device>` | Automatic by size, compact, bar, wide, everything |
+
+Choose the device in the settings of the widget, for example `laundrylens.0.device_0_97io`. In the widget, the status, phase and program texts appear as the adapter writes them to `stateText`, `phaseText` and `programText`, so they follow the language of the system and the "no emoji" option.
+
 ## Using data points in notification messages
 
 Besides the built-in placeholders (`{device}`, `{program}`, `{duration}`, `{energy}`, `{startTime}`, `{endTime}`, `{progress}`, `{prevTime}`), a notification message template can include the current value of **any** ioBroker data point with:
@@ -145,6 +157,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+- New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura and other hosts (`common.webComponents`). It shows the state, program, phase and remaining time of a device
 - Fix: a renamed device kept the old name in its channel object
 - New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
 - New: data point `appliance` with the running machine
