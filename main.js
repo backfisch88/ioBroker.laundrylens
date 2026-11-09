@@ -1536,7 +1536,7 @@ class WashdataAdapter extends utils.Adapter {
 
   // ── Update "feedback needed" indicator + VIS-friendly pending-
   // feedback data points ──────────────────────────────────
-  // Mirrors admin/tab_m.html's renderFeedback()/updateFeedbackBadge()
+  // Mirrors the admin tab's review list and badge (src-admin/src/App.tsx)
   // exactly (cycles with !confirmed, oldest first) - that used to be
   // the only place this was ever computed, entirely client-side via
   // sendTo, which is why none of this was ever exposed as data points

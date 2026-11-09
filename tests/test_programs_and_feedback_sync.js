@@ -26,7 +26,7 @@
  *    (with a "1" badge). Root cause: the data point was declared in
  *    io-package but never written anywhere at all - the admin tab
  *    computes its badge count entirely client-side
- *    (updateFeedbackBadge() in tab_m.html, counting cycles with
+ *    (reportCycles() in src-admin/src/App.tsx, counting cycles with
  *    `!confirmed`), so nothing had ever kept the data point in sync
  *    with that same logic.
  *
@@ -61,7 +61,7 @@ describe("availablePrograms and needsFeedback stay in sync, not just after speci
         mainSrc,
       ),
       "expected _updateNeedsFeedback() to compute its value the same way " +
-        "admin/tab_m.html's updateFeedbackBadge() does: " +
+        "reportCycles() in src-admin/src/App.tsx does: " +
         "cycles.filter(c => !c.confirmed)",
     );
     assert.ok(

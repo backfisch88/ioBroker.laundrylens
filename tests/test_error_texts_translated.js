@@ -13,6 +13,7 @@
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readAdminSource } = require("./lib/adminSources");
 
 const root = path.join(__dirname, "..");
 
@@ -57,7 +58,6 @@ describe("backend error texts are translated", () => {
   }
 
   it("the tab translates toast texts", () => {
-    const tab = fs.readFileSync(path.join(root, "admin", "tab_m.html"), "utf8");
-    assert.match(tab, /el\.textContent = _\(String\(msg\)\)/);
+    assert.match(readAdminSource("context.tsx"), /t\(String\(message\)\)/);
   });
 });

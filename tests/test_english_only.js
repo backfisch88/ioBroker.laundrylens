@@ -16,6 +16,7 @@
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readAdminSources } = require("./lib/adminSources");
 
 const SOURCE_FILES = [
   "main.js",
@@ -127,12 +128,12 @@ describe("Button-role states must not be readable (repository review E1008-adjac
   });
 });
 
-describe("Admin tab (admin/tab_m.html) user-visible strings must be English or translated", () => {
+describe("Admin tab (src-admin) user-visible strings must be English or translated", () => {
   // Found via manual review: this suite previously only checked main.js and
   // lib/*.js, so ~35 hardcoded German strings in the admin tab (toasts,
   // table headers, confirm() dialogs) went unnoticed for several releases.
   // This closes that gap with the same kind of high-precision marker list
-  // already used above for log messages, applied to tab_m.html's JS.
+  // already used above for log messages, applied to the tab's source.
   const GERMAN_UI_MARKERS = [
     "Noch keine Programme",
     "Dauer (Ø)",
@@ -168,99 +169,73 @@ describe("Admin tab (admin/tab_m.html) user-visible strings must be English or t
     // notify-my-android, Prowl) the function returned right after setting
     // it, so it was never replaced.
     "Alle (broadcast)",
+    // Hardcoded German toasts and prompts of the old HTML tab
+    "Trimmen angewendet",
+    "Geteilt!",
+    "Programmname",
+    "Graph zuerst laden",
+    "Splitpunkt",
   ];
 
   it("does not contain any of the specific German strings previously found in the admin tab", () => {
-    const fullSrc = fs.readFileSync(
-      path.join(__dirname, "..", "admin", "tab_m.html"),
-      "utf8",
-    );
+    const fullSrc = readAdminSources();
     // LEGACY_DEFAULT_MSGS is a deliberate exception: it holds the exact old
     // German default message texts for backward-compat detection (see the
     // comment above its declaration) and is a plain data comparison table,
     // never rendered to a user - excluded by content, not a line number, so
     // this doesn't silently stop checking if the file is edited later.
     const legacyBlockMatch = fullSrc.match(
-      /var LEGACY_DEFAULT_MSGS = \{[\s\S]*?\n\};/,
+      /const LEGACY_DEFAULT_MSGS = \{[\s\S]*?\n\};/,
     );
     assert.ok(
       legacyBlockMatch,
-      "could not locate the LEGACY_DEFAULT_MSGS block in tab_m.html - did it move or get renamed?",
+      "could not locate the LEGACY_DEFAULT_MSGS block in src-admin - did it move or get renamed?",
     );
     const src = fullSrc.replace(legacyBlockMatch[0], "");
 
     for (const marker of GERMAN_UI_MARKERS) {
       assert.ok(
         !src.includes(marker),
-        `admin/tab_m.html still contains German UI text ("${marker}") - ` +
-          `all text shown to users must be in English or wrapped in _() ` +
+        `src-admin still contains German UI text ("${marker}") - ` +
+          `all text shown to users must be in English or wrapped in t() ` +
           `with translations in admin/i18n/*.json`,
       );
     }
   });
 
   it("does not hardcode a specific locale (e.g. 'de-DE') for date/time formatting", () => {
-    const src = fs.readFileSync(
-      path.join(__dirname, "..", "admin", "tab_m.html"),
-      "utf8",
-    );
+    const src = readAdminSources();
     assert.ok(
       !/toLocale(Date|Time)?String\(\s*['"][a-z]{2}-[A-Z]{2}['"]/.test(src),
       "found a hardcoded locale (e.g. 'de-DE') passed to a toLocale*String() " +
-        "call in tab_m.html - use _currentLang || 'en' instead, matching " +
-        "every other date/time formatting call in this file",
+        "call in src-admin - use the helpers of labels.ts, which take the " +
+        "language from I18n",
     );
   });
 
-  it("escapes Telegram user id/name before writing them into innerHTML (found via manual review, 0.4.27)", () => {
-    // getTelegramUsers() returns display names taken from ioBroker.telegram's
-    // communicate.users state, i.e. whatever any Telegram user who has
-    // messaged the configured bot has set as their own first/user name -
-    // attacker-influenceable data. Building <option> markup from it via
-    // plain string concatenation (without escaping) is a stored-XSS-style
-    // risk in the admin UI. This pins the fix: both u.id and u.name must go
-    // through escapeHtml() wherever they're interpolated into HTML.
-    const src = fs.readFileSync(
-      path.join(__dirname, "..", "admin", "tab_m.html"),
-      "utf8",
-    );
+  it("never writes raw HTML, so Telegram user names can't inject markup (found via manual review, 0.4.27)", () => {
+    // getTelegramUsers() returns display names any Telegram user who messaged
+    // the configured bot can set freely - attacker-influenceable data. React
+    // escapes everything it renders, as long as nothing bypasses it.
+    const src = readAdminSources();
     assert.ok(
-      /function escapeHtml\(/.test(src),
-      "expected an escapeHtml() helper to exist in tab_m.html",
-    );
-    const renderMatch = src.match(
-      /res\.users\.map\(function\(u\) \{[\s\S]*?\}\)\.join\(''\)/,
-    );
-    assert.ok(
-      renderMatch,
-      "could not locate the res.users.map(...) rendering call - did " +
-        "getTelegramUsers()'s response handling change shape?",
-    );
-    assert.ok(
-      /escapeHtml\(u\.id\)/.test(renderMatch[0]) &&
-        /escapeHtml\(u\.name\)/.test(renderMatch[0]),
-      "u.id/u.name are interpolated into <option> HTML without escapeHtml() - " +
-        "this data comes from ioBroker.telegram's communicate.users state " +
-        "(any Telegram user's own display name) and must be escaped before " +
-        "being written into innerHTML",
+      !/dangerouslySetInnerHTML|\.innerHTML\b/.test(src),
+      "src-admin writes raw HTML - render text through React instead",
     );
   });
 
-  it("does not use any _() key that has no corresponding entry in admin/i18n/en.json", () => {
-    const src = fs.readFileSync(
-      path.join(__dirname, "..", "admin", "tab_m.html"),
-      "utf8",
-    );
+  it("does not use any t() key that has no corresponding entry in admin/i18n/en.json", () => {
+    const src = readAdminSources();
     const rawKeys = [
-      ...src.matchAll(/_\('((?:[^'\\]|\\.)*)'\)/g),
-      ...src.matchAll(/_\("((?:[^"\\]|\\.)*)"\)/g),
+      ...src.matchAll(/\bt\(\s*'((?:[^'\\]|\\.)*)'/g),
+      ...src.matchAll(/toastError\([^,)]*,\s*'((?:[^'\\]|\\.)*)'/g),
     ].map((m) => m[1]);
     const unescape = (s) =>
       s.replace(/\\'/g, "'").replace(/\\n/g, "\n").replace(/\\"/g, '"');
     const usedKeys = new Set(rawKeys.map(unescape));
     assert.ok(
       usedKeys.size > 50,
-      "sanity check failed - found very few _() calls in tab_m.html, did " +
+      "sanity check failed - found very few t() calls in src-admin, did " +
         "the translation function get renamed?",
     );
 
@@ -274,9 +249,9 @@ describe("Admin tab (admin/tab_m.html) user-visible strings must be English or t
     assert.deepStrictEqual(
       missing,
       [],
-      `admin/tab_m.html calls _() with ${missing.length} key(s) that don't ` +
+      `src-admin calls t() with ${missing.length} key(s) that don't ` +
         `exist in admin/i18n/en.json: ${JSON.stringify(missing)} - every ` +
-        `_() key needs a matching entry in all 11 language files`,
+        `t() key needs a matching entry in all 11 language files`,
     );
   });
 });
