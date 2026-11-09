@@ -159,6 +159,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ### **WORK IN PROGRESS**
 - New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura and other hosts (`common.webComponents`). It shows the state, program, phase and remaining time of a device
 - Fix: a renamed device kept the old name in its channel object
+- Fix: `lastCycle` and `lastCycleProgram` kept the old program after the last cycle was corrected
 - New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
 - New: data point `appliance` with the running machine
 - BREAKING: requires ioBroker.admin 8 or newer
