@@ -50,6 +50,8 @@ const CloseIcon: React.ComponentType<any> = MuiIcons?.Close;
 interface LaundryTileSettings extends CustomWidgetPlugin {
     /** Object ID of a device: `laundrylens.0.device_0_97io` */
     device?: string;
+    /** The instance that offers the devices in the settings: `laundrylens.0` */
+    instance?: string;
     /** Open the dialog with all details on click. Default true */
     openDialog?: boolean;
 }
@@ -88,10 +90,22 @@ export class LaundryLensComponent extends WidgetGeneric<LaundryTileState, Laundr
             schema: {
                 type: 'panel',
                 items: {
+                    instance: {
+                        type: 'instance',
+                        adapter: 'laundrylens',
+                        label: 'laundrylens_Instance',
+                        default: 'laundrylens.0',
+                        // "None" would make the device field below ask an instance with an empty name
+                        allowDeactivate: false,
+                        xs: 12,
+                    },
+                    // The chosen instance answers with its devices, see `getDeviceOptions` in main.js
                     device: {
-                        type: 'objectId',
-                        types: 'channel',
-                        root: 'laundrylens',
+                        type: 'selectSendTo',
+                        command: 'getDeviceOptions',
+                        instance: '${data.instance}',
+                        // Ask again when the instance changes
+                        alsoDependsOn: ['instance'],
                         label: 'laundrylens_Device',
                         help: 'laundrylens_Device help',
                         xs: 12,

@@ -122,7 +122,7 @@ The adapter brings one widget that shows the state, program, phase and remaining
 | ioBroker.vis-2 | Widget set "LaundryLens" | Automatic by size, compact, bar, wide, everything |
 | Aura and other hosts of [`@iobroker/web-components`](https://github.com/ioBroker/web-components) | `<iob-laundrylens-device>` | Automatic by size, compact, bar, wide, everything |
 
-Choose the device in the settings of the widget, for example `laundrylens.0.device_0_97io`. In the widget, the status, phase and program texts appear as the adapter writes them to `stateText`, `phaseText` and `programText`, so they follow the language of the system and the "no emoji" option.
+Choose the device in the settings of the widget: vis-2 and devices offer the configured devices in a list, the web component takes its object ID, for example `laundrylens.0.device_0_97io`. In the widget, the status, phase and program texts appear as the adapter writes them to `stateText`, `phaseText` and `programText`, so they follow the language of the system and the "no emoji" option.
 
 ## Using data points in notification messages
 

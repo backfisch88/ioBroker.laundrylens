@@ -902,6 +902,20 @@ class WashdataAdapter extends utils.Adapter {
           break;
         }
 
+        // The list of the device field in the settings of the devices tile.
+        // The field is a jsonConfig selectSendTo, which expects a plain array.
+        case "getDeviceOptions": {
+          respond(
+            this._getDeviceConfig().map((device) => ({
+              value: `${this.namespace}.${device.deviceId}`,
+              label: device.name,
+              // The name of a device is no key of the translations
+              noTranslation: true,
+            })),
+          );
+          break;
+        }
+
         case "getProfiles": {
           const mgr = this._mgr(obj.message);
           if (!mgr) {

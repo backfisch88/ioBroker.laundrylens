@@ -1,1 +1,0 @@
-import{n as e}from"./translations-iDJ0aMSs.js";var t=e;export{t as default};
