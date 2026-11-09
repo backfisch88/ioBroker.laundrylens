@@ -57,6 +57,7 @@ function setup(cycles) {
     getCycleHistory: () => cycles,
     getTrace: () => null,
     _saveState: async () => {},
+    refreshCycleAppliance() {},
     profileStore: {
       getProfile: (id) => profiles.find((p) => p.id === id),
       getAllProfiles: () => profiles,

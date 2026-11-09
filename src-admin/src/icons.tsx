@@ -21,6 +21,7 @@ import {
     Fire,
     FloppyDisk,
     Folders,
+    ForkKnife,
     GameController,
     Gear,
     House,
@@ -53,6 +54,7 @@ type Tone = 'green' | 'blue' | 'orange' | 'red' | 'muted';
 const ICON_MAP: Record<string, [Icon, Tone]> = {
     '✅': [CheckCircle, 'green'],
     '🧺': [WashingMachine, 'blue'],
+    '🍽': [ForkKnife, 'blue'],
     '📊': [ChartBar, 'blue'],
     '🔔': [Bell, 'orange'],
     '🗑': [TrashSimple, 'red'],

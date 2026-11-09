@@ -12,6 +12,15 @@ export function t(key: string): string {
     return I18n.t(key);
 }
 
+/** Device type for one plug that powers a washing machine and a dishwasher */
+export const SHARED_PLUG_TYPE = 'washer_dishwasher';
+
+/** The machines of a shared plug. The labels are i18n keys, also used by the instance configuration. */
+export const APPLIANCES = [
+    { value: 'washing_machine', label: '🧺 Washing machine' },
+    { value: 'dishwasher', label: '🍽️ Dishwasher' },
+];
+
 function language(): string {
     return I18n.getLanguage() || 'en';
 }
