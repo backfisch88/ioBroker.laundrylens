@@ -232,6 +232,25 @@ describe("shared plug: finishing a cycle", () => {
   });
 });
 
+describe("dishwasher phases", () => {
+  it("finds the heating blocks of a dishwasher that heats below 1000W", () => {
+    const start = Date.UTC(2026, 10, 9, 11, 0, 0);
+    const trace = dishwasherTrace(start).map((p) => ({
+      ts: p.ts,
+      watts: p.watts > 100 ? 936 : 5,
+    }));
+    const phases = makeManager("dishwasher")
+      ._analyzePhasesPostHocDishwasher(trace, 90 * MIN)
+      .map((p) => p.phase);
+    assert.deepStrictEqual(phases, [
+      "prewash",
+      "mainwash",
+      "finalrinse",
+      "dish_drying",
+    ]);
+  });
+});
+
 describe("shared plug: live phases", () => {
   function running(mgr) {
     const start = Date.now() - 40 * MIN;
