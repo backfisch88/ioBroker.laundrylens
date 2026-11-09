@@ -98,6 +98,39 @@ export function getLaundryDevice(id: string | null | undefined): string | null {
     return match && !/\.(files|info)$/.test(match[1]) ? match[1] : null;
 }
 
+/** One entry of the device list in the settings of a widget */
+export interface LaundryDeviceOption {
+    /** Object ID of the device: `laundrylens.0.device_0_97io` */
+    value: string;
+    /** Name of the device */
+    label: string;
+}
+
+/**
+ * The devices an instance runs, read from its configuration. The channels can't tell this, as the adapter leaves the
+ * channel of a removed device behind.
+ *
+ * The devices tile gets the same list from `getDeviceOptions` in `main.js`, as jsonConfig can only ask the adapter.
+ *
+ * @param instance the instance object
+ * @returns the devices in the order of the configuration
+ */
+export function getConfiguredDevices(instance: {
+    _id: string;
+    native?: Record<string, any>;
+}): LaundryDeviceOption[] {
+    const namespace = instance._id.replace(/^system\.adapter\./, '');
+    const native = instance.native || {};
+    const options: LaundryDeviceOption[] = [];
+    for (const device of [native, ...(native.devices || [])]) {
+        const value = `${namespace}.${device.deviceId}`;
+        if (device.deviceId && device.powerId && !options.some(option => option.value === value)) {
+            options.push({ value, label: device.name || 'Device' });
+        }
+    }
+    return options;
+}
+
 /**
  * The data points of a device to subscribe to
  *

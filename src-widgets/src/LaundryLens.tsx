@@ -7,16 +7,26 @@
  * devices tile.
  */
 import React from 'react';
-import { Card, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
+import { Card, Dialog, DialogContent, DialogTitle, IconButton, MenuItem, Select } from '@mui/material';
 
-import type { RxRenderWidgetProps, RxWidgetInfo, VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
+import type {
+    RxRenderWidgetProps,
+    RxWidgetInfo,
+    RxWidgetInfoAttributesField,
+    RxWidgetInfoCustomComponentContext,
+    VisRxWidgetProps,
+    VisRxWidgetState,
+    WidgetData,
+} from '@iobroker/types-vis-2';
 import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 import {
     applyStateValue,
     emptyLaundryValues,
+    getConfiguredDevices,
     getLaundryDevice,
     getStateIds,
+    type LaundryDeviceOption,
     type LaundryField,
     type LaundryValues,
     type Translate,
@@ -58,6 +68,57 @@ interface LaundrySocket {
 
 const CLOSE_ICON =
     'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z';
+
+/** The device field in the editor: a list of the devices of all instances */
+function DeviceSelector(props: {
+    field: RxWidgetInfoAttributesField;
+    context: RxWidgetInfoCustomComponentContext;
+    data: WidgetData;
+    setData: (newData: WidgetData) => void;
+}): React.JSX.Element | null {
+    const [devices, setDevices] = React.useState<LaundryDeviceOption[] | null>(null);
+    const socket = props.context.socket;
+
+    React.useEffect(() => {
+        socket
+            .getAdapterInstances('laundrylens')
+            .then((instances: ioBroker.InstanceObject[]) =>
+                setDevices(instances.flatMap(instance => getConfiguredDevices(instance))),
+            )
+            .catch(() => setDevices([]));
+    }, [socket]);
+
+    if (!devices) {
+        return null;
+    }
+
+    const name = props.field.name as string;
+    const value = getLaundryDevice(props.data[name] as string) || '';
+    // A device that is no longer in the configuration stays visible, so that the widget doesn't look unconfigured
+    const known = !value || devices.some(device => device.value === value);
+    const options = known ? devices : [...devices, { value, label: value }];
+
+    return (
+        <Select
+            fullWidth
+            variant="standard"
+            value={value}
+            onChange={e => props.setData({ [name]: e.target.value } as WidgetData)}
+            renderValue={selected => options.find(option => option.value === selected)?.label || ''}
+        >
+            {options.map(option => (
+                <MenuItem
+                    key={option.value}
+                    value={option.value}
+                    style={{ display: 'block' }}
+                >
+                    <div>{option.label}</div>
+                    <div style={{ fontSize: 10, fontStyle: 'italic', opacity: 0.7 }}>{option.value}</div>
+                </MenuItem>
+            ))}
+        </Select>
+    );
+}
 
 export default class LaundryLens extends (window.visRxWidget as typeof VisRxWidget)<
     LaundryLensRxData,
@@ -101,11 +162,17 @@ export default class LaundryLens extends (window.visRxWidget as typeof VisRxWidg
                     fields: [
                         {
                             name: 'device',
-                            type: 'id',
+                            type: 'custom',
                             label: 'laundrylens_Device',
                             tooltip: 'laundrylens_Device help',
-                            filter: { type: 'channel' },
-                            noSubscribe: true,
+                            component: (field, data, setData, props) => (
+                                <DeviceSelector
+                                    field={field}
+                                    data={data}
+                                    setData={setData}
+                                    context={props.context}
+                                />
+                            ),
                         },
                         {
                             name: 'name',

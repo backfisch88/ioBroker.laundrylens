@@ -1,0 +1,1 @@
+import{n as e}from"./translations-BZhVIvjy.js";var t=e;export{t as default};
