@@ -2,6 +2,10 @@
 node_modules/
 npm-debug.log*
 
+# UI builds (the results in admin/custom, admin/dm-widgets, admin/webcomponents and widgets are committed)
+src-*/build/
+src-*/.__mf__temp/
+
 # build / packaging artifacts
 *.tgz
 *.zip

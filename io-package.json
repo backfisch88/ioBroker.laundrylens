@@ -149,6 +149,7 @@
         "compact": true,
         "messagebox": true,
         "adminTab": {
+            "link": "jsonTab.json",
             "singleton": true,
             "name": {
                 "en": "LaundryLens",
@@ -157,7 +158,7 @@
         },
         "adminUI": {
             "config": "json",
-            "tab": "materialize"
+            "tab": "html"
         },
         "connectionType": "local",
         "dataSource": "push",
@@ -168,8 +169,50 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.8.23"
+                "admin": ">=8.0.0"
             }
+        ],
+        "deviceWidgets": {
+            "components": [
+                {
+                    "name": "LaundryLensComponent",
+                    "label": "LaundryLens",
+                    "description": {
+                        "en": "State, program, phase and remaining time of a washing machine, dryer or dishwasher",
+                        "de": "Zustand, Programm, Phase und Restzeit einer Waschmaschine, eines Trockners oder einer Spülmaschine",
+                        "ru": "Состояние, программа, фаза и оставшееся время стиральной, сушильной или посудомоечной машины",
+                        "pt": "Estado, programa, fase e tempo restante de uma máquina de lavar roupa, secadora ou máquina de lavar loiça",
+                        "nl": "Status, programma, fase en resterende tijd van een wasmachine, droger of vaatwasser",
+                        "fr": "État, programme, phase et temps restant d'un lave-linge, d'un sèche-linge ou d'un lave-vaisselle",
+                        "it": "Stato, programma, fase e tempo residuo di una lavatrice, asciugatrice o lavastoviglie",
+                        "es": "Estado, programa, fase y tiempo restante de una lavadora, secadora o lavavajillas",
+                        "pl": "Stan, program, faza i pozostały czas pralki, suszarki lub zmywarki",
+                        "uk": "Стан, програма, фаза та час, що залишився, пральної, сушильної чи посудомийної машини",
+                        "zh-cn": "洗衣机、烘干机或洗碗机的状态、程序、阶段和剩余时间"
+                    },
+                    "icon": "laundrylens.png"
+                }
+            ]
+        },
+        "visWidgets": {
+            "vis2LaundryLensWidgets": {
+                "i18n": "component",
+                "name": "vis2LaundryLensWidgets",
+                "url": "laundrylens/customWidgets.js",
+                "bundlerType": "module",
+                "color": "#3b82f6",
+                "label": "laundrylens_set_label",
+                "components": [
+                    "LaundryLens"
+                ]
+            }
+        },
+        "webComponents": [
+            "webcomponents/laundrylens-device.json"
+        ],
+        "restartAdapters": [
+            "devices",
+            "vis-2"
         ]
     },
     "objects": [],

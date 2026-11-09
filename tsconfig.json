@@ -6,5 +6,16 @@
     "noEmit": true
   },
   "include": ["**/*.js"],
-  "exclude": ["node_modules", "admin/**/*.html"]
+  "exclude": [
+    "node_modules",
+    "admin/custom",
+    "admin/dm-widgets",
+    "admin/webcomponents",
+    "widgets",
+    "src-admin",
+    "src-devices",
+    "src-shared",
+    "src-webcomponents",
+    "src-widgets"
+  ]
 }

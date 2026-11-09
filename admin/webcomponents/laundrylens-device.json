@@ -1,0 +1,206 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-laundrylens-device",
+    "name": "LaundryLens",
+    "description": {
+        "en": "State, program, phase and remaining time of a washing machine, dryer or dishwasher",
+        "de": "Zustand, Programm, Phase und Restzeit einer Waschmaschine, eines Trockners oder einer Spülmaschine",
+        "ru": "Состояние, программа, фаза и оставшееся время стиральной, сушильной или посудомоечной машины",
+        "pt": "Estado, programa, fase e tempo restante de uma máquina de lavar roupa, secadora ou máquina de lavar loiça",
+        "nl": "Status, programma, fase en resterende tijd van een wasmachine, droger of vaatwasser",
+        "fr": "État, programme, phase et temps restant d'un lave-linge, d'un sèche-linge ou d'un lave-vaisselle",
+        "it": "Stato, programma, fase e tempo residuo di una lavatrice, asciugatrice o lavastoviglie",
+        "es": "Estado, programa, fase y tiempo restante de una lavadora, secadora o lavavajillas",
+        "pl": "Stan, program, faza i pozostały czas pralki, suszarki lub zmywarki",
+        "uk": "Стан, програма, фаза та час, що залишився, пральної, сушильної чи посудомийної машини",
+        "zh-cn": "洗衣机、烘干机或洗碗机的状态、程序、阶段和剩余时间"
+    },
+    "icon": "../icon.png",
+    "module": "laundrylens-device.js",
+    "size": {
+        "width": 360,
+        "height": 180
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "device": {
+                "type": "objectId",
+                "types": "channel",
+                "root": "laundrylens",
+                "label": {
+                    "en": "Device",
+                    "de": "Gerät",
+                    "ru": "Устройство",
+                    "pt": "Dispositivo",
+                    "nl": "Apparaat",
+                    "fr": "Appareil",
+                    "it": "Dispositivo",
+                    "es": "Dispositivo",
+                    "pl": "Urządzenie",
+                    "uk": "Пристрій",
+                    "zh-cn": "设备"
+                },
+                "help": {
+                    "en": "A device set up in the LaundryLens adapter",
+                    "de": "Ein im LaundryLens-Adapter eingerichtetes Gerät",
+                    "ru": "Устройство, настроенное в адаптере LaundryLens",
+                    "pt": "Um dispositivo configurado no adaptador LaundryLens",
+                    "nl": "Een apparaat dat in de LaundryLens-adapter is ingesteld",
+                    "fr": "Un appareil configuré dans l'adaptateur LaundryLens",
+                    "it": "Un dispositivo configurato nell'adattatore LaundryLens",
+                    "es": "Un dispositivo configurado en el adaptador LaundryLens",
+                    "pl": "Urządzenie skonfigurowane w adapterze LaundryLens",
+                    "uk": "Пристрій, налаштований в адаптері LaundryLens",
+                    "zh-cn": "在 LaundryLens 适配器中设置的设备"
+                }
+            },
+            "name": {
+                "type": "text",
+                "label": {
+                    "en": "Name",
+                    "de": "Name",
+                    "ru": "Имя",
+                    "pt": "Nome",
+                    "nl": "Naam",
+                    "fr": "Nom",
+                    "it": "Nome",
+                    "es": "Nombre",
+                    "pl": "Nazwa",
+                    "uk": "Назва",
+                    "zh-cn": "名称"
+                },
+                "help": {
+                    "en": "Empty: the name of the device",
+                    "de": "Leer: der Name des Geräts",
+                    "ru": "Пусто: имя устройства",
+                    "pt": "Vazio: o nome do dispositivo",
+                    "nl": "Leeg: de naam van het apparaat",
+                    "fr": "Vide : le nom de l'appareil",
+                    "it": "Vuoto: il nome del dispositivo",
+                    "es": "Vacío: el nombre del dispositivo",
+                    "pl": "Puste: nazwa urządzenia",
+                    "uk": "Порожньо: назва пристрою",
+                    "zh-cn": "留空:使用设备名称"
+                }
+            },
+            "layout": {
+                "type": "select",
+                "label": {
+                    "en": "Layout",
+                    "de": "Layout",
+                    "ru": "Вид",
+                    "pt": "Disposição",
+                    "nl": "Weergave",
+                    "fr": "Disposition",
+                    "it": "Layout",
+                    "es": "Diseño",
+                    "pl": "Układ",
+                    "uk": "Вигляд",
+                    "zh-cn": "布局"
+                },
+                "options": [
+                    {
+                        "value": "auto",
+                        "label": {
+                            "en": "Automatic",
+                            "de": "Automatisch",
+                            "ru": "Автоматически",
+                            "pt": "Automático",
+                            "nl": "Automatisch",
+                            "fr": "Automatique",
+                            "it": "Automatico",
+                            "es": "Automático",
+                            "pl": "Automatycznie",
+                            "uk": "Автоматично",
+                            "zh-cn": "自动"
+                        }
+                    },
+                    {
+                        "value": "compact",
+                        "label": {
+                            "en": "Compact",
+                            "de": "Kompakt",
+                            "ru": "Компактный",
+                            "pt": "Compacto",
+                            "nl": "Compact",
+                            "fr": "Compact",
+                            "it": "Compatto",
+                            "es": "Compacto",
+                            "pl": "Kompaktowy",
+                            "uk": "Компактний",
+                            "zh-cn": "紧凑"
+                        }
+                    },
+                    {
+                        "value": "bar",
+                        "label": {
+                            "en": "Bar",
+                            "de": "Leiste",
+                            "ru": "Полоса",
+                            "pt": "Barra",
+                            "nl": "Balk",
+                            "fr": "Barre",
+                            "it": "Barra",
+                            "es": "Barra",
+                            "pl": "Pasek",
+                            "uk": "Смуга",
+                            "zh-cn": "条形"
+                        }
+                    },
+                    {
+                        "value": "wide",
+                        "label": {
+                            "en": "Wide",
+                            "de": "Breit",
+                            "ru": "Широкий",
+                            "pt": "Largo",
+                            "nl": "Breed",
+                            "fr": "Large",
+                            "it": "Largo",
+                            "es": "Ancho",
+                            "pl": "Szeroki",
+                            "uk": "Широкий",
+                            "zh-cn": "宽"
+                        }
+                    },
+                    {
+                        "value": "full",
+                        "label": {
+                            "en": "Everything",
+                            "de": "Alles",
+                            "ru": "Всё",
+                            "pt": "Tudo",
+                            "nl": "Alles",
+                            "fr": "Tout",
+                            "it": "Tutto",
+                            "es": "Todo",
+                            "pl": "Wszystko",
+                            "uk": "Усе",
+                            "zh-cn": "全部"
+                        }
+                    }
+                ],
+                "default": "auto"
+            },
+            "openDialog": {
+                "type": "checkbox",
+                "label": {
+                    "en": "Show all details on a click",
+                    "de": "Bei Klick alle Details zeigen",
+                    "ru": "Показывать все сведения по щелчку",
+                    "pt": "Mostrar todos os detalhes ao clicar",
+                    "nl": "Alle details tonen bij een klik",
+                    "fr": "Afficher tous les détails au clic",
+                    "it": "Mostra tutti i dettagli al clic",
+                    "es": "Mostrar todos los detalles al hacer clic",
+                    "pl": "Pokaż wszystkie szczegóły po kliknięciu",
+                    "uk": "Показувати всі відомості за клацанням",
+                    "zh-cn": "点击时显示全部详情"
+                },
+                "default": true
+            }
+        }
+    }
+}

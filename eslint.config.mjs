@@ -6,7 +6,17 @@ import config from "@iobroker/eslint-config";
 export default [
   ...config,
   {
-    ignores: ["admin/**/*.html"],
+    ignores: [
+      "admin/custom/**",
+      "admin/dm-widgets/**",
+      "admin/webcomponents/**",
+      "widgets/**",
+      "src-admin/**",
+      "src-devices/**",
+      "src-shared/**",
+      "src-webcomponents/**",
+      "src-widgets/**",
+    ],
   },
   {
     rules: {
