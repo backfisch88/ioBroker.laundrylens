@@ -20,12 +20,17 @@
   "files": [
     "admin/",
     "lib/",
+    "widgets/",
     "io-package.json",
     "main.js",
     "LICENSE"
   ],
   "scripts": {
     "build": "node tasks",
+    "build:admin": "node tasks --admin",
+    "build:devices": "node tasks --devices",
+    "build:vis": "node tasks --vis",
+    "build:wc": "node tasks --wc",
     "test": "node node_modules/mocha/bin/mocha --exit tests/",
     "test:integration": "mocha test/integration --exit",
     "lint": "eslint .",

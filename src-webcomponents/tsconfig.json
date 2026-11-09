@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ES2022"],
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "jsx": "react-jsx",
+        "types": ["node", "@iobroker/types"],
+        // the shared views in ../src-shared have no node_modules of their own
+        "paths": {
+            "react": ["./node_modules/@types/react"],
+            "react/*": ["./node_modules/@types/react/*"]
+        }
+    },
+    "include": ["src", "vite.config.ts"]
+}
