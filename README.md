@@ -132,6 +132,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.5.0 (2026-11-12)
+- New: light/dark theme in the admin tab (follows ioBroker Admin)
+- Changed: SVG icons instead of emoji, transparent adapter icon
+- Fix: programs table on small screens
+
 ### 0.4.44 (2026-11-08)
 - Fix: splitting a cycle now splits its energy too (trim scales it, merging old split parts is corrected)
 - Fix: admin error messages are now translated
