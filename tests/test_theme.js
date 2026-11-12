@@ -54,3 +54,34 @@ describe("admin tab theme", () => {
     assert.ok(css.includes("prefers-reduced-motion"));
   });
 });
+
+describe("admin tab icons", () => {
+  const mapSrc = html.slice(
+    html.indexOf("var ICON_MAP"),
+    html.indexOf("var ICON_RE"),
+  );
+  const mapped = new Set(
+    Object.keys(
+      JSON.parse(
+        mapSrc.slice(mapSrc.indexOf("{"), mapSrc.lastIndexOf("}") + 1),
+      ),
+    ),
+  );
+
+  it("has an SVG icon for every emoji used in the tab", () => {
+    const emoji = /[\u{1F300}-\u{1FAFF}←-⇿☀-➿⬀-⯿]/gu;
+    const used = new Set(
+      (html.slice(html.indexOf("</style>")).match(emoji) || []).filter(
+        (c) => c !== "→",
+      ),
+    );
+    const missing = [...used].filter((c) => !mapped.has(c));
+    assert.deepStrictEqual(missing, []);
+  });
+
+  it("swaps emoji for icons at render time without touching translation keys", () => {
+    assert.ok(html.includes("function iconizeNode"));
+    assert.ok(html.includes("MutationObserver"));
+    assert.ok(html.includes('data-i18n="📊 Overview"'));
+  });
+});
