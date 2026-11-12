@@ -84,4 +84,10 @@ describe("admin tab icons", () => {
     assert.ok(html.includes("MutationObserver"));
     assert.ok(html.includes('data-i18n="📊 Overview"'));
   });
+
+  it("consumes the emoji variation selector for every icon, not only the last", () => {
+    assert.ok(
+      html.includes("new RegExp('(?:' + Object.keys(ICON_MAP).join('|') + ')"),
+    );
+  });
 });
