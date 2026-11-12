@@ -99,4 +99,8 @@ describe("admin tab icons", () => {
     assert.ok(html.includes("ic.className += ' ic-gap'"));
     assert.ok(html.includes(".ic.ic-gap { margin-right"));
   });
+
+  it("centres button content so wider buttons have no one-sided gap", () => {
+    assert.ok(/\.btn \{[^}]*justify-content: center/.test(css));
+  });
 });
