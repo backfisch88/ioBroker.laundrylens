@@ -26,7 +26,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node tasks",
+    "build": "node tasks && iob-web-components sync-io-package",
     "build:admin": "node tasks --admin",
     "build:devices": "node tasks --devices",
     "build:vis": "node tasks --vis",
@@ -51,7 +51,8 @@
     "@alcalzone/release-script-plugin-license": "^5.2.2",
     "@alcalzone/release-script-plugin-manual-review": "^5.2.0",
     "@tsconfig/node22": "^22.0.5",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "@iobroker/web-components": "^0.8.0"
   },
   "engines": {
     "node": ">=22.0.0"

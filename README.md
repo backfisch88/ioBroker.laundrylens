@@ -165,6 +165,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 - BREAKING: requires ioBroker.admin 8 or newer
 - Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It now follows the theme of Admin, including dark mode
 - Fix: some admin tab messages were always German
+- Added the short form of the web component manifests (tag, name, icon, size) to `common.webComponents`, so that hosts like Aura can list the components before the adapter is installed; the build writes it with `iob-web-components sync-io-package`
 
 ### 0.4.44 (2026-11-08)
 - Fix: splitting a cycle now splits its energy too (trim scales it, merging old split parts is corrected)

@@ -208,7 +208,16 @@
             }
         },
         "webComponents": [
-            "webcomponents/laundrylens-device.json"
+            {
+                "manifest": "webcomponents/laundrylens-device.json",
+                "tag": "iob-laundrylens-device",
+                "name": "LaundryLens",
+                "icon": "../icon.png",
+                "size": {
+                    "width": 360,
+                    "height": 180
+                }
+            }
         ],
         "restartAdapters": [
             "devices",
