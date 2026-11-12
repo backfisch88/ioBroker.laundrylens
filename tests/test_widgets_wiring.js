@@ -44,7 +44,8 @@ describe("widgets wiring", () => {
       "admin/dm-widgets/customDevices.js",
       "admin/dm-widgets/mf-manifest.json",
       `admin/dm-widgets/${tile.icon}`,
-      `admin/${common.webComponents[0]}`,
+      `admin/${common.webComponents[0].manifest}`,
+      `admin/webcomponents/${common.webComponents[0].icon}`,
       `admin/webcomponents/${manifest.module}`,
     ]) {
       assert.ok(fs.existsSync(path.join(root, file)), `${file} is missing`);

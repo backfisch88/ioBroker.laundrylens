@@ -160,6 +160,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 - New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura and other hosts (`common.webComponents`). It shows the state, program, phase and remaining time of a device
 - New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
 - New: data point `appliance` with the running machine
+- New: `common.webComponents` carries tag, name, icon and size of the web component, so hosts like Aura can list it before the adapter is installed
 
 ### 0.6.0 (2026-11-13)
 - BREAKING: requires ioBroker.admin 8 or newer
