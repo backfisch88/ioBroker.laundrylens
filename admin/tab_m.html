@@ -144,7 +144,7 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
 .toast.err  { background: var(--red); }
 .toast.info { background: var(--blue); }
 .ic-text { display: inline; }
-.card-head > .ic-text, .btn > .ic-text, .chip > .ic-text { display: inline-flex; align-items: center; gap: 6px; }
+.card-head > .ic-text, .btn > .ic-text, .chip > .ic-text { display: inline-flex; align-items: center; }
 .pname { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
 .pdate { display: none; }
 .tbl th { white-space: nowrap; }
@@ -159,7 +159,8 @@ input:focus, select:focus { outline: none; border-color: var(--blue); }
   .tbl th { white-space: normal; line-height: 1.25; vertical-align: bottom; }
 }
 /* Icons (duotone). Default: one colour, tinted fill. In badges/buttons/toasts: neutral line, coloured fill. */
-.ic { display: inline-flex; width: 1.2em; height: 1.2em; vertical-align: -.22em; flex-shrink: 0; margin-right: .1em; }
+.ic { display: inline-flex; width: 1.2em; height: 1.2em; vertical-align: -.22em; flex-shrink: 0; }
+.ic.ic-gap { margin-right: .4em; }
 .ic svg { width: 100%; height: 100%; }
 .ic-blue   { --ic: var(--blue); }
 .ic-green  { --ic: var(--green); }
@@ -578,8 +579,10 @@ function iconizeNode(root) {
         while ((mt = ICON_RE.exec(text)) !== null) {
             if (mt.index > last) frag.appendChild(document.createTextNode(text.slice(last, mt.index)));
             var ic = buildIcon(mt[0]);
-            frag.appendChild(ic || document.createTextNode(mt[0]));
             last = mt.index + mt[0].length;
+            while (text.charAt(last) === ' ') last++; // spacing after an icon comes from CSS
+            if (ic && last < text.length) ic.className += ' ic-gap';
+            frag.appendChild(ic || document.createTextNode(mt[0]));
         }
         if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
         n.parentNode.replaceChild(frag, n);

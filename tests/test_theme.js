@@ -90,4 +90,13 @@ describe("admin tab icons", () => {
       html.includes("new RegExp('(?:' + Object.keys(ICON_MAP).join('|') + ')"),
     );
   });
+
+  it("drops the space after an icon so spacing is controlled by CSS only", () => {
+    assert.ok(html.includes("while (text.charAt(last) === ' ') last++;"));
+  });
+
+  it("only adds spacing to icons that are followed by text", () => {
+    assert.ok(html.includes("ic.className += ' ic-gap'"));
+    assert.ok(html.includes(".ic.ic-gap { margin-right"));
+  });
 });
