@@ -133,34 +133,28 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ### **WORK IN PROGRESS**
 
 ### 0.5.0 (2026-11-12)
-- New: light/dark theme in the admin tab (follows ioBroker Admin)
-- Changed: SVG icons instead of emoji, transparent adapter icon
+- New: light/dark theme in the admin tab
+- Changed: SVG icons instead of emoji, new adapter icon
 - Fix: programs table on small screens
 
 ### 0.4.44 (2026-11-08)
-- Fix: splitting a cycle now splits its energy too (trim scales it, merging old split parts is corrected)
-- Fix: admin error messages are now translated
+- Fix: kWh when splitting, trimming and merging cycles
+- Fix: admin error messages translated
 
 ### 0.4.43 (2026-11-08)
-- Changed: merge a cycle with the previous one via a single button (Cycles tab)
+- Changed: merge with the previous cycle via one button
 
 ### 0.4.42 (2026-11-08)
-- New: merge 2-3 cycles into one in the admin tab (Cycles)
+- New: merge 2-3 cycles into one (Cycles tab)
 
 ### 0.4.41 (2026-10-08)
-- Fix: reported live - a cycle running noticeably longer than its historical average plateaued at ~99% progress / near-zero remaining time for a long stretch instead of correcting (a wash cycle showed 98% progress/2min remaining a full 34 minutes before it actually finished - confirmed from the debug log: still well inside an overrunning rinse phase, with spinning not even starting until 29 minutes later). Root cause: once the plain duration-average estimate (or, within a phase, that phase's typical duration) runs out, it has nothing more to contribute - but the live energy-based estimate (which tracks this specific run's actual pace, not a historical average) was still only partially trusted, as little as 30% weight for a consistent/low-CV profile
-- Fixed by fully trusting the energy-based estimate once the whole-cycle average has run out (no phase data available), and leaning much more heavily on it (30/70 instead of 70/30) once the current phase has overrun its own typical duration - so an unusually long run corrects toward reality instead of sitting stuck near 0% remaining
-- Covered by two new regression tests extending `tests/test_time_estimate.js` (one per branch)
+- Fix: remaining time/progress no longer stalls near 99%
 
 ### 0.4.40 (2026-10-07)
-- Fix: reported live (notification history showing a predicted finish time creeping from 12:30 to 14:06 over the course of a single wash cycle, while `cycleProgress` stayed roughly accurate - over an hour off by the end) - the predicted finish time could drift later and later with every update. Root cause: whenever the recent power trace's variance exceeds a threshold (e.g. a washer motor cycling on/off during agitation), the remaining-time estimate gets "locked" to the last trusted value, to avoid jumpy/unstable predictions from noisy readings. The locked value was a frozen millisecond *duration* though, which never shrank while locked - so the countdown effectively stopped entirely for as long as the noisy condition persisted, while real wall-clock time kept passing, making `now + remaining` (the predicted finish time) creep later and later
-- Fixed by decrementing the locked value by the real elapsed time since it was last touched, instead of freezing it as a constant - it now keeps counting down correctly even while locked, while still avoiding jumpy re-estimates from noisy readings (the original intent)
-- Covered by a new regression test extending `tests/test_time_estimate.js`
+- Fix: predicted finish time no longer drifts later
 
 ### 0.4.39 (2026-10-06)
-- Fix: reported live - `elapsedTime` stayed frozen (often at a stale value left over from a previous cycle) for the entire "detecting..." period of a new cycle, only starting to update once a program was actually confirmed (observed: stuck at 11342 while only ~15 minutes into a new washer cycle; for a dryer, jumped from frozen to 1096 the moment the program was recognized). Root cause: `elapsedTime` is just `Date.now()` minus the cycle's start time, with no real dependency on program detection - but the `onTimeUpdate` callback that wrote it (via `_onTime()`) returned early, skipping the write entirely, whenever `WashDataManager._updateTimeEstimate()` reported no program/bestCandidate yet
-- Fixed by extracting the computation into a shared `_updateElapsedTime()` helper, now called unconditionally at the top of `onTimeUpdate` - before its "no program detected" early return - as well as from `_onTime()`'s normal path, so it updates from the moment a cycle starts running regardless of detection status
-- Covered by a new regression test (`tests/test_elapsed_time_before_detection.js`)
+- Fix: `elapsedTime` updates while "detecting..."
 
 Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
