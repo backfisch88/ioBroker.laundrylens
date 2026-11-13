@@ -11,6 +11,8 @@ import {
     Basket,
     ChartBar,
     ChartLine,
+    CaretDown,
+    CaretRight,
     Check,
     CheckCircle,
     Circle,
@@ -83,6 +85,9 @@ const ICON_MAP: Record<string, [Icon, Tone]> = {
     '✕': [X, 'muted'],
     '✂': [Scissors, 'blue'],
     '⏹': [Stop, 'red'],
+    // Opens and closes a row of a table
+    '▶': [CaretRight, 'blue'],
+    '▼': [CaretDown, 'blue'],
     // Phases of a cycle, see admin/phaseLabels.json
     '🔥': [Fire, 'orange'],
     '💧': [Drop, 'blue'],

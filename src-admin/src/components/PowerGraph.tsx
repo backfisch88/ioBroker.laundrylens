@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Box, useTheme } from '../ui';
 
 import type { PhaseEntry, TracePoint } from '../api';
+import { withIcons } from '../icons';
 import { getPhaseLabel, t } from '../labels';
 
 const HEIGHT = 180;
@@ -278,7 +279,7 @@ export default function PowerGraph(props: {
                             sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 11 }}
                         >
                             <Box sx={{ width: 8, height: 8, borderRadius: 0.5, bgcolor: `rgb(${phaseColor(phase)})` }} />
-                            {getPhaseLabel(phase)}
+                            {withIcons(getPhaseLabel(phase))}
                         </Box>
                     ))}
                 </Box>

@@ -61,6 +61,11 @@ describe("admin tab icons", () => {
     }
   });
 
+  it("shows the open and close arrow of a table row as icons", () => {
+    assert.match(icons, /'▶': \[CaretRight, 'blue'\]/);
+    assert.match(icons, /'▼': \[CaretDown, 'blue'\]/);
+  });
+
   it("takes an emoji with its variation selector and drops the space after it", () => {
     assert.match(
       icons,
@@ -115,6 +120,15 @@ describe("admin tab components", () => {
   it("render an emoji inside a Select through withIcons, as MUI shows the raw children there", () => {
     const overview = readAdminSource("tabs/OverviewTab.tsx");
     assert.match(overview, /withIcons\(t\('🤖 Automatic'\)\)/);
+  });
+});
+
+describe("legend of the power graph", () => {
+  it("shows the phase labels with icons, as a plain Box does not replace them", () => {
+    assert.match(
+      readAdminSource("components/PowerGraph.tsx"),
+      /\{withIcons\(getPhaseLabel\(phase\)\)\}/,
+    );
   });
 });
 
