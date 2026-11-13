@@ -132,12 +132,14 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+
+### 0.6.0 (2026-11-13)
 - BREAKING: requires ioBroker.admin 8 or newer
-- Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It follows the theme of Admin, including dark mode, and keeps the duotone icons and the phone layout
+- Changed: admin tab rebuilt with React 19 by [GermanBluefox](https://github.com/GermanBluefox) ([#65](https://github.com/backfisch88/ioBroker.laundrylens/pull/65)); follows the Admin theme, duotone icons, phone layout
+- Fix: dishwasher heating detected from 800 W (by GermanBluefox, [#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
+- Fix: renamed device kept the old name in its channel object (by GermanBluefox, [#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
+- Fix: `lastCycle` and `lastCycleProgram` after a correction (by GermanBluefox, [#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
 - Fix: some admin tab messages were always German
-- Fix: dishwasher heating detected from 800 W (was 1000 W), so phases are found on machines that heat with less (thanks GermanBluefox)
-- Fix: a renamed device kept the old name in its channel object (thanks GermanBluefox)
-- Fix: `lastCycle` and `lastCycleProgram` kept the old program after the last cycle was corrected (thanks GermanBluefox)
 
 ### 0.5.0 (2026-11-12)
 - New: light/dark theme in the admin tab
@@ -160,10 +162,13 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ### 0.4.40 (2026-10-07)
 - Fix: predicted finish time no longer drifts later
 
-### 0.4.39 (2026-10-06)
-- Fix: `elapsedTime` updates while "detecting..."
-
 Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
+---
+
+## Credits
+
+The new admin tab in version 0.6.0 is the work of [GermanBluefox](https://github.com/GermanBluefox). He rebuilt it with React 19 as a JSON tab ([#65](https://github.com/backfisch88/ioBroker.laundrylens/pull/65)) and found and fixed the dishwasher, renamed device and `lastCycle` problems ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). Since the pull requests could no longer be merged after other changes in `main`, I took over his commits with him as author and added my icons and the phone layout on top. Thank you for the great work!
 
 ---
 

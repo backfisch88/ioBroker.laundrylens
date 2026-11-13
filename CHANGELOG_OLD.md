@@ -2,6 +2,9 @@
 
 Older versions, moved out of README.md. The README keeps the latest 7.
 
+### 0.4.39 (2026-10-06)
+- Fix: `elapsedTime` updates while "detecting..."
+
 ### 0.4.38 (2026-10-04)
 - New: feedback flow (Lernkontrolle) usable from VIS (`pendingFeedback*` data points, `feedbackConfirm`, `feedbackCorrectProgram`, `feedbackDelete`)
 
