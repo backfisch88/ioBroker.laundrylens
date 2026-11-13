@@ -131,9 +131,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
-- Fix: dishwasher heating detected from 800 W (was 1000 W), so phases are found on machines that heat with less
-- Fix: a renamed device kept the old name in its channel object
-- Fix: `lastCycle` and `lastCycleProgram` kept the old program after the last cycle was corrected
+- Fix: dishwasher heating detected from 800 W (was 1000 W), so phases are found on machines that heat with less (thanks GermanBluefox)
+- Fix: a renamed device kept the old name in its channel object (thanks GermanBluefox)
+- Fix: `lastCycle` and `lastCycleProgram` kept the old program after the last cycle was corrected (thanks GermanBluefox)
 
 ### 0.5.0 (2026-11-12)
 - New: light/dark theme in the admin tab
