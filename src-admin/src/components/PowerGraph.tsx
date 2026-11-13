@@ -139,9 +139,10 @@ function draw(ctx: CanvasRenderingContext2D, options: DrawOptions): void {
         ctx.fillStyle = textColor;
         ctx.fillText(`${Math.round(maxWatts * share)}W`, PAD.left - 3, lineY + 3);
     });
-    ctx.textAlign = 'center';
     const minutes = range / 60000;
     [0, 0.5, 1].forEach(share => {
+        // Centered on the right edge, the last label would be cut off by the canvas
+        ctx.textAlign = share === 1 ? 'right' : 'center';
         ctx.fillText(`${Math.round(minutes * share)}min`, PAD.left + share * graphWidth, PAD.top + graphHeight + 12);
     });
 
