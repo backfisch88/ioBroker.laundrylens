@@ -630,6 +630,8 @@ class WashdataAdapter extends utils.Adapter {
       // corrected - see _onCycleFinished()/confirmCycle/correctCycle.
       await this._updateOverrideStates(deviceCfg.deviceId, manager);
       await this._updateNeedsFeedback(deviceCfg.deviceId, manager);
+      // Heals a cycle that was corrected before correcting kept these in sync
+      await this._syncLastCycle(deviceCfg.deviceId, manager);
     }
 
     this.setState("info.connection", true, true);
@@ -854,6 +856,7 @@ class WashdataAdapter extends utils.Adapter {
     await mgr._saveState();
     await this._updateNeedsFeedback(deviceId, mgr);
     await this._updateOverrideStates(deviceId, mgr);
+    await this._syncLastCycle(deviceId, mgr);
   }
 
   // VIS-friendly equivalent of deleteCycle, discarding the oldest
@@ -1018,6 +1021,7 @@ class WashdataAdapter extends utils.Adapter {
           await mgr._saveState(); // Persist the cycle change
           await this._updateNeedsFeedback(obj.message.deviceId, mgr);
           await this._updateOverrideStates(obj.message.deviceId, mgr);
+          await this._syncLastCycle(obj.message.deviceId, mgr);
           respond({ ok: true });
           break;
         }
@@ -1791,6 +1795,36 @@ class WashdataAdapter extends utils.Adapter {
     }
   }
 
+  _writeLastCycle(deviceId, cycle) {
+    this.setState(`${deviceId}.lastCycle`, JSON.stringify(cycle), true);
+    this.setState(`${deviceId}.lastCycleProgram`, cycle.matchedProfile, true);
+    this.setState(
+      `${deviceId}.lastCycleDuration`,
+      Math.round((cycle.durationMs || 0) / 60000),
+      true,
+    );
+    this.setState(
+      `${deviceId}.lastCycleEnergy`,
+      Math.round((cycle.energyWh || 0) * 10) / 10,
+      true,
+    );
+  }
+
+  // A corrected cycle changes its program after _onCycleFinished() wrote the
+  // lastCycle* data points. Writes only if the program differs: scripts may
+  // react to these data points, and a restart alone must not look like a
+  // newly finished cycle.
+  async _syncLastCycle(deviceId, mgr) {
+    const cycle = mgr.getCycleHistory()[0];
+    if (!cycle) {
+      return;
+    }
+    const state = await this.getStateAsync(`${deviceId}.lastCycleProgram`);
+    if ((state?.val ?? null) !== (cycle.matchedProfile ?? null)) {
+      this._writeLastCycle(deviceId, cycle);
+    }
+  }
+
   async _onCycleFinished(deviceId, cycle) {
     // Reset notification state
     if (this._notifState && this._notifState[deviceId]) {
@@ -1806,18 +1840,7 @@ class WashdataAdapter extends utils.Adapter {
     ) {
       cycle.phaseHistory = [...mgrPh._phaseHistory];
     }
-    this.setState(`${deviceId}.lastCycle`, JSON.stringify(cycle), true);
-    this.setState(`${deviceId}.lastCycleProgram`, cycle.matchedProfile, true);
-    this.setState(
-      `${deviceId}.lastCycleDuration`,
-      Math.round((cycle.durationMs || 0) / 60000),
-      true,
-    );
-    this.setState(
-      `${deviceId}.lastCycleEnergy`,
-      Math.round((cycle.energyWh || 0) * 10) / 10,
-      true,
-    );
+    this._writeLastCycle(deviceId, cycle);
     this._onTime(deviceId, 0, 0, 0, true);
 
     // Reset the program override
@@ -2297,6 +2320,12 @@ class WashdataAdapter extends utils.Adapter {
       common: { name: name || deviceId },
       native: {},
     });
+    // setObjectNotExistsAsync keeps the name the device had when it was
+    // created, so a renamed device must update it here.
+    const channel = await this.getObjectAsync(deviceId);
+    if (channel && name && channel.common.name !== name) {
+      await this.extendObjectAsync(deviceId, { common: { name } });
+    }
 
     const states = [
       // Live
@@ -2320,12 +2349,6 @@ class WashdataAdapter extends utils.Adapter {
         id: "program",
         name: "Detected program",
         type: "string",
-    // setObjectNotExistsAsync keeps the name the device had when it was
-    // created, so a renamed device must update it here.
-    const channel = await this.getObjectAsync(deviceId);
-    if (channel && name && channel.common.name !== name) {
-      await this.extendObjectAsync(deviceId, { common: { name } });
-    }
         role: "text",
         def: "",
         write: false,
