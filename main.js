@@ -2320,6 +2320,12 @@ class WashdataAdapter extends utils.Adapter {
         id: "program",
         name: "Detected program",
         type: "string",
+    // setObjectNotExistsAsync keeps the name the device had when it was
+    // created, so a renamed device must update it here.
+    const channel = await this.getObjectAsync(deviceId);
+    if (channel && name && channel.common.name !== name) {
+      await this.extendObjectAsync(deviceId, { common: { name } });
+    }
         role: "text",
         def: "",
         write: false,
