@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 
-import { Box, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '../ui';
 
 import { tracePoints, type Cycle, type Profile } from '../api';
 import PowerGraph, { type GraphSelection } from '../components/PowerGraph';

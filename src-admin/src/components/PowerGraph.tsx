@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme } from '../ui';
 
 import type { PhaseEntry, TracePoint } from '../api';
 import { getPhaseLabel, t } from '../labels';

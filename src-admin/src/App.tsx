@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Badge, Box, Button, MenuItem, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { Badge, Box, Button, MenuItem, Tab, Tabs, TextField, Typography } from './ui';
 
 import type { AdminConnection } from '@iobroker/gui-components';
 

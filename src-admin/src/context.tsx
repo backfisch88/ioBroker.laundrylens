@@ -12,7 +12,7 @@ import {
     Stack,
     TextField,
     Typography,
-} from '@mui/material';
+} from './ui';
 
 import type { Device, LaundryApi } from './api';
 import { t } from './labels';

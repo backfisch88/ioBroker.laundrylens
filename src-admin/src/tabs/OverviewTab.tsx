@@ -14,7 +14,8 @@ import {
     TableRow,
     TextField,
     Typography,
-} from '@mui/material';
+} from '../ui';
+import { withIcons } from '../icons';
 
 import type { Cycle, Profile, Status } from '../api';
 import { Empty, FactTable, Section } from '../components/Section';
@@ -215,6 +216,7 @@ export default function OverviewTab(props: {
             {cycles.some(cycle => !cycle.confirmed) ? (
                 <Alert
                     severity="warning"
+                    icon={false}
                     sx={{ mb: 2 }}
                     action={
                         <Button
@@ -316,7 +318,7 @@ export default function OverviewTab(props: {
                             onChange={e => void changeOverride(e.target.value)}
                             sx={{ flex: 1, minWidth: 200 }}
                         >
-                            <MenuItem value="auto">{t('🤖 Automatic')}</MenuItem>
+                            <MenuItem value="auto">{withIcons(t('🤖 Automatic'))}</MenuItem>
                             {profiles.map(profile => (
                                 <MenuItem
                                     key={profile.id}

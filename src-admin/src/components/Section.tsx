@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, Paper, Table, TableBody, TableCell, TableRow, Typography } from '@mui/material';
+import { Box, Paper, Table, TableBody, TableCell, TableRow, Typography } from '../ui';
 
 /** A titled card. Tables pass `noPadding` so that they reach the edges of the card. */
 export function Section(props: {

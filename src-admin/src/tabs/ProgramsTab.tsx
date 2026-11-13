@@ -13,7 +13,7 @@ import {
     TableRow,
     TextField,
     Typography,
-} from '@mui/material';
+} from '../ui';
 
 import type { Cycle, Profile } from '../api';
 import { Empty, Section } from '../components/Section';
@@ -33,6 +33,9 @@ function isDryer(deviceType?: string): boolean {
     const type = (deviceType || '').toLowerCase();
     return type === 'dryer' || type === 'trockner';
 }
+
+/** On a phone the date moves under the name, so the actions stay inside the card */
+const HIDE_ON_PHONE = { display: { xs: 'none', sm: 'table-cell' } };
 
 export default function ProgramsTab(props: { deviceId: string }): React.JSX.Element {
     const { deviceId } = props;
@@ -215,26 +218,35 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                                 <TableCell>{t('Name')}</TableCell>
                                 <TableCell>{t('Duration (avg)')}</TableCell>
                                 <TableCell>{t('Cycles')}</TableCell>
-                                <TableCell>{t('Created')}</TableCell>
+                                <TableCell sx={HIDE_ON_PHONE}>{t('Created')}</TableCell>
                                 <TableCell />
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.profiles.map(profile => (
                                 <TableRow key={profile.id}>
-                                    <TableCell>
+                                    <TableCell sx={{ wordBreak: 'break-word' }}>
                                         <strong>{profile.name}</strong>{' '}
                                         <Chip
                                             size="small"
                                             color={profile.isManual ? 'default' : 'success'}
                                             label={profile.isManual ? t('manual') : t('learned')}
                                         />
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ display: { xs: 'block', sm: 'none' } }}
+                                        >
+                                            {profile.createdAt ? formatDate(profile.createdAt) : '–'}
+                                        </Typography>
                                     </TableCell>
                                     <TableCell>
                                         {profile.durationMs ? `${toMinutes(profile.durationMs)} min` : '–'}
                                     </TableCell>
                                     <TableCell>{profile.cycleCount || 0}</TableCell>
-                                    <TableCell>{profile.createdAt ? formatDate(profile.createdAt) : '–'}</TableCell>
+                                    <TableCell sx={HIDE_ON_PHONE}>
+                                        {profile.createdAt ? formatDate(profile.createdAt) : '–'}
+                                    </TableCell>
                                     <TableCell
                                         align="right"
                                         sx={{ whiteSpace: 'nowrap' }}

@@ -133,7 +133,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 - BREAKING: requires ioBroker.admin 8 or newer
-- Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It now follows the theme of Admin, including dark mode
+- Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It follows the theme of Admin, including dark mode, and keeps the duotone icons and the phone layout
 - Fix: some admin tab messages were always German
 - Fix: dishwasher heating detected from 800 W (was 1000 W), so phases are found on machines that heat with less (thanks GermanBluefox)
 - Fix: a renamed device kept the old name in its channel object (thanks GermanBluefox)
