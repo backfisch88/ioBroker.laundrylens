@@ -27,7 +27,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Override lock: manually selected programs are not overwritten by background matching
 - Adaptive remaining time estimation combining time-based and energy-rate signals
 - Admin UI with expandable cycle list, inline power graph (canvas), phase legend, trim and split per touch/drag
-  - This is why the adapter ships a custom admin tab (`admin/tab_m.html`) rather than relying on jsonConfig or the standard Device Manager component: neither supports rendering an interactive per-cycle power curve, editing phase boundaries by touch/drag, or splitting/trimming a recorded trace - all of which are core to how LaundryLens is used day to day (reviewing what a cycle actually did, correcting mismatches, building new program profiles from a trace).
+  - This is why the admin tab (`admin/jsonTab.json`) is built around a custom React component (`src-admin`) rather than plain jsonConfig items or the standard Device Manager component: neither supports rendering an interactive per-cycle power curve, editing phase boundaries by touch/drag, or splitting/trimming a recorded trace - all of which are core to how LaundryLens is used day to day (reviewing what a cycle actually did, correcting mismatches, building new program profiles from a trace).
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`, `{state:objectId}` for any ioBroker data point) and conditional text blocks
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
@@ -39,6 +39,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 
 - ioBroker with js-controller ≥ 6.0.11
 - Node.js ≥ 22
+- ioBroker.admin ≥ 8.0.0
 - A smart plug or power meter adapter providing a watt data point per device (e.g. [Shelly EM](https://www.shelly.com/en/products/shop/shelly-em))
 
 ---
@@ -131,6 +132,9 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
+- BREAKING: requires ioBroker.admin 8 or newer
+- Changed: the admin tab was rebuilt with React 19 as a JSON tab with custom components. It now follows the theme of Admin, including dark mode
+- Fix: some admin tab messages were always German
 - Fix: dishwasher heating detected from 800 W (was 1000 W), so phases are found on machines that heat with less (thanks GermanBluefox)
 - Fix: a renamed device kept the old name in its channel object (thanks GermanBluefox)
 - Fix: `lastCycle` and `lastCycleProgram` kept the old program after the last cycle was corrected (thanks GermanBluefox)

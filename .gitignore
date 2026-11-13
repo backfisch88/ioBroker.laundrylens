@@ -2,6 +2,10 @@
 node_modules/
 npm-debug.log*
 
+# admin build (the result in admin/custom is committed)
+src-admin/build/
+src-admin/.__mf__temp/
+
 # build / packaging artifacts
 *.tgz
 *.zip

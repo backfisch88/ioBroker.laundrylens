@@ -15,6 +15,7 @@
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readAdminSource } = require("./lib/adminSources");
 const { WashDataManager } = require("../lib/washDataManager");
 
 const nativeSetTimeout = globalThis.setTimeout;
@@ -209,10 +210,7 @@ describe("mergeCycles()", () => {
 describe("mergeCycles wiring", () => {
   const root = path.join(__dirname, "..");
   const mainSrc = fs.readFileSync(path.join(root, "main.js"), "utf8");
-  const tabSrc = fs.readFileSync(
-    path.join(root, "admin", "tab_m.html"),
-    "utf8",
-  );
+  const tabSrc = readAdminSource(path.join("tabs", "CyclesTab.tsx"));
 
   it("main.js handles the mergeCycles command and persists the result", () => {
     const start = mainSrc.indexOf('case "mergeCycles"');
@@ -226,7 +224,7 @@ describe("mergeCycles wiring", () => {
 
   it("admin tab offers a merge-with-previous button per cycle", () => {
     assert.match(tabSrc, /mergeWithPrevious\(/);
-    assert.match(tabSrc, /list\[idx \+ 1\]/);
+    assert.match(tabSrc, /cycles\[index \+ 1\]/);
     assert.match(tabSrc, /send\('mergeCycles'/);
   });
 

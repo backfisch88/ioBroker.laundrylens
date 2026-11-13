@@ -56,6 +56,7 @@ jobs:
           os: ${{ matrix.os }}
           install-command: "npm install"
           package-cache: "false"
+          build: true
 
   deploy:
     needs: [check-and-lint, unit-tests, adapter-tests]
@@ -77,3 +78,4 @@ jobs:
         with:
           node-version: "24.x"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          build: true
