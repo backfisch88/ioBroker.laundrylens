@@ -6,7 +6,15 @@ import { tracePoints, type Cycle, type Profile } from '../api';
 import PowerGraph, { type GraphSelection } from '../components/PowerGraph';
 import { Empty, Section } from '../components/Section';
 import { useLoader, useUi } from '../context';
-import { formatDateTime, getProfileDisplayName, t, toKwh, toMinutes } from '../labels';
+import {
+    APPLIANCES,
+    formatDateTime,
+    getProfileDisplayName,
+    SHARED_PLUG_TYPE,
+    t,
+    toKwh,
+    toMinutes,
+} from '../labels';
 
 function StatusBadge(props: { cycle: Cycle }): React.JSX.Element {
     const { cycle } = props;
@@ -53,7 +61,8 @@ function CycleDetail(props: {
     onSplit: () => Promise<void>;
 }): React.JSX.Element {
     const { deviceId, cycle, previous, onChanged, onSplit } = props;
-    const { api, toast, toastError, confirm, prompt, select } = useUi();
+    const { api, devices, toast, toastError, confirm, prompt, select } = useUi();
+    const sharedPlug = devices.find(device => device.deviceId === deviceId)?.deviceType === SHARED_PLUG_TYPE;
     const [selection, setSelection] = useState<GraphSelection>({ mode: 'none' });
 
     const [trace, reloadTrace] = useLoader(async () => {
@@ -117,10 +126,23 @@ function CycleDetail(props: {
         if (!name) {
             return;
         }
+        const appliance = sharedPlug
+            ? await select({
+                  title: t('Machine'),
+                  text: t('Which machine does this program belong to?'),
+                  label: t('Machine'),
+                  options: APPLIANCES.map(option => ({ value: option.value, label: t(option.label) })),
+                  okLabel: t('Save'),
+              })
+            : undefined;
+        if (appliance === null) {
+            return;
+        }
         const created = await api.send<{ profileId: string }>('createProfileFromTrace', {
             deviceId,
             cycleId: cycle.id,
             name,
+            appliance,
         });
         if (!created?.ok) {
             toastError(created);

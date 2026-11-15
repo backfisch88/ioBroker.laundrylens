@@ -1,0 +1,27 @@
+{
+    "name": "iobroker.vis-2-widgets-laundrylens",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "description": "vis-2 widget set of ioBroker.laundrylens. Built into ../widgets/laundrylens.",
+    "scripts": {
+        "build": "vite build",
+        "check-ts": "tsc --noEmit"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@iobroker/types": "^7.2.5",
+        "@iobroker/types-vis-2": "~2.20.6",
+        "@module-federation/vite": "^1.23.7",
+        "@mui/material": "^9.5.0",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@vitejs/plugin-react": "^6.2.1",
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1",
+        "typescript": "~6.0.3",
+        "vite": "^8.3.5"
+    }
+}
