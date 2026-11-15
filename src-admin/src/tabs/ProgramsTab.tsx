@@ -276,27 +276,30 @@ export default function ProgramsTab(props: { deviceId: string }): React.JSX.Elem
                                     </TableCell>
                                     {sharedPlug ? (
                                         <TableCell>
-                                            <TextField
-                                                select
-                                                size="small"
-                                                variant="standard"
-                                                aria-label={t('Machine')}
-                                                value={
-                                                    profile.deviceType === 'dishwasher'
-                                                        ? 'dishwasher'
-                                                        : 'washing_machine'
-                                                }
-                                                onChange={e => void changeAppliance(profile, e.target.value)}
-                                            >
-                                                {APPLIANCES.map(option => (
-                                                    <MenuItem
-                                                        key={option.value}
-                                                        value={option.value}
-                                                    >
-                                                        {t(option.label)}
-                                                    </MenuItem>
-                                                ))}
-                                            </TextField>
+                                            {/* withIcons() of TableCell would wrap the menu items in fragments, which Select does not see */}
+                                            <Box>
+                                                <TextField
+                                                    select
+                                                    size="small"
+                                                    variant="standard"
+                                                    aria-label={t('Machine')}
+                                                    value={
+                                                        profile.deviceType === 'dishwasher'
+                                                            ? 'dishwasher'
+                                                            : 'washing_machine'
+                                                    }
+                                                    onChange={e => void changeAppliance(profile, e.target.value)}
+                                                >
+                                                    {APPLIANCES.map(option => (
+                                                        <MenuItem
+                                                            key={option.value}
+                                                            value={option.value}
+                                                        >
+                                                            {t(option.label)}
+                                                        </MenuItem>
+                                                    ))}
+                                                </TextField>
+                                            </Box>
                                         </TableCell>
                                     ) : null}
                                     <TableCell>
