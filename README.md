@@ -29,7 +29,7 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
 - One plug for a washing machine and a dishwasher that never run at the same time: the detected program tells which of them is running
-- Widgets for ioBroker.devices and ioBroker.vis-2, and a web component for Aura
+- Widget for ioBroker.vis-2 and tile for ioBroker.devices with state, program, phase and remaining time
 - Localized, ready-to-display text data points (`phaseText`, `stateText`, `programText`) alongside the language-neutral internal ones, for dropping straight into a VIS dashboard
 
 ---
@@ -112,15 +112,16 @@ The detected program then decides which machine is running: the phases, the `app
 
 ## Widgets
 
-The adapter brings one widget that shows the state, program, phase and remaining time of a device, with a progress ring. A click shows all details, including the last cycle and the number of cycles to review. The widgets only read: confirming a cycle stays in the admin tab.
+The adapter brings a widget for ioBroker.vis-2 and a tile for ioBroker.devices. They show the state, program, phase and remaining time of a device, with a progress ring. A click shows all details, including the last cycle and the number of cycles to review. The widgets only read: confirming a cycle stays in the admin tab.
 
 | Host | Widget | Layouts |
 |------|--------|---------|
-| ioBroker.devices | Tile "LaundryLens" | 1x1, 2x1, 2x½ |
 | ioBroker.vis-2 | Widget set "LaundryLens" | Automatic by size, compact, bar, wide, everything |
-| Aura and other hosts of [`@iobroker/web-components`](https://github.com/ioBroker/web-components) | `<iob-laundrylens-device>` | Automatic by size, compact, bar, wide, everything |
+| ioBroker.devices | Tile "LaundryLens" | 1x1, 2x1, 2x½ |
 
-Choose the device in the settings of the widget: vis-2 and devices offer the configured devices in a list, the web component takes its object ID, for example `laundrylens.0.device_0_97io`. In the widget, the status, phase and program texts appear as the adapter writes them to `stateText`, `phaseText` and `programText`, so they follow the language of the system and the "no emoji" option.
+In vis-2, add the widget from the set "LaundryLens". In ioBroker.devices, use "Add widget" in the edit mode. In both, choose the device from the list in the settings of the widget. The status, phase and program texts appear as the adapter writes them to `stateText`, `phaseText` and `programText`, so they follow the language of the system and the "no emoji" option.
+
+The web component `<iob-laundrylens-device>` of [`@iobroker/web-components`](https://github.com/ioBroker/web-components) shows the same views in other hosts. It takes the object ID of the device, for example `laundrylens.0.device_0_97io`. It is not tested in other hosts yet.
 
 ## Using data points in notification messages
 
@@ -158,7 +159,7 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### 0.7.0 (2026-11-17)
 - New: one plug for a washing machine and a dishwasher (device type `washer_dishwasher`, data point `appliance`) by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
-- New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
+- New: widget for ioBroker.vis-2, tile for ioBroker.devices and the web component `<iob-laundrylens-device>` by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
 - Fix: checker findings (`common.adminUI.tab`, Dependabot for the widget folders)
 
 ### 0.6.0 (2026-11-13)
@@ -195,7 +196,7 @@ Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
 The new admin tab in version 0.6.0 is the work of [GermanBluefox](https://github.com/GermanBluefox). He rebuilt it with React 19 as a JSON tab ([#65](https://github.com/backfisch88/ioBroker.laundrylens/pull/65)) and found and fixed the dishwasher, renamed device and `lastCycle` problems ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). Since the pull requests could no longer be merged after other changes in `main`, I took over his commits with him as author and added my icons and the phone layout on top. Thank you for the great work!
 
-In version 0.7.0, [GermanBluefox](https://github.com/GermanBluefox) added the shared plug for a washing machine and a dishwasher and the widgets for ioBroker.devices and ioBroker.vis-2 with the web component for Aura ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). He also tested them on his own system and found and fixed the empty machine column in the programs table. Thank you again!
+In version 0.7.0, [GermanBluefox](https://github.com/GermanBluefox) added the shared plug for a washing machine and a dishwasher and the widget for ioBroker.vis-2, the tile for ioBroker.devices and the web component ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). He also tested them on his own system and found and fixed the empty machine column in the programs table. Thank you again!
 
 ---
 
