@@ -5,9 +5,7 @@
 [![NPM version](https://img.shields.io/npm/v/iobroker.laundrylens.svg)](https://www.npmjs.com/package/iobroker.laundrylens)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Self-learning ioBroker adapter for automatic detection of washing machine and dryer cycles via smart plug power measurement. Recognizes running programs, estimates remaining time and sends Telegram notifications – fully local, no cloud.
-
-> **Alpha release.** Tested on Siemens iQ washing machine and dryer. Other brands and models may require tuning. Feedback welcome.
+Self-learning ioBroker adapter for automatic detection of washing machine, dryer and dishwasher cycles via smart plug power measurement. Recognizes running programs, estimates remaining time and sends Telegram notifications – fully local, no cloud.
 
 ---
 
@@ -27,11 +25,11 @@ The adapter is self-learning: there are no pre-built profiles. Every program is 
 - Override lock: manually selected programs are not overwritten by background matching
 - Adaptive remaining time estimation combining time-based and energy-rate signals
 - Admin UI with expandable cycle list, inline power graph (canvas), phase legend, trim and split per touch/drag
-  - This is why the admin tab (`admin/jsonTab.json`) is built around a custom React component (`src-admin`) rather than plain jsonConfig items or the standard Device Manager component: neither supports rendering an interactive per-cycle power curve, editing phase boundaries by touch/drag, or splitting/trimming a recorded trace - all of which are core to how LaundryLens is used day to day (reviewing what a cycle actually did, correcting mismatches, building new program profiles from a trace).
 - Telegram notifications with configurable update thresholds, placeholders (`{progress}`, `{prevTime}`, `{state:objectId}` for any ioBroker data point) and conditional text blocks
 - Also supports Pushover, Signal, WhatsApp, Matrix, notify-my-android, Prowl, and email (via [ioBroker.email](https://github.com/iobroker-community-adapters/ioBroker.email)) as notification targets
 - Multiple devices: one instance per device (washing machine, dryer, …)
 - One plug for a washing machine and a dishwasher that never run at the same time: the detected program tells which of them is running
+- Widgets for ioBroker.devices and ioBroker.vis-2, and a web component for Aura
 - Localized, ready-to-display text data points (`phaseText`, `stateText`, `programText`) alongside the language-neutral internal ones, for dropping straight into a VIS dashboard
 
 ---
@@ -72,7 +70,7 @@ Each instance has the following settings:
 | Notify on probable match | Send a notification even before a match is officially confirmed |
 | Ignore anti-crease | Ignore anti-crease phases at the end of dryer cycles |
 
-The defaults are tuned for Siemens iQ appliances. Detection threshold is a trade-off: lower means faster notifications but higher risk of wrong matches. Some experimentation is expected.
+The detection threshold is a trade-off: lower means faster notifications but a higher risk of wrong matches.
 
 ---
 
