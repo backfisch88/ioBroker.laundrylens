@@ -157,10 +157,11 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ## Changelog
 
 ### **WORK IN PROGRESS**
-- New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura and other hosts (`common.webComponents`). It shows the state, program, phase and remaining time of a device
-- New: device type "Washing machine + dishwasher (same plug)" for two machines on one plug that never run at the same time. The detected program decides which machine is running
-- New: data point `appliance` with the running machine
-- New: `common.webComponents` carries tag, name, icon and size of the web component, so hosts like Aura can list it before the adapter is installed
+
+### 0.7.0 (2026-11-17)
+- New: one plug for a washing machine and a dishwasher (device type `washer_dishwasher`, data point `appliance`) by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
+- New: widget for ioBroker.devices and ioBroker.vis-2, and the web component `<iob-laundrylens-device>` for Aura by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
+- Fix: checker findings (`common.adminUI.tab`, Dependabot for the widget folders)
 
 ### 0.6.0 (2026-11-13)
 - BREAKING: requires ioBroker.admin 8 or newer
@@ -188,9 +189,6 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 ### 0.4.41 (2026-10-08)
 - Fix: remaining time/progress no longer stalls near 99%
 
-### 0.4.40 (2026-10-07)
-- Fix: predicted finish time no longer drifts later
-
 Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
 ---
@@ -198,6 +196,8 @@ Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 ## Credits
 
 The new admin tab in version 0.6.0 is the work of [GermanBluefox](https://github.com/GermanBluefox). He rebuilt it with React 19 as a JSON tab ([#65](https://github.com/backfisch88/ioBroker.laundrylens/pull/65)) and found and fixed the dishwasher, renamed device and `lastCycle` problems ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). Since the pull requests could no longer be merged after other changes in `main`, I took over his commits with him as author and added my icons and the phone layout on top. Thank you for the great work!
+
+In version 0.7.0, [GermanBluefox](https://github.com/GermanBluefox) added the shared plug for a washing machine and a dishwasher and the widgets for ioBroker.devices and ioBroker.vis-2 with the web component for Aura ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66)). He also tested them on his own system and found and fixed the empty machine column in the programs table. Thank you again!
 
 ---
 

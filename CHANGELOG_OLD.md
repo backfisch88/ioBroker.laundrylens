@@ -2,6 +2,9 @@
 
 Older versions, moved out of README.md. The README keeps the latest 7.
 
+### 0.4.40 (2026-10-07)
+- Fix: predicted finish time no longer drifts later
+
 ### 0.4.39 (2026-10-06)
 - Fix: `elapsedTime` updates while "detecting..."
 
