@@ -24,6 +24,9 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/src-webcomponents"
     schedule:
@@ -31,6 +34,9 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/src-widgets"
     schedule:
@@ -38,6 +44,9 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
