@@ -17,6 +17,27 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+  - package-ecosystem: "npm"
+    directory: "/src-devices"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "npm"
+    directory: "/src-webcomponents"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "npm"
+    directory: "/src-widgets"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -158,7 +158,7 @@
         },
         "adminUI": {
             "config": "json",
-            "tab": "html"
+            "tab": "json"
         },
         "connectionType": "local",
         "dataSource": "push",

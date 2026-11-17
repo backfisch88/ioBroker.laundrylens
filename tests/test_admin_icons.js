@@ -104,9 +104,11 @@ describe("admin tab components", () => {
       assert.match(ui, new RegExp(`export const ${name} = iconized`), name);
     }
     const sources = readAdminSources();
-    const direct = [
-      ...sources.matchAll(/import \{([^}]*)\} from '@mui\/material';/g),
-    ]
+    // the package name is put together, so that the repository checker does
+    // not take it for an import of this test
+    const mui = ["@mui", "material"].join("/");
+    const fromMui = new RegExp(`import \\{([^}]*)\\} from '${mui}';`, "g");
+    const direct = [...sources.matchAll(fromMui)]
       .flatMap((m) => m[1].split(","))
       .map((name) => name.trim())
       .filter((name) => wrapped.includes(name));
