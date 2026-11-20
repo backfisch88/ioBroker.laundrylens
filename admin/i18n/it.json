@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Sensore di potenza (watt)",
     "Power-on threshold": "Soglia di accensione",
     "Power-on threshold (W)": "Soglia di accensione (W)",
+    "End power threshold (W)": "Soglia di spegnimento (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Facoltativo. Un ciclo in corso termina quando la potenza resta a questo livello o al di sotto per il ritardo di spegnimento. Lasciare vuoto per usare la soglia di accensione. Esempio: 0 W per una lavastoviglie che consuma pochi watt nelle fasi tranquille. Un sensore che non raggiunge mai questo livello termina il ciclo in ritardo",
     "Profiles, cycles, and traces will be permanently deleted!": "Profili, cicli e tracce verranno eliminati definitivamente!",
     "Program": "Programma",
     "Program \"{0}\" created": "Programma \"{0}\" creato",

@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Czujnik mocy (wat)",
     "Power-on threshold": "Próg włączenia",
     "Power-on threshold (W)": "Próg włączenia (W)",
+    "End power threshold (W)": "Próg wyłączenia (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Opcjonalnie. Trwający cykl kończy się, gdy moc przez czas opóźnienia wyłączenia pozostaje na tym poziomie lub poniżej. Pozostaw puste, aby użyć progu włączenia. Przykład: 0 W dla zmywarki, która w spokojnych fazach pobiera kilka watów. Czujnik, który nigdy nie osiąga tego poziomu, kończy cykl z opóźnieniem",
     "Profiles, cycles, and traces will be permanently deleted!": "Profile, cykle i ślady zostaną trwale usunięte!",
     "Program": "Program",
     "Program \"{0}\" created": "Program \"{0}\" utworzony",

@@ -134,6 +134,8 @@
     "Power sensor (watt)": "功率传感器（瓦特）",
     "Power-on threshold": "开机阈值",
     "Power-on threshold (W)": "开机阈值（瓦）",
+    "End power threshold (W)": "关机阈值（瓦）",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "可选。当功率在关机延迟时间内保持在此值或以下时，正在运行的周期结束。留空则使用开机阈值。示例：对在安静阶段消耗几瓦的洗碗机设为 0 瓦。永远达不到此值的传感器会使周期延迟结束",
     "Profiles, cycles, and traces will be permanently deleted!": "配置文件、周期和轨迹将被永久删除！",
     "Program": "程序",
     "Program \"{0}\" created": "程序\"{0}\"已创建",

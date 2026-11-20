@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Датчик мощности (Ватт)",
     "Power-on threshold": "Порог включения",
     "Power-on threshold (W)": "Порог включения (Вт)",
+    "End power threshold (W)": "Порог выключения (Вт)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Необязательно. Текущий цикл завершается, если мощность в течение задержки выключения остаётся на этом уровне или ниже. Оставьте пустым, чтобы использовать порог включения. Пример: 0 Вт для посудомоечной машины, которая в тихих фазах потребляет несколько ватт. Датчик, который никогда не достигает этого уровня, завершает цикл с опозданием",
     "Profiles, cycles, and traces will be permanently deleted!": "Профили, циклы и трассы будут безвозвратно удалены!",
     "Program": "Программа",
     "Program \"{0}\" created": "Программа «{0}» создана",

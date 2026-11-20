@@ -59,6 +59,7 @@ Each instance has the following settings:
 | Device type | `washing_machine`, `dishwasher`, `dryer`, `washer_dryer` or `washer_dishwasher` (affects phase detection logic, see [One plug for two machines](#one-plug-for-a-washing-machine-and-a-dishwasher)) |
 | Power sensor (W) | ioBroker data point providing watt values |
 | Power threshold (W) | Minimum wattage to consider the device as running |
+| End power threshold (W) | Optional. A running cycle ends only when the power stays at or below this level for the off delay, for example 0 W for a dishwasher that draws a few watts in quiet phases. Empty = same as the power threshold |
 | Off delay (min) | Time to wait after power drops before ending the cycle |
 | Start energy gate (Wh) | Minimum energy consumed before matching starts (filters short spikes) |
 | Duration tolerance | Allowed deviation from learned average duration (0.05–0.5) |

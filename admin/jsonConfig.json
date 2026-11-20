@@ -94,6 +94,18 @@
             "lg": 4,
             "xl": 4
         },
+        "endPowerThreshold": {
+            "type": "number",
+            "label": "End power threshold (W)",
+            "min": 0,
+            "max": 500,
+            "help": "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late",
+            "xs": 12,
+            "sm": 12,
+            "md": 6,
+            "lg": 4,
+            "xl": 4
+        },
         "offDelayMin": {
             "type": "number",
             "label": "Off delay (min)",

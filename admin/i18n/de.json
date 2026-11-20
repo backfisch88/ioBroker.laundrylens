@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Leistungs-Sensor (Watt)",
     "Power-on threshold": "Einschalt-Schwelle",
     "Power-on threshold (W)": "Einschalt-Schwelle (W)",
+    "End power threshold (W)": "Ausschalt-Schwelle (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Optional. Ein laufender Zyklus endet, wenn die Leistung für die Ausschaltverzögerung auf oder unter diesem Wert bleibt. Leer lassen, um die Einschalt-Schwelle zu verwenden. Beispiel: 0 W bei einem Geschirrspüler, der in ruhigen Phasen einige Watt zieht. Ein Sensor, der diesen Wert nie erreicht, beendet den Zyklus spät",
     "Profiles, cycles, and traces will be permanently deleted!": "Profile, Zyklen und Traces werden unwiderruflich gelöscht!",
     "Program": "Programm",
     "Program \"{0}\" created": "Programm \"{0}\" angelegt",

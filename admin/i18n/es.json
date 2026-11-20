@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Sensor de potencia (vatios)",
     "Power-on threshold": "Umbral de encendido",
     "Power-on threshold (W)": "Umbral de encendido (W)",
+    "End power threshold (W)": "Umbral de apagado (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Opcional. Un ciclo en curso termina cuando la potencia se mantiene en este valor o por debajo durante el retardo de apagado. Déjalo vacío para usar el umbral de encendido. Ejemplo: 0 W para un lavavajillas que consume unos vatios en fases tranquilas. Un sensor que nunca alcanza este valor termina el ciclo tarde",
     "Profiles, cycles, and traces will be permanently deleted!": "¡Los perfiles, ciclos y trazas se eliminarán permanentemente!",
     "Program": "Programa",
     "Program \"{0}\" created": "Programa \"{0}\" creado",

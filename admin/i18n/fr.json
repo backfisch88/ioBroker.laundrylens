@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Capteur de puissance (watt)",
     "Power-on threshold": "Seuil de mise en marche",
     "Power-on threshold (W)": "Seuil de mise en marche (W)",
+    "End power threshold (W)": "Seuil d'arrêt (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Facultatif. Un cycle en cours se termine lorsque la puissance reste à ce niveau ou en dessous pendant le délai d'arrêt. Laisser vide pour utiliser le seuil de mise en marche. Exemple : 0 W pour un lave-vaisselle qui consomme quelques watts pendant les phases calmes. Un capteur qui n'atteint jamais ce niveau termine le cycle tardivement",
     "Profiles, cycles, and traces will be permanently deleted!": "Les profils, cycles et traces seront définitivement supprimés !",
     "Program": "Programme",
     "Program \"{0}\" created": "Programme « {0} » créé",

@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Sensor de potência (watt)",
     "Power-on threshold": "Limiar de ligação",
     "Power-on threshold (W)": "Limiar de ligação (W)",
+    "End power threshold (W)": "Limiar de desligamento (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Opcional. Um ciclo em curso termina quando a potência se mantém neste nível ou abaixo durante o atraso de desligamento. Deixe vazio para usar o limiar de ligação. Exemplo: 0 W para uma máquina de lavar loiça que consome alguns watts em fases calmas. Um sensor que nunca atinge este nível termina o ciclo tarde",
     "Profiles, cycles, and traces will be permanently deleted!": "Perfis, ciclos e traços serão excluídos permanentemente!",
     "Program": "Programa",
     "Program \"{0}\" created": "Programa \"{0}\" criado",

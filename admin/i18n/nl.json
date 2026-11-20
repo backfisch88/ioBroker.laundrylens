@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Vermogenssensor (watt)",
     "Power-on threshold": "Inschakeldrempel",
     "Power-on threshold (W)": "Inschakeldrempel (W)",
+    "End power threshold (W)": "Uitschakeldrempel (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Optioneel. Een lopende cyclus eindigt wanneer het vermogen gedurende de uitschakelvertraging op of onder dit niveau blijft. Leeg laten om de inschakeldrempel te gebruiken. Voorbeeld: 0 W voor een vaatwasser die in rustige fasen enkele watts verbruikt. Een sensor die dit niveau nooit bereikt, beëindigt de cyclus laat",
     "Profiles, cycles, and traces will be permanently deleted!": "Profielen, cycli en traces worden permanent verwijderd!",
     "Program": "Programma",
     "Program \"{0}\" created": "Programma \"{0}\" aangemaakt",

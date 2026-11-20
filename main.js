@@ -155,6 +155,12 @@ class WashdataAdapter extends utils.Adapter {
         src.powerThreshold !== ""
           ? Number(src.powerThreshold)
           : 10,
+      endPowerThreshold:
+        src.endPowerThreshold !== undefined &&
+        src.endPowerThreshold !== null &&
+        src.endPowerThreshold !== ""
+          ? Number(src.endPowerThreshold)
+          : null,
       startEnergyThreshold:
         src.startEnergyThreshold !== undefined &&
         src.startEnergyThreshold !== null &&
@@ -340,6 +346,7 @@ class WashdataAdapter extends utils.Adapter {
           name: deviceCfg.name,
           deviceType: deviceCfg.deviceType,
           powerThreshold: deviceCfg.powerThreshold,
+          endPowerThreshold: deviceCfg.endPowerThreshold,
           startEnergyThreshold: deviceCfg.startEnergyThreshold,
           offDelay: deviceCfg.offDelayMin * 60,
           durationTolerance: deviceCfg.durationTolerance,
@@ -512,7 +519,11 @@ class WashdataAdapter extends utils.Adapter {
           const powerState = await this.getForeignStateAsync(deviceCfg.powerId);
           const currentWatts = powerState ? parseFloat(powerState.val) || 0 : 0;
 
-          if (currentWatts >= (deviceCfg.powerThreshold || 10)) {
+          if (
+            currentWatts >= (deviceCfg.powerThreshold || 10) ||
+            (manager.detector.state !== "off" &&
+              manager.detector._isActive(currentWatts))
+          ) {
             // Machine is running → restore the override
             this.log.info(
               `${deviceCfg.name}: restoring override: "${overrideState.val}" (${currentWatts}W)`,

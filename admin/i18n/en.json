@@ -134,6 +134,8 @@
     "Power sensor (watt)": "Power sensor (watt)",
     "Power-on threshold": "Power-on threshold",
     "Power-on threshold (W)": "Power-on threshold (W)",
+    "End power threshold (W)": "End power threshold (W)",
+    "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late": "Optional. A running cycle ends when the power stays at or below this level for the off delay. Leave empty to use the power-on threshold. Example: 0 W for a dishwasher that draws a few watts in quiet phases. A sensor that never reaches this level ends the cycle late",
     "Profiles, cycles, and traces will be permanently deleted!": "Profiles, cycles, and traces will be permanently deleted!",
     "Program": "Program",
     "Program \"{0}\" created": "Program \"{0}\" created",
