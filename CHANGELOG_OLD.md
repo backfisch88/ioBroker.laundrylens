@@ -2,6 +2,9 @@
 
 Older versions, moved out of README.md. The README keeps the latest 7.
 
+### 0.4.41 (2026-10-08)
+- Fix: remaining time/progress no longer stalls near 99%
+
 ### 0.4.40 (2026-10-07)
 - Fix: predicted finish time no longer drifts later
 

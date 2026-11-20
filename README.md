@@ -158,6 +158,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.7.1 (2026-11-20)
+- New: optional end power threshold per device, for appliances with quiet phases of a few watts ([#76](https://github.com/backfisch88/ioBroker.laundrylens/issues/76))
+- Fix: recipient "All (broadcast)" showed an empty field ([#77](https://github.com/backfisch88/ioBroker.laundrylens/issues/77))
+
 ### 0.7.0 (2026-11-17)
 - New: one plug for a washing machine and a dishwasher (device type `washer_dishwasher`, data point `appliance`) by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
 - New: widget for ioBroker.vis-2, tile for ioBroker.devices and the web component `<iob-laundrylens-device>` by [GermanBluefox](https://github.com/GermanBluefox) ([#66](https://github.com/backfisch88/ioBroker.laundrylens/pull/66))
@@ -185,9 +189,6 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### 0.4.42 (2026-11-08)
 - New: merge 2-3 cycles into one (Cycles tab)
-
-### 0.4.41 (2026-10-08)
-- Fix: remaining time/progress no longer stalls near 99%
 
 Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 
