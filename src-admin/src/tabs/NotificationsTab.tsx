@@ -271,6 +271,8 @@ export default function NotificationsTab(props: { deviceId: string }): React.JSX
                         label={t('Recipient')}
                         value={config.target}
                         onChange={e => update({ target: e.target.value })}
+                        // An empty value means "all" and must show its text; a select hides an empty value otherwise
+                        slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
                         sx={{ flex: 1, minWidth: 200 }}
                     >
                         <MenuItem value="">{t('All (broadcast)')}</MenuItem>
