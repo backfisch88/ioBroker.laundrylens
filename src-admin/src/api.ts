@@ -127,16 +127,25 @@ export class LaundryApi {
     }
 
     /**
-     * Writes one setting to the instance configuration, then restarts the instance.
+     * Writes one setting of a device to the instance configuration, then restarts the instance.
+     * The first device is configured directly in the instance, further ones in its `devices` list.
      *
-     * @param deviceId device whose instance is configured
+     * @param deviceId device whose setting is written
      * @param field native attribute
      * @param value new value
      */
     async applySetting(deviceId: string, field: string, value: number): Promise<void> {
         const device = this.devices.find(item => item.deviceId === deviceId);
         const id = `system.adapter.${ADAPTER}.${device?.instance ?? 0}`;
-        await this.socket.extendObject(id, { native: { [field]: value } });
+        const native = ((await this.socket.getObject(id)) as ioBroker.InstanceObject | null | undefined)?.native as
+            | { deviceId?: string; devices?: { deviceId?: string }[] }
+            | undefined;
+        if (native?.deviceId !== deviceId && native?.devices?.some(item => item.deviceId === deviceId)) {
+            const devices = native.devices.map(item => (item.deviceId === deviceId ? { ...item, [field]: value } : item));
+            await this.socket.extendObject(id, { native: { devices } });
+        } else {
+            await this.socket.extendObject(id, { native: { [field]: value } });
+        }
         setTimeout(() => {
             this.socket.sendTo(id, 'restart', {}).catch(() => {
                 // The instance goes down while it handles this, so an answer is not guaranteed

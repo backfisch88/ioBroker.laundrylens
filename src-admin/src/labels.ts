@@ -7,9 +7,10 @@ import phaseLabels from '../../admin/phaseLabels.json';
  * `"i18n": true` in admin/jsonTab.json. Backend error texts are keys of the same dictionary.
  *
  * @param key English source text
+ * @param args values for the `%s` in the text
  */
-export function t(key: string): string {
-    return I18n.t(key);
+export function t(key: string, ...args: (string | number)[]): string {
+    return I18n.t(key, ...args.map(String));
 }
 
 /** Device type for one plug that powers a washing machine and a dishwasher */

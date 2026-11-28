@@ -40,22 +40,44 @@ const STATE_COLORS: Record<string, string> = {
     ending: '#ea4335',
 };
 
-interface SuggestionField {
-    key: string;
-    label: string;
-    unit: string;
-    min: number;
-    max: number;
-    decimals: number;
+/** A hint for one setting, made by the adapter from the recent cycles */
+interface Hint {
+    field: 'offDelayMin' | 'startEnergyThreshold';
+    value: number;
+    kind: 'split' | 'shortCycles';
+    /** Cycles with the symptom */
+    count: number;
+    /** Cycles looked at */
+    of: number;
+    /** Longest pause between the parts of a split cycle */
+    minutes?: number;
+    /** Highest energy of the short cycles */
+    wh?: number;
 }
 
-function suggestionFields(): SuggestionField[] {
-    return [
-        { key: 'startEnergyThreshold', label: t('Start energy gate'), unit: 'Wh', min: 0, max: 50, decimals: 1 },
-        { key: 'durationTolerance', label: t('Duration tolerance'), unit: '', min: 0.05, max: 0.5, decimals: 2 },
-        { key: 'offDelayMin', label: t('Off delay'), unit: 'min', min: 1, max: 60, decimals: 0 },
-        { key: 'powerThreshold', label: t('Power-on threshold'), unit: 'W', min: 1, max: 500, decimals: 0 },
-    ];
+function hintLabel(hint: Hint): string {
+    return hint.field === 'offDelayMin' ? `${t('Off delay')}` : `${t('Start energy gate')}`;
+}
+
+function hintUnit(hint: Hint): string {
+    return hint.field === 'offDelayMin' ? 'min' : 'Wh';
+}
+
+function hintReason(hint: Hint): string {
+    if (hint.kind === 'split') {
+        return t(
+            '%s of the last %s cycles ended too early, the next one started up to %s min later. A longer off delay avoids this.',
+            hint.count,
+            hint.of,
+            hint.minutes ?? 0,
+        );
+    }
+    return t(
+        '%s of the last %s cycles were very short (up to %s Wh), probably power peaks. A higher start energy gate ignores them.',
+        hint.count,
+        hint.of,
+        hint.wh ?? 0,
+    );
 }
 
 function StateDot(props: { state: string; pulse?: boolean }): React.JSX.Element {
@@ -99,7 +121,7 @@ export default function OverviewTab(props: {
     const { deviceId, reloadToken, reportCycles, onGoToReview } = props;
     const { api, devices, toast, toastError, confirm } = useUi();
     const [override, setOverride] = useState('auto');
-    const [hiddenSuggestions, setHiddenSuggestions] = useState<string[]>([]);
+    const [hiddenHints, setHiddenHints] = useState<string[]>([]);
 
     const [data, reload] = useLoader(
         async () => {
@@ -107,7 +129,7 @@ export default function OverviewTab(props: {
                 api.send<{ status: Status }>('getStatus', { deviceId }),
                 api.send<{ cycles: Cycle[] }>('getCycleHistory', { deviceId }),
                 api.send<{ profiles: Profile[] }>('getProfiles', { deviceId }),
-                api.send<{ settings: Record<string, number> | null }>('getSuggestedSettings', { deviceId }),
+                api.send<{ settings: Hint[] | null }>('getSuggestedSettings', { deviceId }),
                 Promise.all(
                     devices.map(async device => ({
                         device,
@@ -133,7 +155,7 @@ export default function OverviewTab(props: {
 
     useEffect(() => {
         setOverride('auto');
-        setHiddenSuggestions([]);
+        setHiddenHints([]);
     }, [deviceId]);
 
     if (!data) {
@@ -184,32 +206,30 @@ export default function OverviewTab(props: {
         }
     };
 
-    const applySuggestion = async (field: SuggestionField, value: number): Promise<void> => {
-        const text = `${t('Apply suggested value?')}\n\n${field.label}: ${value}${field.unit ? ` ${field.unit}` : ''}`;
+    const applyHint = async (hint: Hint): Promise<void> => {
+        const text = `${t('Apply suggested value?')}\n\n${hintLabel(hint)}: ${hint.value} ${hintUnit(hint)}`;
         if (!(await confirm(text))) {
             return;
         }
         try {
-            await api.applySetting(deviceId, field.key, value);
+            await api.applySetting(deviceId, hint.field, hint.value);
             toast(t('Setting saved! Restarting adapter…'), 'ok');
-            setHiddenSuggestions(list => [...list, field.key]);
+            setHiddenHints(list => [...list, hint.field]);
         } catch (e) {
             toast(`${t('Error saving')}: ${String(e)}`, 'err');
         }
     };
 
-    const dismissSuggestion = async (field: SuggestionField, value: number): Promise<void> => {
-        const answer = await api.send('dismissSuggestion', { deviceId, field: field.key, value });
+    const ignoreHint = async (hint: Hint): Promise<void> => {
+        const answer = await api.send('dismissSuggestion', { deviceId, field: hint.field });
         if (answer?.ok) {
-            setHiddenSuggestions(list => [...list, field.key]);
+            setHiddenHints(list => [...list, hint.field]);
         } else {
             toastError(answer);
         }
     };
 
-    const suggestions = settings
-        ? suggestionFields().filter(field => settings[field.key] !== undefined && !hiddenSuggestions.includes(field.key))
-        : [];
+    const hints = (settings || []).filter(hint => !hiddenHints.includes(hint.field));
 
     return (
         <>
@@ -410,53 +430,48 @@ export default function OverviewTab(props: {
                 </Table>
             </Section>
 
-            {settings && suggestions.length ? (
+            {hints.length ? (
                 <Section title={t('💡 Suggested settings')}>
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 1 }}
-                    >
-                        {t('Based on')} <strong>{`${settings.basedOnCycles} ${t('cycles')}`}</strong> –{' '}
-                        {t('fields with >10% deviation only:')}
-                    </Typography>
                     <Table size="small">
                         <TableBody>
-                            {suggestions.map(field => {
-                                const value = Math.min(field.max, Math.max(field.min, settings[field.key]));
-                                return (
-                                    <TableRow key={field.key}>
-                                        <TableCell sx={{ color: 'text.secondary' }}>{field.label}</TableCell>
-                                        <TableCell>
+                            {hints.map(hint => (
+                                <TableRow key={hint.field}>
+                                    <TableCell>
+                                        <Typography variant="body2">
                                             <strong>
-                                                {value.toFixed(field.decimals)}
-                                                {field.unit ? ` ${field.unit}` : ''}
+                                                {hintLabel(hint)}: {hint.value} {hintUnit(hint)}
                                             </strong>
-                                        </TableCell>
-                                        <TableCell
-                                            align="right"
-                                            sx={{ whiteSpace: 'nowrap' }}
+                                        </Typography>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
                                         >
-                                            <Button
-                                                size="small"
-                                                color="success"
-                                                title={t('Apply')}
-                                                onClick={() => void applySuggestion(field, value)}
-                                            >
-                                                ✓
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                color="inherit"
-                                                title={t('Ignore')}
-                                                onClick={() => void dismissSuggestion(field, value)}
-                                            >
-                                                ✕
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
+                                            {hintReason(hint)}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell
+                                        align="right"
+                                        sx={{ whiteSpace: 'nowrap' }}
+                                    >
+                                        <Button
+                                            size="small"
+                                            color="success"
+                                            title={t('Apply')}
+                                            onClick={() => void applyHint(hint)}
+                                        >
+                                            ✓
+                                        </Button>
+                                        <Button
+                                            size="small"
+                                            color="inherit"
+                                            title={t('Ignore')}
+                                            onClick={() => void ignoreHint(hint)}
+                                        >
+                                            ✕
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </Section>

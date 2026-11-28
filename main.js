@@ -1287,11 +1287,11 @@ class WashdataAdapter extends utils.Adapter {
           if (!mgr) {
             return respond({ error: "Device not found" });
           }
-          const { field, value } = obj.message || {};
-          if (!field || value === undefined) {
-            return respond({ error: "field/value missing" });
+          const { field } = obj.message || {};
+          if (!field) {
+            return respond({ error: "field missing" });
           }
-          await mgr.dismissSuggestion(field, value);
+          await mgr.dismissSuggestion(field);
           respond({ ok: true, settings: mgr.getSuggestedSettings() });
           break;
         }
