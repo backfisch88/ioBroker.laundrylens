@@ -158,6 +158,10 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
+### 0.7.2 (2026-11-27)
+- Changed: suggested settings only appear when cycles were split or very short, and no longer come back for old cycles
+- Fix: applying a suggested setting for an additional device (`devices` list) wrote to the wrong place
+
 ### 0.7.1 (2026-11-20)
 - New: optional end power threshold per device, for appliances with quiet phases of a few watts ([#76](https://github.com/backfisch88/ioBroker.laundrylens/issues/76))
 - Fix: recipient "All (broadcast)" showed an empty field ([#77](https://github.com/backfisch88/ioBroker.laundrylens/issues/77))
@@ -186,9 +190,6 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### 0.4.43 (2026-11-08)
 - Changed: merge with the previous cycle via one button
-
-### 0.4.42 (2026-11-08)
-- New: merge 2-3 cycles into one (Cycles tab)
 
 Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
 

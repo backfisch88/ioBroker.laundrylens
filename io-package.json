@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "laundrylens",
-        "version": "0.7.1",
+        "version": "0.7.2",
         "news": {
+            "0.7.2": {
+                "en": "Changed: suggested settings only when cycles were split or very short, and not again for old cycles.",
+                "de": "Geändert: Empfohlene Einstellungen nur bei geteilten oder sehr kurzen Zyklen und nicht erneut für alte Zyklen.",
+                "ru": "Изменено: рекомендуемые настройки только при разделённых или очень коротких циклах и не повторно для старых циклов.",
+                "pt": "Alterado: configurações sugeridas só para ciclos divididos ou muito curtos, e não de novo para ciclos antigos.",
+                "nl": "Gewijzigd: voorgestelde instellingen alleen bij gesplitste of zeer korte cycli, en niet opnieuw voor oude cycli.",
+                "fr": "Modifié : réglages suggérés seulement pour les cycles divisés ou très courts, et plus pour les anciens cycles.",
+                "it": "Modificato: impostazioni consigliate solo per cicli divisi o molto brevi, e non di nuovo per i cicli vecchi.",
+                "es": "Cambiado: ajustes sugeridos solo con ciclos divididos o muy cortos, y no de nuevo para ciclos antiguos.",
+                "pl": "Zmieniono: sugerowane ustawienia tylko przy podzielonych lub bardzo krótkich cyklach i nie ponownie dla starych cykli.",
+                "uk": "Змінено: рекомендовані налаштування лише при розділених або дуже коротких циклах і не повторно для старих циклів.",
+                "zh-cn": "变更：仅在周期被拆分或非常短时才给出建议设置，且不再为旧周期重复提示。"
+            },
             "0.7.1": {
                 "en": "New: optional end power threshold per device. Fix: recipient \"All (broadcast)\" showed an empty field.",
                 "de": "Neu: optionale Ausschalt-Schwelle pro Gerät. Fix: Empfänger \"Alle (broadcast)\" zeigte ein leeres Feld.",
@@ -80,19 +93,6 @@
                 "pl": "Zmieniono: połączenie cyklu z poprzednim jednym przyciskiem (zakładka Cykle).",
                 "uk": "Змінено: об'єднання циклу з попереднім однією кнопкою (вкладка «Цикли»).",
                 "zh-cn": "变更：用一个按钮将周期与上一个周期合并（周期标签页）。"
-            },
-            "0.4.42": {
-                "en": "New: merge 2-3 cycles into one in the admin tab (Cycles).",
-                "de": "Neu: 2-3 Zyklen im Admin-Tab (Zyklen) zu einem zusammenführen.",
-                "ru": "Новое: объединение 2–3 циклов в один во вкладке администратора (Циклы).",
-                "pt": "Novo: unir 2-3 ciclos em um só na aba de administração (Ciclos).",
-                "nl": "Nieuw: 2-3 cycli samenvoegen tot één in de admin-tab (Cycli).",
-                "fr": "Nouveau : fusionner 2 à 3 cycles en un seul dans l'onglet admin (Cycles).",
-                "it": "Novità: unire 2-3 cicli in uno solo nella scheda admin (Cicli).",
-                "es": "Nuevo: fusionar 2-3 ciclos en uno en la pestaña de administración (Ciclos).",
-                "pl": "Nowość: łączenie 2-3 cykli w jeden w zakładce administracyjnej (Cykle).",
-                "uk": "Нове: об'єднання 2–3 циклів в один у вкладці адміністратора (Цикли).",
-                "zh-cn": "新增：在管理标签页（周期）中将 2-3 个周期合并为一个。"
             }
         },
         "titleLang": {

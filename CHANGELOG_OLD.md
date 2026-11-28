@@ -2,6 +2,9 @@
 
 Older versions, moved out of README.md. The README keeps the latest 7.
 
+### 0.4.42 (2026-11-08)
+- New: merge 2-3 cycles into one (Cycles tab)
+
 ### 0.4.41 (2026-10-08)
 - Fix: remaining time/progress no longer stalls near 99%
 
