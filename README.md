@@ -158,7 +158,8 @@ This also works inside the conditional `[...]` blocks: `[🌡️ Outside: {state
 
 ### **WORK IN PROGRESS**
 
-### 0.7.2 (2026-11-27)
+### 0.7.2 (2026-11-28)
+- New: delete button in the review list
 - Changed: suggested settings only appear when cycles were split or very short, and no longer come back for old cycles
 - Fix: applying a suggested setting for an additional device (`devices` list) wrote to the wrong place
 

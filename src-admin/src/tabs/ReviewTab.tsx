@@ -20,7 +20,7 @@ export default function ReviewTab(props: {
     reportCycles: (cycles: Cycle[]) => void;
 }): React.JSX.Element {
     const { deviceId, reloadToken, reportCycles } = props;
-    const { api, toast, toastError, select } = useUi();
+    const { api, toast, toastError, select, confirm } = useUi();
 
     const [data, reload] = useLoader(async () => {
         const [history, profiles] = await Promise.all([
@@ -65,6 +65,19 @@ export default function ReviewTab(props: {
         const answer = await api.send('correctCycle', { deviceId, cycleId: cycle.id, profileId });
         if (answer?.ok) {
             toast(t('Corrected – adapter is learning!'), 'ok');
+            await reload();
+        } else {
+            toastError(answer);
+        }
+    };
+
+    const deleteCycle = async (cycle: Cycle): Promise<void> => {
+        if (!(await confirm(t('Really delete this cycle?')))) {
+            return;
+        }
+        const answer = await api.send('deleteCycle', { deviceId, cycleId: cycle.id });
+        if (answer?.ok) {
+            toast(t('Cycle deleted'), 'ok');
             await reload();
         } else {
             toastError(answer);
@@ -122,6 +135,14 @@ export default function ReviewTab(props: {
                                     onClick={() => void correctCycle(cycle)}
                                 >
                                     🔄 {t('Wrong program')}
+                                </Button>
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => void deleteCycle(cycle)}
+                                >
+                                    🗑 {t('Delete')}
                                 </Button>
                             </Box>
                         </Section>

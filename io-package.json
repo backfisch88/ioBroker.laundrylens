@@ -4,17 +4,17 @@
         "version": "0.7.2",
         "news": {
             "0.7.2": {
-                "en": "Changed: suggested settings only when cycles were split or very short, and not again for old cycles.",
-                "de": "Geändert: Empfohlene Einstellungen nur bei geteilten oder sehr kurzen Zyklen und nicht erneut für alte Zyklen.",
-                "ru": "Изменено: рекомендуемые настройки только при разделённых или очень коротких циклах и не повторно для старых циклов.",
-                "pt": "Alterado: configurações sugeridas só para ciclos divididos ou muito curtos, e não de novo para ciclos antigos.",
-                "nl": "Gewijzigd: voorgestelde instellingen alleen bij gesplitste of zeer korte cycli, en niet opnieuw voor oude cycli.",
-                "fr": "Modifié : réglages suggérés seulement pour les cycles divisés ou très courts, et plus pour les anciens cycles.",
-                "it": "Modificato: impostazioni consigliate solo per cicli divisi o molto brevi, e non di nuovo per i cicli vecchi.",
-                "es": "Cambiado: ajustes sugeridos solo con ciclos divididos o muy cortos, y no de nuevo para ciclos antiguos.",
-                "pl": "Zmieniono: sugerowane ustawienia tylko przy podzielonych lub bardzo krótkich cyklach i nie ponownie dla starych cykli.",
-                "uk": "Змінено: рекомендовані налаштування лише при розділених або дуже коротких циклах і не повторно для старих циклів.",
-                "zh-cn": "变更：仅在周期被拆分或非常短时才给出建议设置，且不再为旧周期重复提示。"
+                "en": "Changed: suggested settings only when cycles were split or very short, and not again for old cycles. New: delete button in the review list.",
+                "de": "Geändert: Empfohlene Einstellungen nur bei geteilten oder sehr kurzen Zyklen und nicht erneut für alte Zyklen. Neu: Löschen-Button in der Lernkontrolle.",
+                "ru": "Изменено: рекомендуемые настройки только при разделённых или очень коротких циклах и не повторно для старых циклов. Новое: кнопка удаления в списке проверки.",
+                "pt": "Alterado: configurações sugeridas só para ciclos divididos ou muito curtos, e não de novo para ciclos antigos. Novo: botão de excluir na lista de revisão.",
+                "nl": "Gewijzigd: voorgestelde instellingen alleen bij gesplitste of zeer korte cycli, en niet opnieuw voor oude cycli. Nieuw: verwijderknop in de controlelijst.",
+                "fr": "Modifié : réglages suggérés seulement pour les cycles divisés ou très courts, et plus pour les anciens cycles. Nouveau : bouton de suppression dans la liste de contrôle.",
+                "it": "Modificato: impostazioni consigliate solo per cicli divisi o molto brevi, e non di nuovo per i cicli vecchi. Nuovo: pulsante di eliminazione nell'elenco di controllo.",
+                "es": "Cambiado: ajustes sugeridos solo con ciclos divididos o muy cortos, y no de nuevo para ciclos antiguos. Nuevo: botón de eliminar en la lista de revisión.",
+                "pl": "Zmieniono: sugerowane ustawienia tylko przy podzielonych lub bardzo krótkich cyklach i nie ponownie dla starych cykli. Nowe: przycisk usuwania na liście kontroli.",
+                "uk": "Змінено: рекомендовані налаштування лише при розділених або дуже коротких циклах і не повторно для старих циклів. Нове: кнопка видалення у списку перевірки.",
+                "zh-cn": "变更：仅在周期被拆分或非常短时才给出建议设置，且不再为旧周期重复提示。 新增：审核列表中的删除按钮。"
             },
             "0.7.1": {
                 "en": "New: optional end power threshold per device. Fix: recipient \"All (broadcast)\" showed an empty field.",
